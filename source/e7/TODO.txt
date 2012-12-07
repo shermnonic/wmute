@@ -1,0 +1,23 @@
+TODO
+====
+
+Updated: August 8, 2010
+Status: (o) open, (w) work-in-progress, (X) done
+
+ o  Check memory deallocation in GL classes
+ o  Python scripting support
+ o  Texture support
+ o  Add shader source path CMake variable which can be used as default shader
+    search path during development (avoid manual working directory specification)
+ o  Media support via libavbin (Video+Audio)
+ o  Resource manager for textures and shaders
+
+
+Ideas:
+
+* Shader preprocessor w/ good C++ integration:
+
+   - automatically parse in/out resp. sampler/uniform/varying variables
+   - automatically parse custom preprocessor macros (like <__opt_WIDTH>)
+   - store parsed result in appropriate maps using the corresponding name as key
+   - look into GL3 shader semantic
