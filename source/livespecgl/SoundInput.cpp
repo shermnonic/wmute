@@ -73,6 +73,7 @@ bool SoundInput::setupDevice()
 	}
 	
 	printBASSInfo();
+	return true;
 }
 
 void SoundInput::shutdownDevice()
@@ -107,6 +108,7 @@ bool SoundInput::openFile( const char* filename )
 
 	m_stream = (DWORD)stream;
 	m_mode = StreamInput;
+	return true;
 }
 
 bool SoundInput::openInput()
@@ -128,4 +130,5 @@ bool SoundInput::openInput()
 
 	m_stream = rec;
 	m_mode = RecordInput;
+	return true;
 }
