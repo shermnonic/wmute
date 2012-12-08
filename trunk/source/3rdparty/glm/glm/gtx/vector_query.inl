@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-// OpenGL Mathematics Copyright (c) 2005 - 2010 G-Truc Creation (www.g-truc.net)
+// OpenGL Mathematics Copyright (c) 2005 - 2012 G-Truc Creation (www.g-truc.net)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Created : 2007-03-05
 // Updated : 2010-02-16
@@ -12,132 +12,153 @@
 
 #include <cassert>
 
-namespace glm{
-namespace gtx{
-namespace vector_query
+namespace glm
 {
 	template <typename T>
-	inline bool areCollinear(
-		const detail::tvec2<T>& v0, 
-		const detail::tvec2<T>& v1, 
-		const T epsilon)
+	GLM_FUNC_QUALIFIER bool areCollinear
+	(
+		detail::tvec2<T> const & v0, 
+		detail::tvec2<T> const & v1, 
+		typename detail::tvec2<T>::value_type const & epsilon
+	)
 	{
 		return length(cross(detail::tvec3<T>(v0, T(0)), detail::tvec3<T>(v1, T(0)))) < epsilon;
 	}
 
 	template <typename T>
-	inline bool areCollinear(
-		const detail::tvec3<T>& v0, 
-		const detail::tvec3<T>& v1, 
-		const T epsilon)
+	GLM_FUNC_QUALIFIER bool areCollinear
+	(
+		detail::tvec3<T> const & v0, 
+		detail::tvec3<T> const & v1, 
+		typename detail::tvec3<T>::value_type const & epsilon
+	)
 	{
 		return length(cross(v0, v1)) < epsilon;
 	}
 
 	template <typename T>
-	inline bool areCollinear(
-		const detail::tvec4<T>& v0, 
-		const detail::tvec4<T>& v1, 
-		const T epsilon)
+	GLM_FUNC_QUALIFIER bool areCollinear
+	(
+		detail::tvec4<T> const & v0, 
+		detail::tvec4<T> const & v1, 
+		typename detail::tvec4<T>::value_type const & epsilon
+	)
 	{
 		return length(cross(detail::tvec3<T>(v0), detail::tvec3<T>(v1))) < epsilon;
 	}
 
 	template <typename genType>
-	inline bool areOpposite(
-		const genType& v0, 
-		const genType& v1, 
-		const GLMvalType epsilon)
+	GLM_FUNC_QUALIFIER bool areOrthogonal
+	(
+		genType const & v0, 
+		genType const & v1, 
+		typename genType::value_type const & epsilon
+	)
 	{
-		assert(isNormalized(v0) && isNormalized(v1));
-        return((genType::value_type(1) + dot(v0, v1)) <= epsilon);
+		return abs(dot(v0, v1)) <= max(
+			typename genType::value_type(1), 
+			length(v0)) * max(
+				typename genType::value_type(1), 
+				length(v1)) * epsilon;
 	}
 
-	template <typename genType>
-	inline bool areOrthogonal(
-		const genType& v0, 
-		const genType& v1, 
-		const GLMvalType epsilon)
+	template <typename genType, template <typename> class vecType> 
+	GLM_FUNC_QUALIFIER bool isNormalized
+	(
+		vecType<genType> const & v, 
+		genType const & epsilon
+	)
 	{
-		return abs(dot(v0, v1)) <= max(GLMvalType(1), length(v0)) * max(GLMvalType(1), length(v1)) * epsilon;
+		return abs(length(v) - genType(1)) <= genType(2) * epsilon;
 	}
 
-	template <typename genType> 
-	inline bool isNormalized(
-		const genType& v, 
-		const GLMvalType epsilon)
-	{
-		return abs(length(v) - GLMvalType(1)) <= GLMvalType(2) * epsilon;
-	}
-
-	template <typename genType> 
-	inline bool isNull(const genType& v, const GLMvalType epsilon)
+	template <typename valType> 
+	GLM_FUNC_QUALIFIER bool isNull
+	(
+		detail::tvec2<valType> const & v, 
+		valType const & epsilon
+	)
 	{
 		return length(v) <= epsilon;
 	}
 
-    template <typename T> 
-    inline bool isCompNull(
-		const T s, 
-		const T epsilon)
-    {
-        return abs(s) < epsilon;
-    }
+	template <typename valType> 
+	GLM_FUNC_QUALIFIER bool isNull
+	(
+		detail::tvec3<valType> const & v, 
+		valType const & epsilon
+	)
+	{
+		return length(v) <= epsilon;
+	}
 
-    template <typename T> 
-    inline detail::tvec2<bool> isCompNull(
-		const detail::tvec2<T>& v, 
-		const T epsilon)
-    {
-        return detail::tvec2<bool>(
-            (abs(v.x) < epsilon),
-            (abs(v.y) < epsilon));
-    }
+	template <typename valType> 
+	GLM_FUNC_QUALIFIER bool isNull
+	(
+		detail::tvec4<valType> const & v, 
+		valType const & epsilon
+	)
+	{
+		return length(v) <= epsilon;
+	}
 
-    template <typename T> 
-    inline detail::tvec3<bool> isCompNull(
-		const detail::tvec3<T>& v, 
-		const T epsilon)
-    {
-        return detail::tvec3<bool>(
-            abs(v.x) < epsilon,
-            abs(v.y) < epsilon,
-            abs(v.z) < epsilon);
-    }
+	template <typename T> 
+	GLM_FUNC_QUALIFIER bool isCompNull
+	(
+		T const & s, 
+		T const & epsilon
+	)
+	{
+		return abs(s) < epsilon;
+	}
 
-    template <typename T> 
-    inline detail::tvec4<bool> isCompNull(
-		const detail::tvec4<T>& v, 
-		const T epsilon)
-    {
-        return detail::tvec4<bool>(
-            abs(v.x) < epsilon,
-            abs(v.y) < epsilon,
-            abs(v.z) < epsilon,
-            abs(v.w) < epsilon);
-    }
+	template <typename T> 
+	GLM_FUNC_QUALIFIER detail::tvec2<bool> isCompNull
+	(
+		detail::tvec2<T> const & v, 
+		T const & epsilon)
+	{
+		return detail::tvec2<bool>(
+			(abs(v.x) < epsilon),
+			(abs(v.y) < epsilon));
+	}
+
+	template <typename T> 
+	GLM_FUNC_QUALIFIER detail::tvec3<bool> isCompNull
+	(
+		detail::tvec3<T> const & v, 
+		T const & epsilon
+	)
+	{
+		return detail::tvec3<bool>(
+			abs(v.x) < epsilon,
+			abs(v.y) < epsilon,
+			abs(v.z) < epsilon);
+	}
+
+	template <typename T> 
+	GLM_FUNC_QUALIFIER detail::tvec4<bool> isCompNull
+	(
+		detail::tvec4<T> const & v, 
+		T const & epsilon
+	)
+	{
+		return detail::tvec4<bool>(
+			abs(v.x) < epsilon,
+			abs(v.y) < epsilon,
+			abs(v.z) < epsilon,
+			abs(v.w) < epsilon);
+	}
 
 	template <typename genType>
-	inline bool areOrthonormal(
-		const genType& v0, 
-		const genType& v1, 
-		const GLMvalType epsilon)
+	GLM_FUNC_QUALIFIER bool areOrthonormal
+	(
+		genType const & v0, 
+		genType const & v1, 
+		typename genType::value_type const & epsilon
+	)
 	{
 		return isNormalized(v0, epsilon) && isNormalized(v1, epsilon) && (abs(dot(v0, v1)) <= epsilon);
 	}
 
-	template <typename genType>
-	inline bool areSimilar(
-		const genType& v0, 
-		const genType& v1, 
-		const GLMvalType epsilon)
-	{
-		bool similar = true;
-        for(typename genType::size_type i = 0; similar && i < genType::value_size(); i++)
-			similar = (abs(v0[i] - v1[i]) <= epsilon);
-		return similar;
-	}
-
-}//namespace vector_query
-}//namespace gtx
 }//namespace glm
