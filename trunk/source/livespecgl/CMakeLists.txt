@@ -7,7 +7,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/WintermuteCommon.cmake)
 # libs
 find_package(OpenGL REQUIRED)
 find_package(GLUT   REQUIRED)
-#find_package(GLEW   REQUIRED)
+find_package(GLEW   REQUIRED)
 
 set(BASS_INCLUDE_PATH "${WINTERMUTE_3RDPARTY_LIBS_PATH}/bass"  CACHE PATH     "BASS include path")
 set(BASS_LIBRARY      "${BASS_INCLUDE_PATH}/bass.lib"          CACHE FILEPATH "BASS library")
@@ -17,6 +17,7 @@ set(GLM_INCLUDE_DIR  "${WINTERMUTE_3RDPARTY_LIBS_PATH}/glm"    CACHE PATH "glm i
 set(GLUTILS_PATH     "${WINTERMUTE_GLUTILS_PATH}"              CACHE PATH "path to authors custom glutils")
 
 include_directories(
+	${GLEW_INCLUDE_DIR}
 	${GLUT_INCLUDE_DIR}
 	${BASS_INCLUDE_PATH}
 	${GLM_INCLUDE_DIR}
@@ -29,8 +30,11 @@ add_executable(livespecgl
 	SoundInput.h
 	MonroPressingPhaseSpace.cpp
 	MonroPressingPhaseSpace.h
-	${GLUTILS_PATH}/Trackball2.cpp
-	${GLUTILS_PATH}/Trackball2.h
+	IlluminatedLinesRenderer.cpp
+	IlluminatedLinesRenderer.h
+	${WINTERMUTE_GLUTILS_SOURCES}
+	#${GLUTILS_PATH}/glutils/Trackball2.cpp
+	#${GLUTILS_PATH}/glutils/Trackball2.h
 )
 
 add_executable(beatdetect
@@ -38,14 +42,13 @@ add_executable(beatdetect
 )
 
 target_link_libraries(beatdetect
-#	${GLEW_LIBRARY}
 	${OPENGL_LIBRARY}
 	${GLUT_LIBRARIES}
 	${BASS_LIBRARY}
 )
 
 target_link_libraries(livespecgl
-#	${GLEW_LIBRARY}
+	${GLEW_LIBRARY}
 	${OPENGL_LIBRARY}
 	${GLUT_LIBRARIES}
 	${BASS_LIBRARY}

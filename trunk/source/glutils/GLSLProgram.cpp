@@ -215,6 +215,15 @@ string GLSLProgram::getProgramLog( GLuint program )
 	return ss.str();
 }
 
+std::string GLSLProgram::getShaderType( GLuint shader )
+{
+	if( shader==m_vShader ) return "Vertex Shader"; else
+	if( shader==m_fShader ) return "Fragment Shader"; else
+	if( shader==m_gShader ) return "Geometry Shader";
+
+	return "(Unknown shader)";
+}
+
 bool GLSLProgram::compileShader( GLuint shader )
 {
 	int compileSuccess;
@@ -224,7 +233,9 @@ bool GLSLProgram::compileShader( GLuint shader )
 	
 	if( !compileSuccess )
 	{
-		*m_log << getShaderLog( shader ) << endl;
+		*m_log << "Compilation of " << getShaderType(shader) << " failed!\n";
+		*m_log << "Shader compilation log:\n"
+		       << getShaderLog( shader ) << endl;
 		return false;
 	}
 	
@@ -239,7 +250,9 @@ bool GLSLProgram::linkProgram( GLuint program )
 	glGetProgramiv( program, GL_LINK_STATUS, &linkSuccess );
 	if( !linkSuccess )
 	{
-		*m_log << getProgramLog( program ) << endl;
+		*m_log << "Linking shader program failed!\n"
+			   << "Program log:\n"
+		       << getProgramLog( program ) << endl;
 		return false;
 	}
 	

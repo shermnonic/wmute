@@ -3,7 +3,6 @@
 
 void MonroPressingPhaseSpace::pollWaveSamples( short* samples, int n )
 {	
-	const int DIM = 3;
 	int numUsableSamples = n - (DIM-1)*m_phaseShift;
 	
 	// Point buffer should be at least twice as large as sample buffer
@@ -32,4 +31,34 @@ void MonroPressingPhaseSpace::pollWaveSamples( short* samples, int n )
 		}
 	}
 	m_pointBufferOfs = ofs%N;
+
+	// re-compute tangents
+	updateTangents();
+}
+
+float* MonroPressingPhaseSpace::getTangentBuffer()
+{
+	if( m_tangentBuffer.size() != m_pointBuffer.size() )
+		updateTangents();
+	return &m_tangentBuffer[0];
+}
+
+void MonroPressingPhaseSpace::updateTangents()
+{
+	// number of points
+	int n = m_pointBuffer.size()/3;
+	m_tangentBuffer.resize( 3*n );
+	
+	for( int i=0; i < n-1; ++i )
+	{
+		// tangent(i) = point(i+1) - point(i)
+		for( int d=0; d < DIM; ++d )
+			m_tangentBuffer[i*DIM+d] = 
+				m_pointBuffer[(i+1)*DIM+d] - m_pointBuffer[i*DIM+d];
+	}
+
+	// special treatment of last point
+	// simply assign same tangent as previous one
+	for( int d=0; d < DIM; ++d )
+		m_tangentBuffer[(n-1)*DIM+d] = m_tangentBuffer[(n-2)*DIM+d];
 }
