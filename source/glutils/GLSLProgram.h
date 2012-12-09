@@ -68,6 +68,8 @@ public:
 protected:
 	std::ostream* m_log;  ///< pointer to output stream used for log messages
 
+	std::string getShaderType( GLuint shader );
+
 private:
 	int m_opt; ///< options bitmask as passed to the constructor
 

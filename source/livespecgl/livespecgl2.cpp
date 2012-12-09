@@ -4,6 +4,7 @@
 // - added SoundInput wrapper for BASS
 // - removed bass_fx dependency (lowpass filter was not working)
 #include <cstdlib> // atexit()
+#include <GL/glew.h>
 #include <GL/glut.h>
 #include <iostream>
 #include <cmath>
@@ -17,11 +18,12 @@
 // sense for code portability to uncomment it.
 #define USE_TRACKBALL
 #ifdef USE_TRACKBALL
-#include "Trackball2.h"
+#include <glutils/Trackball2.h>
 #endif
 
 #include "SoundInput.h"
 #include "MonroPressingPhaseSpace.h"
+#include "IlluminatedLinesRenderer.h"
 
 
 const char usage[] = "\
@@ -39,7 +41,10 @@ Keys:\n\
 	a    toggle rotation        \n\
 	\n\
 	#    toggle phase space update \n\
+	+    cycle through shaders  \n\
+	\n\
 	<space> pause music         \n\
+	<esc>   exit                \n\
 ";
 
 
@@ -53,11 +58,66 @@ std::vector<float>      g_colors;
 
 MonroPressingPhaseSpace g_pspace;
 SoundInput              g_sound;
+IlluminatedLinesRenderer g_ilren;
+IlluminatedLinesShader  g_ilshader;
+TangentColorShader      g_tanshader;
 
 #ifdef USE_TRACKBALL
 Trackball2              g_trackball;
 #endif
 
+// init is called with valid GL context
+bool init()
+{
+	if( !g_tanshader.init() ) return false;
+	if( !g_ilshader.init() ) return false;
+
+	glEnable( GL_LINE_SMOOTH );
+	glLineWidth( 1.2f );
+	glEnable( GL_POINT_SMOOTH );
+	glPointSize( 2.3f );
+	glEnable( GL_BLEND );
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA ); 
+	glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
+	glHint( GL_POINT_SMOOTH_HINT, GL_NICEST );
+
+	return true;
+}
+
+void destroy()
+{
+	g_ilshader.deinit();
+	g_tanshader.deinit();
+}
+
+// leave musicFile empty to use line/microphone source
+int setup_sound( std::string musicFile )
+{
+	using namespace std;
+
+	if( !g_sound.setupDevice() )
+		return -1;
+
+	if( !musicFile.empty() )
+	{
+		// Use mp3 file as input and play it as well
+		if( !g_sound.openFile(musicFile.c_str()) )
+			return -2;
+		
+		cout << ">>>>>>> Playing \"" << musicFile << "\"\n" << endl;
+	}
+	else
+	{
+		// Record input from any source (e.g. microphone)
+		if( !g_sound.openInput() )
+			return -3;
+
+		cout << ">>>>>>> Recording input\n" << endl;
+	}
+
+	// Start playback or recording (although not required for recording?)
+	g_sound.startInput();
+}
 
 void rainbow( int j, int n, float& r, float& g, float &b )
 {
@@ -157,17 +217,33 @@ void draw_phaseSpace( int mode=0 )
 		case 1 : prim = GL_LINE_STRIP; break;
 		case 2 : prim = GL_LINES; break;
 	}
-	
-	glEnableClientState( GL_VERTEX_ARRAY );
-	if( g_keys['C'] ) 
+
+	if( g_keys['C'] ) {
 		glEnableClientState( GL_COLOR_ARRAY );		
+		glColorPointer( 4, GL_FLOAT, 0, &g_colors[0] );
+	}
+
+#if 1
+	glEnableClientState( GL_NORMAL_ARRAY );
+	glNormalPointer( GL_FLOAT, 0, g_pspace.getTangentBuffer() );
+	glEnableClientState( GL_VERTEX_ARRAY );
+	glVertexPointer( 3, GL_FLOAT, 0, g_pspace.getPointBuffer() );
+	glDrawArrays( prim, 0, g_pspace.getNumPoints() );
+	glDisableClientState( GL_VERTEX_ARRAY );
+	glDisableClientState( GL_NORMAL_ARRAY );
+	glDisableClientState( GL_COLOR_ARRAY );
+#else
+	glEnableClientState( GL_VERTEX_ARRAY );	
 	glVertexPointer( 3, GL_FLOAT, 0, g_pspace.getPointBuffer() );	
-	glColorPointer( 4, GL_FLOAT, 0, &g_colors[0] );
+	
 	glDrawArrays( prim, g_pspace.getStartPoint(), g_pspace.getLenFront() );	
+
 	glColorPointer( 4, GL_FLOAT, 0, &g_colors[4*g_pspace.getLenFront()] );
 	glDrawArrays( prim, 0, g_pspace.getLenBack() );
+
 	glDisableClientState( GL_VERTEX_ARRAY );
 	glDisableClientState( GL_COLOR_ARRAY );
+#endif
 }
 
 float orthoOn()
@@ -204,10 +280,10 @@ void draw_playbackProgress()
 	glLoadIdentity();
 	glColor3f( 1,1,1 );
 	glBegin( GL_QUADS );
-	glVertex2f( -asp,-.9 );
+	glVertex2f( -asp,-.95 );
 	glVertex2f( -asp,-1. );
 	glVertex2f( -asp+2.*asp*t,-1. );
-	glVertex2f( -asp+2.*asp*t,-.9 );
+	glVertex2f( -asp+2.*asp*t,-.95 );
 	glEnd();
 
 	orthoOff();
@@ -217,7 +293,7 @@ void draw_waveform( short* buf, int n )
 {
 	float asp = orthoOn();
 	const float y0 = 0.95f;
-	const float height = .3f;
+	const float height = .15f;
 
 	// draw limits min,max,mean
 	glColor3f( .3, .3, .3 );
@@ -302,13 +378,29 @@ void display()
 	static int mode=0;
 	if( g_keys['m'] ) { mode++; mode%=4; g_keys['m']=false; }
 
+	static int shader = 0;
+	if( g_keys['+'] ) { shader = (shader+1)%2; g_keys['+']=false; }
+	switch( shader ) 
+	{
+	case 1: g_ilshader.bind(); break;
+	case 2:	g_tanshader.bind();  break;
+	}
+
 	draw_phaseSpace( mode%3 );
 	if( mode==3 ) draw_phaseSpace( 1 );
 
-	// draw progress when playing from file
-	draw_playbackProgress();
+	// release any shader
+	glUseProgram( 0 );
 
-	draw_waveform( &g_buf[0], BUFLEN );
+
+	if( !g_keys['h'] )
+	{
+		// draw progress at bottom (when playing from file)
+		draw_playbackProgress();
+
+		// draw waveform at top
+		draw_waveform( &g_buf[0], BUFLEN );
+	}
 
 	glutSwapBuffers();
 }
@@ -330,8 +422,8 @@ void reshape( GLint w, GLint h )
 
 void onexit()
 {
-	using namespace std;
-	cout << "cu" << endl;
+	destroy();
+	std::cout << "Bye!\n";
 }
 
 void keyboard( unsigned char key, int x, int y )
@@ -384,6 +476,8 @@ int main( int argc, char* argv[] )
 {
 	using namespace std;
 
+	cout << usage << endl;
+
 	// --- options ---
 	string musicFile;  // play this mp3 instead of record input from microphone
 
@@ -411,29 +505,9 @@ int main( int argc, char* argv[] )
 	}
 
 	// --- setup sound input ---
-
-	if( !g_sound.setupDevice() )
-		return -1;
-
-	if( !musicFile.empty() )
-	{
-		// Use mp3 file as input and play it as well
-		if( !g_sound.openFile(musicFile.c_str()) )
-			return -2;
-		
-		cout << "Playing \"" << musicFile << "\"" << endl;
-	}
-	else
-	{
-		// Record input from any source (e.g. microphone)
-		if( !g_sound.openInput() )
-			return -3;
-
-		cout << "Recording input" << endl;
-	}
-
-	// Start playback or recording (although not required for recording?)
-	g_sound.startInput();
+	int err = setup_sound( musicFile );
+	if( err < 0 )
+		return err;
 
 	// --- setup GLUT ---
 	glutInit( &argc, argv );
@@ -448,20 +522,27 @@ int main( int argc, char* argv[] )
 	glutMouseFunc   ( mouse );
 	glutMotionFunc  ( motion );
 
-	glEnable( GL_LINE_SMOOTH );
-	glLineWidth( 1.2f );
-	glEnable( GL_POINT_SMOOTH );
-	glPointSize( 2.3f );
-	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA ); 
-	glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
-	glHint( GL_POINT_SMOOTH_HINT, GL_NICEST );
+	// --- setup GLEW ---
+	glewExperimental = GL_TRUE;	
+	GLenum glew_err = glewInit();
+	if( glew_err != GLEW_OK )
+	{
+		std::cerr << "GLEW error:" << glewGetErrorString(glew_err) << std::endl;
+		throw std::runtime_error( "Error on initializing GLEW library!" );
+	}
 
+
+	// Register exit callback
 	atexit( onexit );
 
-	update(0);
+	// User init
+	if( !init() )
+	{
+		return -1;
+	}
 
-	cout << usage << endl;
+	// Initial update
+	update(0);	
 
 	glutMainLoop();	
 	return 0;

@@ -1,6 +1,6 @@
 #include "Screenshot2.h"
 #include <GL/glew.h>
-#include <GL/GLError.h>
+#include <glutils/GLError.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
