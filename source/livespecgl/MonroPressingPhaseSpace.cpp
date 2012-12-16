@@ -3,6 +3,9 @@
 
 void MonroPressingPhaseSpace::pollWaveSamples( short* samples, int n )
 {	
+	if( n<=0 )
+		return;
+
 	int numUsableSamples = n - (DIM-1)*m_phaseShift;
 	
 	// Point buffer should be at least twice as large as sample buffer
@@ -21,9 +24,13 @@ void MonroPressingPhaseSpace::pollWaveSamples( short* samples, int n )
 		{
 			// normalized sample in [-1,1]
 			float v = (float)samples[i+ d * m_phaseShift] / (.5f*65536.f);
+
+			// decibels 
+			float sign = (v > 0.0) ? 1.0 : -1.0;
+			v = log(1+fabs(v));
 			
 			// insert into buffer, wrapping around at beginning if required
-			m_pointBuffer[ofs%N+d] = m_scale * v;
+			m_pointBuffer[ofs%N+d] = m_scale * sign * v;
 
 			// float x=v[0], y=v[1];
 			//v[0] = log(x+0.5); //1.f/x*x*x;
