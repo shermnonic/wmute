@@ -8,6 +8,7 @@
 #include <GL/glut.h>
 #include <iostream>
 #include <cmath>
+#include <ctime>		// time()
 #include <vector>
 #include <string>
 #ifndef M_PI
@@ -20,6 +21,8 @@
 #ifdef USE_TRACKBALL
 #include <glutils/Trackball2.h>
 #endif
+
+#include "gl2ps.h";
 
 #include "SoundInput.h"
 #include "MonroPressingPhaseSpace.h"
@@ -172,11 +175,8 @@ void update( int data )
 		g_sound.pollSampleData( &buf[K_MAX], (BUFLEN-K_MAX) );
 
 	// playback controls
-	if( g_keys[' '] )
-	{
-		g_sound.togglePause();
-		g_keys[' '] = false;
-	}
+	if( g_keys[' '] ) { g_sound.togglePause(); g_keys[' '] = false;	}
+	if( g_keys['R'] ) {	g_sound.restart();     g_keys['R'] = false;	}
 
 	// update phase space
 	if( !g_keys['#'] )
@@ -307,19 +307,26 @@ void draw_waveform( short* buf, int n )
 	glEnd();
 
 	// draw waveform
+	enum WaveformType { Wavelab, Wavegraph } waveType = Wavegraph;
 	glColor3f( 1,1,1 );
-	glBegin( GL_LINE_STRIP );
+	glLineWidth( 1.2f );
+	glBegin( (waveType==Wavelab) ? GL_TRIANGLE_STRIP : GL_LINE_STRIP );
 	for( int i=0; i < n; i++ )
 	{
-		// sample in [0,1]
-		float sample = (float)buf[i] / 65536.f + .5f;
-		// scale non-linearly an shiftscale to [-.5,.5]		
-		sample = sample - .5f; //sqrt(sample) - .5f;
+		// sample in [-1,1]
+		float sample = (float)buf[i] / (.5f*65536.f);
+
+		// decibels 
+		float sign = (sample > 0.0) ? 1.0 : -1.0;
+		sample = log(1+fabs(2*sample));
+
 		float dx = i / (float)(n-1),
-			  dy = sample;
+			  dy = sign*sample;
 
 		//glColor3fv( &g_colors[4*i] );
 		glVertex2f( -asp+2.f*asp*dx, y0-.5f*height + height*dy );
+		if( waveType==Wavelab )
+			glVertex2f( -asp+2.f*asp*dx, y0-.5f*height );
 	}
 	glEnd();
 
@@ -354,7 +361,7 @@ void display()
 	if( g_keys['l'] ) { lineWidth*=0.9; g_keys['l']=false; }
 	glLineWidth( lineWidth );
 
-	glClearColor( 0,0,0,1 );
+	if( !g_keys['W'] ) glClearColor( 0,0,0,1 ); else glClearColor( 1,1,1,1 );
 	glClear( GL_COLOR_BUFFER_BIT );
 	glColor4f( 1,1,1,0.6 );
 
@@ -405,6 +412,43 @@ void display()
 	glutSwapBuffers();
 }
 
+#define IMG_PREFIX "livespecgl2"
+void export_PS()
+{
+	FILE *fp;
+	int state = GL2PS_OVERFLOW, buffsize = 0;
+	
+	time_t seconds = time(NULL);
+	
+	char filename[1024];
+	sprintf( filename, "%s-%d.pdf", IMG_PREFIX, seconds );
+	
+	fp = fopen( filename, "wb" );
+	if( !fp )
+	{
+		std::cerr << "Couldn't open file '" << filename << "'!\n";
+		return;
+	}
+
+	printf( "Generating Postscript output...\n" );
+    while( state == GL2PS_OVERFLOW )
+	{
+      buffsize += 1024*1024;
+	  gl2psLineWidth( 1 );
+      gl2psBeginPage( IMG_PREFIX, "www.386dx25.de", 
+		             NULL, GL2PS_PDF, GL2PS_BSP_SORT, 
+                     GL2PS_USE_CURRENT_VIEWPORT | GL2PS_NO_BLENDING | 
+					 GL2PS_OCCLUSION_CULL | GL2PS_NO_PS3_SHADING, // | GL2PS_DRAW_BACKGROUND
+                     GL_RGBA, 0, NULL, 0, 0, 0,  buffsize, fp, filename );
+      
+	  display();
+	  
+      state = gl2psEndPage();
+    }
+    fclose(fp);
+    printf( "Current GL-Viewport exportet to %s\n", filename );
+}
+
 void reshape( GLint w, GLint h )
 {
 	float asp = (float)w/h;
@@ -433,6 +477,10 @@ void keyboard( unsigned char key, int x, int y )
 		case 27:
 		case 'q':
 			exit(0);
+			break;
+
+		case 'E':
+			export_PS();
 			break;
 
 		default:

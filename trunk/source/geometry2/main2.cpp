@@ -383,11 +383,14 @@ void export_ps()
 					 GL2PS_OCCLUSION_CULL | GL2PS_NO_PS3_SHADING, // | GL2PS_DRAW_BACKGROUND
                      GL_RGBA, 0, NULL, 0, 0, 0,  buffsize, fp, filename);
       //frame();
+	#if 0
+	  // FIXME: PS text output not working.
 	  char info[1024]; sprintf( info, "Platonic X=%.8f, Z=%.8f", 
 		  g_ico.getPlatonicConstantsX(), g_ico.getPlatonicConstantsZ() );
 	  glRasterPos2i( 50, 50 );
 	  glColor3f( 1,0,0 );
 	  gl2psText( info, "Helvetica", 11 );
+	#endif
 	  draw_immediate( &g_ico, toggle['c'] ? &g_colors[0] : NULL );
       state = gl2psEndPage();
     }

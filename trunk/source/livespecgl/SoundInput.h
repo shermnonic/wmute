@@ -55,6 +55,16 @@ public:
 			m_pause = !m_pause;
 		}
 	}
+
+	/// Restart music playback (from beginning of sound file)
+	void restart()
+	{
+		if( m_mode==StreamInput ) 
+		{
+			BASS_ChannelPlay( m_stream, TRUE );
+			m_pause = false;
+		}
+	}
 	
 	// Return percentual playing position if playing from file
 	double getStreamProgress()

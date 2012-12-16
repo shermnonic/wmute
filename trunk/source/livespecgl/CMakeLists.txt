@@ -16,13 +16,20 @@ message(STATUS "BASS_LIBRARY=${BASS_LIBRARY}")
 set(GLM_INCLUDE_DIR  "${WINTERMUTE_3RDPARTY_LIBS_PATH}/glm"    CACHE PATH "glm include path")
 set(GLUTILS_PATH     "${WINTERMUTE_GLUTILS_PATH}"              CACHE PATH "path to authors custom glutils")
 
+set(GL2PS_SOURCE_DIR "${WINTERMUTE_3RDPARTY_LIBS_PATH}/gl2ps"  CACHE PATH "gl2ps source path")
+set(GL2PS_SOURCES ${GL2PS_SOURCE_DIR}/gl2ps.c ${GL2PS_SOURCE_DIR}/gl2ps.h)
+
 include_directories(
 	${GLEW_INCLUDE_DIR}
 	${GLUT_INCLUDE_DIR}
 	${BASS_INCLUDE_PATH}
 	${GLM_INCLUDE_DIR}
 	${GLUTILS_PATH}
+	${GL2PS_SOURCE_DIR}
 )
+
+source_group("gl2ps"   FILES ${GL2PS_SOURCES})
+source_group("glutils" FILES ${WINTERMUTE_GLUTILS_SOURCES})
 
 add_executable(livespecgl
 	livespecgl2.cpp
@@ -33,8 +40,7 @@ add_executable(livespecgl
 	IlluminatedLinesRenderer.cpp
 	IlluminatedLinesRenderer.h
 	${WINTERMUTE_GLUTILS_SOURCES}
-	#${GLUTILS_PATH}/glutils/Trackball2.cpp
-	#${GLUTILS_PATH}/glutils/Trackball2.h
+	${GL2PS_SOURCES}
 )
 
 add_executable(beatdetect
