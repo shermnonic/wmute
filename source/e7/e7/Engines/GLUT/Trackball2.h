@@ -9,6 +9,12 @@ class Trackball2
 {
 public:
 	enum Mode { None, Rotate, Translate, Zoom };
+
+	struct State {
+		float      zoom;
+		glm::fquat qrot;
+		glm::vec3  trans;
+	};
 	
 	Trackball2()
 	: m_mode( None ),
@@ -21,6 +27,24 @@ public:
 		m_cur_qrot = glm::fquat(1,0,0,0);
 	}
 	
+	State getState() const 
+	{
+		/* stop(); <- can not be called because of const requirement! */
+		State state;
+		state.zoom  = m_zoom;
+		state.qrot  = m_qrot;
+		state.trans = m_trans;
+		return state;
+	}
+
+	void setState( State s )
+	{
+		stop();
+		m_zoom  = s.zoom;
+		m_qrot  = s.qrot;
+		m_trans = s.trans;
+	}
+
 	void stop()
 	{
 		if( !m_immediateUpdate && m_mode == Rotate )

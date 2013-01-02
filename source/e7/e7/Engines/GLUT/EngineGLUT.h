@@ -16,6 +16,8 @@
 class EngineGLUT : public Engine
 {
 public:
+	typedef Trackball2::State TrackballState;
+
 	EngineGLUT();
 	virtual ~EngineGLUT();
 
@@ -40,6 +42,9 @@ protected:
 	void update();
 
 	void screenshot( std::string prefix="screenshot-", int width=-1, int height=-1 );
+
+	TrackballState getTrackballState() const { return m_trackball.getState(); }
+	void setTrackballState( TrackballState s ) { m_trackball.setState(s); }
 
 private:
 	void internal_init    ( int argc, char* argv[] );
