@@ -45,7 +45,8 @@
 // 0 - plain white
 // 1 - color warp strength in Red channel
 // 2 - custom warp strength coloring (see code below)
-#define COLORMODE 0
+// 3 - fancy coloring (add displacement to phong color)
+#define COLORMODE 3
 
 // Non-polygonal isosurface rendering with Phong shading
 // and intersection refinement
@@ -131,9 +132,21 @@ const vec3  light_pos = vec3(1,1,1);
 //~ const float mat_ka  = 0.04;  // ambient  coeff.
 //~ const float mat_ks  = 0.36;  // specular coeff.
 //~ const float mat_kd  = 0.6;   // diffuse  coeff.
-const float mat_ka  = 0.23;  // ambient  coeff.
-const float mat_ks  = 0.06;  // specular coeff.
-const float mat_kd  = 0.7;   // diffuse  coeff.
+//~ const float mat_phong_exp = 8.0;
+
+//~ const float mat_ka  = 0.23;  // ambient  coeff.
+//~ const float mat_ks  = 0.06;  // specular coeff.
+//~ const float mat_kd  = 0.7;   // diffuse  coeff.
+//~ const float mat_phong_exp = 5.8;
+
+const float mat_ka  = 0.1;  // ambient  coeff.
+const float mat_ks  = 0.94;  // specular coeff.
+const float mat_kd  = 0.54;   // diffuse  coeff.
+const float mat_phong_exp = 12;
+
+const vec3 col_ka = vec3(.8,.9,.8);
+const vec3 col_kd = vec3(.2,.2,.95);
+const vec3 col_ks = vec3(1,1,.3);
 
 #if WARP == 1
 //------------------------------------------------------------------------------
@@ -234,7 +247,7 @@ vec3 get_normal( vec3 x )
 //------------------------------------------------------------------------------
 // Compute phong illumation (n==normal at x, eye==vector from x to viewer)
 // TODO: check computation and constants, just copied from internet ;-)
-float phong( vec3 n, vec3 eye )
+vec3 phong( vec3 n, vec3 eye )
 {
 	float I = 1.0;
 	vec3 L = normalize( eye ); //light_pos + eye + vec3(-1,-0,-1) );
@@ -246,10 +259,10 @@ float phong( vec3 n, vec3 eye )
 	if( diff > 0.0 )
 	{
 		spec = max( dot(R,E), 0.7 );
-		spec = pow( spec, 5.8 ); //8.0 );
+		spec = pow( spec, mat_phong_exp );
 	}
 
-	return mat_ka + mat_ks*spec + mat_kd*diff;
+	return col_ka*mat_ka + col_ks*mat_ks*spec + col_kd*mat_kd*diff;
 }
 
 //------------------------------------------------------------------------------
@@ -340,8 +353,7 @@ void main(void)
 				ministep *= .5;
 			}
 
-			vec3 n = get_normal(ray_in+ray);
-			float li = phong( n, -dir );
+			vec3 n = get_normal(ray_in+ray);			
 		
 	#if SILHOUETTE == 1
 			if( abs(dot(n,-dir)) < 0.6 )
@@ -354,8 +366,9 @@ void main(void)
 			//~ dst.rgb = wlen;
 			vec3 disp = get_warp( ray_in+ray );
 			float disp_color_scale = 25.0;
-		  #if COLORMODE == 1
+		  #if COLORMODE == 1			
 			// encode warp strength in R channel
+			float li = phong( n, -dir ).x;
 			float imp = length( disp*disp_color_scale );
 			imp = clamp( imp, 0.0, 0.7 );
 			// li = clamp( li, 0.1, 1.0 );
@@ -363,6 +376,7 @@ void main(void)
 		  #elif COLORMODE == 2
 			// project displacement vector onto surface normal
 			// sign indicates if warp deforms deforms surface in- or outwards
+			float li = phong( n, -dir ).x;
 			float imp = dot( disp*disp_color_scale, n );
 			float imp_pos = imp;
 			float imp_neg = imp;
@@ -373,11 +387,13 @@ void main(void)
 			// red  = outwards warp
 			// blue = inwards warp
 			dst.rgb = vec3( .5+.5*imp_pos, .5, .5+.5*imp_neg );
+		  #elif COLORMODE == 3	
+		    dst.rgb = phong( n, -dir ) + disp;
 		  #else // COLORMODE == 0
-		    dst.rgb = vec3(1,1,1) * li;
+		    dst.rgb = phong( n, -dir );
 		  #endif
 		#else
-			dst.rgb = vec3(1,1,1) * li;
+			dst.rgb = phong( n, -dir );
 		#endif
 	#endif
 			dst.a   = 1;
@@ -399,7 +415,7 @@ void main(void)
 		}
 
 		#ifdef LIGHTING
-			float li = phong( get_normal(ray_in+ray), -dir );
+			float li = phong( get_normal(ray_in+ray), -dir ).x;
 		#else
 			float li = 1.0;
 		#endif
@@ -415,7 +431,7 @@ void main(void)
 		{
 			mip = intensity;
 		#ifdef LIGHTING
-			float li = phong( get_normal(ray_in+ray), -dir );
+			float li = phong( get_normal(ray_in+ray), -dir ).x;
 		#else
 			float li = 1.0;
 		#endif
@@ -425,7 +441,7 @@ void main(void)
 	 #endif
   #else
 	#ifdef LIGHTING
-		float li = phong( get_normal(ray_in+ray), -dir );
+		float li = phong( get_normal(ray_in+ray), -dir ).x;
 		dst.rgb = dst.rgb + (1-dst.a)*src.rgb * li;
 		dst.a   = dst.a   + (1-dst.a)*src.a;
 	#else

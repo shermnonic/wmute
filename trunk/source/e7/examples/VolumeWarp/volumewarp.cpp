@@ -40,7 +40,11 @@ class Raycaster : public MY_E7ENGINE
 {
 	struct State
 	{
-		void push( const Raycaster& rc, const VolumeRendererRaycast& vren )
+		State()
+			: fov(45)
+		{}
+
+		void get( const Raycaster& rc, const VolumeRendererRaycast& vren )
 		{
 			isovalue = vren.getIsovalue();
 
@@ -52,10 +56,11 @@ class Raycaster : public MY_E7ENGINE
 			alphaScale   = rs.get_alpha_scale();
 			stepSize     = rs.get_stepsize();
 			
-			fov          = rc.getFoV();
+			//fov          = rc.getFoV();
+			//trackball    = rc.getTrackballState();
 		}
 
-		void pop( Raycaster& rc, VolumeRendererRaycast& vren )
+		void set( Raycaster& rc, VolumeRendererRaycast& vren )
 		{
 			vren.setIsovalue( isovalue );
 
@@ -67,21 +72,38 @@ class Raycaster : public MY_E7ENGINE
 			rs.set_alpha_scale( alphaScale );
 			rs.set_stepsize( stepSize );
 
-			rc.setFoV( fov );
+			//rc.setFoV( fov );
+			//rc.setTrackballState( trackball );
 		}
 
 		// VolumeRendererRaycast
 		float isovalue;
 		// RaycastShader
-		int renderMode;
-		bool warpEnabled;
+		int   renderMode;
+		bool  warpEnabled;
 		float warpStrength;
 		float warpOfs[3];
 		float alphaScale;
 		float stepSize;
 		// Raycaster
 		float fov;
+		// Trackball (i.e. camera rotation, translation and zoom)
+		TrackballState trackball;
 	};
+
+	State interpolate( State s0, State s1, float t )
+	{
+		State s;
+		// linear interpolants
+		s.isovalue      = (1-t)*s0.isovalue     + t*s1.isovalue;
+		s.warpStrength  = (1-t)*s0.warpStrength + t*s1.warpStrength;
+		for( int d=0; d < 3; d++ )
+			s.warpOfs[d]= (1-t)*s0.warpOfs[d]   + t*s1.warpOfs[d];
+		s.alphaScale    = (1-t)*s0.alphaScale   + t*s1.alphaScale;
+		s.stepSize      = (1-t)*s0.stepSize     + t*s1.stepSize;
+		// TODO: camera interpolation
+		return s;
+	}	
 
 public:
 	Raycaster(): m_vol(NULL), m_animation(true), m_fov(45.0) {}
@@ -91,7 +113,8 @@ public:
 	void destroy();
 	void reshape( int w, int h );
 
-	void screenshot();
+	void screenshot( string filename="",int width=-1, int height=-1 );
+	void makeMovie();
 
 	float getFoV() const { return m_fov; }
 	void setFoV( float fov ) { m_fov = fov; reshape(-1,-1); }
@@ -109,6 +132,8 @@ private:
 
 	bool m_animation;
 	float m_fov;
+
+	State m_states[2];
 };
 
 // warp noise helper functions
@@ -160,13 +185,15 @@ void Raycaster::idle()
 //-----------------------------------------------------------------------------
 float sign( float a ) { return a < 0 ? -1.f : +1.f; }
 
-void Raycaster::screenshot()
+void Raycaster::screenshot( string filename, int width, int height )
 {
 #ifdef VOLUMEWARP_USE_QT
 	// FIXME: screenshot() currently not implemented in EngineQt!
 #else
-	int width  = SCREENSHOT_WIDTH, //4096, //2048,
-		height = SCREENSHOT_HEIGHT; //2048;
+	if( filename.empty() )
+		filename = autoName("vwarp-",".tga");
+	if( width==-1 ) width = SCREENSHOT_WIDTH;
+	if( height==-1) height= SCREENSHOT_HEIGHT;
 	
 	bool prevMode = m_vren.getOffscreen();
 	m_vren.setOffscreen( true );
@@ -180,7 +207,7 @@ void Raycaster::screenshot()
 	this->render();
 
 	m_vren.getR2T()->bind( m_vren.getOffscreenTexture() );
-	grabTGA( autoName("vwarp-",".tga"), false, width, height );
+	grabTGA( filename, false, width, height );
 	m_vren.getR2T()->unbind();
 
 	m_vren.setOffscreen( prevMode );
@@ -189,6 +216,39 @@ void Raycaster::screenshot()
 	m_vren.changeTextureSize( prevWidth, prevHeight );
   #endif
 #endif // else VOLUMEWARP_USE_QT
+}
+
+void Raycaster::makeMovie()
+{
+	string in;
+	cout << "Do you want to make a movie? [Y/N]? ";
+	cin >> in;
+	if( !in.empty() && in[0]=='Y' )
+	{
+		string prefix;
+		int nof, width, height;
+		cout << "Movie prefix: "; cin >> prefix;
+		cout << "Number of frames: "; cin >> nof;
+		cout << "Width: ";  cin >> width;
+		cout << "Height: "; cin >> height;
+
+		char filename[1000];
+		for( int i=0; i < nof; i++ )
+		{
+			printf("Rendering frame %8d / %8d\n",i+1,nof);
+
+			sprintf(filename,"%s-%08d.tga",prefix.c_str(),i);
+			screenshot(filename,width,height);
+
+			// interpolate state
+			float dt = i/(float)(nof-1);
+			State s = interpolate( m_states[0], m_states[1], dt );
+			s.set( *this, this->m_vren );
+
+			// render next frame
+			idle();
+		}
+	}
 }
 
 void Raycaster::onKeyPressed( unsigned char key )
@@ -220,8 +280,17 @@ void Raycaster::onKeyPressed( unsigned char key )
 	case '.': rs.set_warp_strength( ws - 0.01f ); break;
 	case ';': ews += 0.01f; rs.set_warp_strength( sign(ews) * ews*ews ); break;
 	case ':': ews -= 0.01f; rs.set_warp_strength( sign(ews) * ews*ews ); break;
-	case '0': rs.set_warp_strength( 0.f ); break;
-	case '1': ews = 0; rs.set_warp_strength( ews ); break;
+	//case '0': rs.set_warp_strength( 0.f ); break;
+	
+	case '!': m_states[0].get( *this, this->m_vren ); cout << "Saving state 1\n"; break;
+	case '"': m_states[1].get( *this, this->m_vren ); cout << "Saving state 2\n"; break;
+
+	case 'M': makeMovie(); break;
+	
+	case '1': m_states[0].set( *this, this->m_vren ); cout << "Loading state 1\n"; break;
+	case '2': m_states[1].set( *this, this->m_vren ); cout << "Loading state 2\n"; break;
+	
+	case 'R': ews = 0; rs.set_warp_strength( ews ); break;
 	case 'm': rs.cycle_rendermode(); rs.init(); break;
 	case '+': rs.set_alpha_scale( rs.get_alpha_scale() + 0.1f ); break;
 	case '-': rs.set_alpha_scale( rs.get_alpha_scale() - 0.1f ); break;
