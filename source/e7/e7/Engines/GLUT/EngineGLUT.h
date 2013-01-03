@@ -38,6 +38,7 @@ protected:
 	virtual int getMouseY() { return m_mousey; };
 
 	virtual void setFrequentUpdate( bool b ) { m_force_update = b; }
+	bool getFrequentUpdate() const { return m_force_update; }
 
 	void update();
 
