@@ -163,23 +163,26 @@ inline float wnoise_ridgedmf( int ch, float x, float y, float z )
 //-----------------------------------------------------------------------------
 void Raycaster::idle()
 {
-	if( !m_animation ) return;
+	//if( !m_animation ) return;
 
-	float dt = 0.01f; //get_time_delta();
-	static float t = 0.f;
-	t += dt;
+	if( m_animation )
+	{
+		float dt = 0.01f; //get_time_delta();
+		static float t = 0.f;
+		t += dt;
 
-	RaycastShader& rs = m_vren.getRaycastShader();
+		RaycastShader& rs = m_vren.getRaycastShader();
+	#if 0
+		float wanim = sin(t)*0.11f;
+		rs.set_warp_strength( wanim );
+	#else
+		float ofs[3];
+		rs.get_warp_ofs( ofs );
+		rs.set_warp_ofs( ofs[0]+dt, ofs[1]+dt, ofs[2]+dt );
+	#endif
 
-#if 0
-	float wanim = sin(t)*0.11f;
-	rs.set_warp_strength( wanim );
-#else
-	float ofs[3];
-	rs.get_warp_ofs( ofs );
-	rs.set_warp_ofs( ofs[0]+dt, ofs[1]+dt, ofs[2]+dt );
-#endif
-	update();
+		update();
+	}	
 }
 
 //-----------------------------------------------------------------------------
@@ -270,6 +273,9 @@ void Raycaster::onKeyPressed( unsigned char key )
 	case 'i': m_vren.setIsovalue( iso > 0.0f ? iso-0.01 : 0.01 ); break;
 	case 'I': m_vren.setIsovalue( iso < 1.0f ? iso+0.01 : 1.00 ); break;
 
+	case 'A': setFrequentUpdate( !getFrequentUpdate() ); 
+		      cout << "force_update = " << (getFrequentUpdate()?"true":"false") << "\n";
+	          break;
 	case 'a': m_animation = !m_animation; 
 	          cout << "animation " << (m_animation?"on":"off") << "\n"; 
 			  break;

@@ -161,6 +161,14 @@ void EngineGLUT::internal_idle()
 
 void EngineGLUT::internal_render()
 {
+	// limit to 60 fps
+	static int last_frame = 0;
+	int time = glutGet(GLUT_ELAPSED_TIME);
+	if( (time - last_frame) < 16.6f )
+		return;
+	last_frame = time;
+
+
 #ifdef USE_MICHAELS_TRACKBALL
 	// apply trackball camera
 	glLoadIdentity( );
