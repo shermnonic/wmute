@@ -14,6 +14,8 @@ public:
 	virtual ~VolumeRendererRaycast();
 
 	/// Initialize raycast shader (should only be called once, see also \a reinit_shader())
+	/// \param textWidth 	size of render texture
+	/// \param textHeight 	size of render texture
 	bool init( int texWidth=512, int texHeight=512 );
 	void destroy();
 

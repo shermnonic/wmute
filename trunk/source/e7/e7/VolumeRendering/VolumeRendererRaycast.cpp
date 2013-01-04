@@ -266,6 +266,7 @@ bool VolumeRendererRaycast::createRenderToTexture( int texWidth, int texHeight )
 		cerr << "Error: Couldn't init rendering to texture!" << endl;
 		return false;
 	}
+	return true;
 }
 
 void VolumeRendererRaycast::destroyRenderToTexture()

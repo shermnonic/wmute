@@ -28,6 +28,7 @@ public:
 		: m_shader      (NULL)
 		 ,m_rendermode  (RenderDirect)
 		 ,m_num_channels(1)
+		 ,m_colormode   (0)
 		 ,m_warp        (false)
 		 ,m_multiwarp   (false)
 		 ,m_meanwarp    (false)
@@ -71,6 +72,8 @@ public:
 		}
 	void  set_num_channels( int nc ) { m_num_channels = nc; }
 	int   get_num_channels() const { return m_num_channels; }
+	void  set_colormode( int mode ) { m_colormode = mode; }
+	int   get_colormode() const { return m_colormode; }
 	void  set_rendermode( int/*RenderMode*/ mode )
 		{
 			m_rendermode = mode;
@@ -151,6 +154,7 @@ private:
 	int  m_size[3];
 	int  m_rendermode;
 	int  m_num_channels;
+	int  m_colormode;
 	bool m_warp;
 	bool m_multiwarp;
 	bool m_meanwarp;
