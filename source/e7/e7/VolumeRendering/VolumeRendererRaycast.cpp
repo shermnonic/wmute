@@ -126,7 +126,7 @@ void VolumeRendererRaycast::setOffscreenTextureSize( int width, int height )
 	// Note:
 	// 8-bit per channel resolution leads to quantization artifacts so we
 	// currently use 12-bit per channel which should be hardware supported.
-	// For volume sizes greater than 1024 we should take an alternative
+	// For volume sizes greater than 4096 we should take an alternative
 	// approach to generate start/end positions.
 }
 
