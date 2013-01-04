@@ -90,6 +90,7 @@ bool RaycastShader::init( std::string fs_path, std::string vs_path )
 	string_replace( fs, "<__opt_WIDTH__>"   , string_from_number( m_size[0] ) );
 	string_replace( fs, "<__opt_HEIGHT__>"  , string_from_number( m_size[1] ) );
 	string_replace( fs, "<__opt_DEPTH__>"   , string_from_number( m_size[2] ) );
+	string_replace( fs, "<__opt_COLORMODE__>" , string_from_number( m_colormode ) );
 
 //cout << "DEBUG: Raycast fragment shader:" << endl << fs << "***EOF***" << endl;
 
