@@ -27,7 +27,7 @@ void RGBDFrame::render()
 			glColor3fv( m_color.ptr(x,y) ); // Assume identical size
 			//  m_color.ptr(floor(dy*m_color.height), floor(dx*m_color.width)) );		
 
-			glVertex3f( 2*dx-1, 2*dy-1, -dz );
+			glVertex3f( 2*dx-1, 2*dy-1, dz );
 		}
 
 	glEnd();

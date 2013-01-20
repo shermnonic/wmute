@@ -37,20 +37,41 @@ RGBDViewerMainWindow::RGBDViewerMainWindow()
 	
 	actQuit = new QAction( tr("&Quit"), this );
 	actQuit->setShortcut( tr("Ctrl+Q") );
+	actQuit->setIcon( QIcon(QPixmap(":data/icons/system-log-out.png")) );
 	actQuit->setStatusTip( tr("Quit application.") );
 	connect( actQuit, SIGNAL(triggered()), this, SLOT(close()) );
+
+	// Global actions
+	
+	m_actPlayPause = new QAction( tr("&Play"), this );
+	m_actPlayPause->setShortcut( tr("Ctrl+P") );
+	m_actPlayPause->setIcon( QIcon(QPixmap(":data/icons/media-playback-start.png")) );;
+	connect( m_actPlayPause, SIGNAL(triggered()), this, SLOT(togglePlayPause()) );
 	
 	//------------------------------------------------------------------------
 	//	Menu
 	//------------------------------------------------------------------------	
 	QMenu 
-		*menuFile;
+		*menuFile,
+		*menuPlayback;
 
 	menuFile = menuBar()->addMenu( tr("&File") );
 	menuFile->addAction( actOpen );
 	menuFile->addAction( actSave );
 	menuFile->addSeparator();
 	menuFile->addAction( actQuit );
+
+	menuPlayback = menuBar()->addMenu( tr("Playback") );
+	menuPlayback->addAction( m_actPlayPause );
+
+	//------------------------------------------------------------------------
+	//	Toolbar
+	//------------------------------------------------------------------------	
+	QToolBar *toolbar = this->addToolBar(tr("Controls"));
+	toolbar->addAction( actOpen );
+	toolbar->addAction( actQuit );
+	toolbar->addSeparator();
+	toolbar->addAction( m_actPlayPause );
 
 	//------------------------------------------------------------------------
 	//	Finish up
@@ -106,7 +127,7 @@ void RGBDViewerMainWindow::openDataset()
 
 	// Load RGBD movie
 	m_rendererWidget->setRGBDFrame( NULL );
-	if( m_movie.loadMovie( dir ) )
+	if( m_movie.loadMovie( dir, RGBDMovie::FormatRGBDDemo, this ) )
 	{
 		// Successfully loaded movie
 
@@ -115,8 +136,6 @@ void RGBDViewerMainWindow::openDataset()
 
 		// Update history
 		m_baseDir = dir;
-
-		playMovie( true );
 	}
 	else
 	{
@@ -135,6 +154,27 @@ void RGBDViewerMainWindow::saveDataset()
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+
+void RGBDViewerMainWindow::togglePlayPause()
+{
+	static bool playing = false;
+	if( !playing )
+	{
+		// Switch to play mode, show Pause icon+text
+		m_actPlayPause->setIcon( QIcon(QPixmap(":data/icons/media-playback-pause.png")) );
+		m_actPlayPause->setText( tr("&Pause") );
+		playing = true;
+	}
+	else
+	{
+		// Switch to pause mode, show Play icon+text
+		m_actPlayPause->setIcon( QIcon(QPixmap(":data/icons/media-playback-start.png")) );
+		m_actPlayPause->setText( tr("&Play") );
+		playing = false;
+	}
+
+	playMovie( playing );
+}
 
 void RGBDViewerMainWindow::playMovie( bool toggle )
 {

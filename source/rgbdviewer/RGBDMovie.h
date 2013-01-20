@@ -5,13 +5,16 @@
 #include <vector>
 #include <QString>
 
+class QWidget;
+
 /// Collection of \a RGBDFrame, in-memory
 class RGBDMovie
 {
 public:
 	enum Formats { FormatRGBDDemo };
 
-	bool loadMovie( QString path, int format=FormatRGBDDemo );
+	bool loadMovie( QString path, int format=FormatRGBDDemo, 
+	                QWidget* parentForProgressDialog=NULL );
 
 	/// Return number of frames
 	int nFrames() const { return (int)m_frames.size(); }

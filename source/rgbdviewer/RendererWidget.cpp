@@ -70,7 +70,7 @@ void RendererWidget::resizeGL( int w, int h )
 void RendererWidget::paintGL()
 {
 	glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
-	glLoadIdentity();
+	glEnable( GL_DEPTH_TEST );
 
 	// Camera
 	glLoadIdentity( );
@@ -85,11 +85,10 @@ void RendererWidget::paintGL()
 	if( true )
 	{
 		// setup font
-		static QFont labelFont( "Helvetica", 14 );
-		const int lineHeight = 19;
+		static QFont labelFont( "Helvetica", 12 );
+		const int lineHeight = 16;
 		labelFont.setStyleStrategy( QFont::PreferAntialias );
-		labelFont.setBold( true );
-		glColor3f( .42f, .42f, .42f );
+		glColor3f( .9f, .9f, .9f );
 
 		QString infoPath, infoTimecode;
 		if( m_frame ) 
