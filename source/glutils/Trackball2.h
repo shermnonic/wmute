@@ -21,6 +21,8 @@ public:
 		m_cur_qrot = glm::fquat(1,0,0,0);
 	}	
 	
+	int getMode() const { return m_mode; }
+
 	void setZoom( float zoom ) { m_zoom = zoom; }
 	float getZoom() const { return m_zoom; }
 
