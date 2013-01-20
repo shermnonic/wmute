@@ -4,5 +4,8 @@
   <file>data/icons/document-new.png</file>
   <file>data/icons/document-open.png</file>
   <file>data/icons/document-save.png</file>
+  <file>data/icons/system-log-out.png</file>
+  <file>data/icons/media-playback-start.png</file> 
+  <file>data/icons/media-playback-pause.png</file>
 </qresource>
 </RCC>

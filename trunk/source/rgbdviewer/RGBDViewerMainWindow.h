@@ -24,6 +24,7 @@ public slots:
 	void openDataset();
 	void saveDataset();	
 
+	void togglePlayPause();
 	void playMovie( bool toggle );
 
 protected slots:
@@ -43,6 +44,8 @@ private:
 	
 	QTimer*         m_animationTimer;
 	QTime*          m_playingTime;
+
+	QAction*        m_actPlayPause;
 };
 
 #endif // RGBDVIEWERMAINWINDOW_H

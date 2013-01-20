@@ -2,10 +2,13 @@
 
 #include <QDir>
 #include <QStringList>
+#include <QProgressDialog>
+#include <QApplication>
 #include <iostream>
 #include <limits>
 
-bool RGBDMovie::loadMovie( QString path, int format )
+
+bool RGBDMovie::loadMovie( QString path, int format, QWidget* parentForProgressDialog )
 {
 	// Only supported format is rgbd-demo so far.
 
@@ -30,8 +33,35 @@ bool RGBDMovie::loadMovie( QString path, int format )
 
 	m_frames.reserve( views.size() );
 
+	// Progress dialog (optional)
+	QProgressDialog* dlg(NULL);
+	if( parentForProgressDialog )
+	{
+		dlg = new QProgressDialog( "Loading RGBD data...", "Cancel", 
+		                           0, views.size(), parentForProgressDialog );
+	}
+
 	for( int i=0; i < views.size(); i++ )
 	{
+		// Update progress dialog
+		if( dlg ) 
+		{
+			dlg->setValue( i );
+
+			// Workaround to increase responsiveness of Cancel button
+			QApplication::processEvents();
+			QApplication::processEvents();
+			QApplication::processEvents();
+			QApplication::processEvents();
+			QApplication::processEvents();
+
+			if( dlg->wasCanceled() )
+			{
+				std::cout << "User cancelled loading at frame " << i << std::endl;
+				break;
+			}
+		}		
+
 		// Extract timecode from directory name
 		QString timecode_s = views[i].section( '-', 1 );
 		bool ok;
@@ -56,6 +86,10 @@ bool RGBDMovie::loadMovie( QString path, int format )
 				<< views[i].toStdString() << "!" << std::endl;
 		}
 	}
+
+	// Finish progress dialog
+	if( dlg ) 
+		dlg->setValue( views.size() );
 
 	return m_frames.size()>0;
 }

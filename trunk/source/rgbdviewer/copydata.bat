@@ -11,4 +11,7 @@ copy ..\..\data\icons\icon.ico               data\icons
 copy ..\..\data\icons\document-new.png       data\icons
 copy ..\..\data\icons\document-open.png      data\icons
 copy ..\..\data\icons\document-save.png      data\icons
+copy ..\..\data\icons\media-playback-start.png   data\icons
+copy ..\..\data\icons\media-playback-pause.png   data\icons
+copy ..\..\data\icons\system-log-out.png     data\icons
 pause
