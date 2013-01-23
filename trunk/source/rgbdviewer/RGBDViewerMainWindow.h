@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QString>
 #include "RGBDMovie.h"
+#include "RGBDFilters.h"
 
 const QString APP_NAME        ( "rgbdviewer" );
 const QString APP_ORGANIZATION( "www.386dx25.de" );
@@ -41,6 +42,8 @@ private:
 
 	RendererWidget* m_rendererWidget;
 	RGBDMovie       m_movie;
+	RGBDFilterQueue m_filters;
+	void setupFilters();
 	
 	QTimer*         m_animationTimer;
 	QTime*          m_playingTime;
