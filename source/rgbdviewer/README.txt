@@ -11,7 +11,8 @@ Some TODO's:
   - zipped / run-length-encoded float raw streams
   - 2x ffmpeg streams?
 
-- Depth threshold (min,max)
-- Depth scaling
+- Filters (local operations):
+  - Depth threshold (min,max)
+  - Depth scaling
 
 - Video-playback in background

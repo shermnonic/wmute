@@ -10,10 +10,19 @@ RGBDViewerMainWindow::RGBDViewerMainWindow()
 	setWindowTitle( APP_NAME );
 	setWindowIcon ( APP_ICON );	
 
+	//------------------------------------------------------------------------
+	//	Setup movie rendering
+	//------------------------------------------------------------------------
+
+	// Establish filter pipeline
+	setupFilters();
+
+	// Create render window
 	m_rendererWidget = new RendererWidget();
+	m_rendererWidget->setFilter( &m_filters );
 
+	// Setup animation timers
 	m_playingTime = new QTime();
-
 	m_animationTimer = new QTimer();	
 	connect( m_animationTimer, SIGNAL(timeout()), this, SLOT(updateAnimation()) );
 
@@ -153,6 +162,7 @@ void RGBDViewerMainWindow::saveDataset()
 }
 
 //-----------------------------------------------------------------------------
+//	Playback controls
 //-----------------------------------------------------------------------------
 
 void RGBDViewerMainWindow::togglePlayPause()
@@ -206,4 +216,18 @@ void RGBDViewerMainWindow::updateAnimation()
 	m_rendererWidget->setRGBDFrame( m_movie.getFrame( t0 + elapsed ) );
 
 	// Render update is currently performed automatically at 60fps
+}
+
+//-----------------------------------------------------------------------------
+//	setupFilters()
+//-----------------------------------------------------------------------------
+void RGBDViewerMainWindow::setupFilters()
+{
+	// Setup default filter pipeline
+	// Note: Filter object instances must remain valid throughout the whole 
+	//       programs execution!
+	static RGBDDepthScale      filterDepthScale;
+	static RGBDDepthThreshold  filterDepthTreshold;
+	m_filters.push_back( &filterDepthScale );
+	m_filters.push_back( &filterDepthTreshold );
 }

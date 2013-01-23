@@ -10,7 +10,8 @@ RendererWidget::RendererWidget( QWidget* parent, const QGLWidget* shareWidget,
                                 Qt::WindowFlags f )
 	: QGLWidget( parent, shareWidget, f ),
 	  m_mode( ModeTrackball ),
-	  m_frame( NULL )
+	  m_frame( NULL ),
+	  m_filter( NULL )
 {
 	// Render update timer
 	m_renderUpdateTimer = new QTimer( this );
@@ -79,7 +80,7 @@ void RendererWidget::paintGL()
 
 	// RGBD frame visualization
 	if( m_frame ) 
-		m_frame->render();
+		m_frame->render( m_filter );
 	
 	// Overlay additional information
 	if( true )

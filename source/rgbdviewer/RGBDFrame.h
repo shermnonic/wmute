@@ -4,6 +4,8 @@
 #include <QString>
 #include <vector>
 
+class RGBDLocalFilter;
+
 /// Single RGBD frame, provides file IO and preliminary rendering function
 /// Currently only the rgbd-demo format is supproted where depth and color raw
 /// data files are stored in separate directories and with a specific naming
@@ -11,12 +13,13 @@
 class RGBDFrame
 {
 public:
-	// Load depth and color from a directory (rgbd-demo format)
-	// rgbd-demo stores depth and color of a frame in a single directory
+	/// Load depth and color from a directory (rgbd-demo format)
+	/// rgbd-demo stores depth and color of a frame in a single directory.
 	bool loadDir( QString path );
 
-	// Debug rendernig functionality (draws immediate mode points)
-	void render();
+	/// Debug rendernig functionality 
+	/// Draws points in immediate mode and applies filter in realtime.
+	void render( RGBDLocalFilter* filter=NULL );
 
 	QString getPath() const { return m_path; }
 

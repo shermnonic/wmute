@@ -1,4 +1,5 @@
 #include "RGBDFrame.h"
+#include "RGBDFilters.h" // for: RGBDLocalFilter
 #include <QImage>
 #include <QObject>
 #include <QDir>
@@ -9,7 +10,7 @@
 #include <iostream>
 
 #include <GL/glew.h>
-void RGBDFrame::render()
+void RGBDFrame::render( RGBDLocalFilter* filter )
 {
 	const float depthScale = 1.0f;
 
@@ -24,10 +25,26 @@ void RGBDFrame::render()
 				  dz = m_depth.data[ y*m_depth.width + x ] * depthScale;
 
 			// map color
-			glColor3fv( m_color.ptr(x,y) ); // Assume identical size
+			float r = *(m_color.ptr(x,y)),
+				  g = *(m_color.ptr(x,y)+1),
+				  b = *(m_color.ptr(x,y)+2),
+				  a = 1.0;
+			if( filter ) filter->processColor( r, g, b, a );
+			glColor4f( r, g, b, a );
+			// was:
+			//  glColor3fv( m_color.ptr(x,y) ); // Assume identical size
 			//  m_color.ptr(floor(dy*m_color.height), floor(dx*m_color.width)) );		
 
-			glVertex3f( 2*dx-1, 2*dy-1, dz );
+			// map position
+			float px = 2*dx-1,
+				  py = 2*dy-1,
+				  pz = dz;
+			bool discard = false;
+			if( filter ) filter->processPosition( px, py, pz, discard );
+			if( !discard )
+				glVertex3f( px, py, pz );
+			// was: 
+			// glVertex3f( 2*dx-1, 2*dy-1, dz );
 		}
 
 	glEnd();

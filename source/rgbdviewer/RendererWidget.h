@@ -7,6 +7,7 @@
 #include "glutils/Trackball2.h"
 
 class RGBDFrame;
+class RGBDLocalFilter;
 
 /// Render a single \a RGBDFrame
 class RendererWidget : public QGLWidget
@@ -20,6 +21,8 @@ public:
 	                Qt::WindowFlags f=0 );
 
 	void setRGBDFrame( RGBDFrame* frame ) { m_frame = frame; }
+
+	void setFilter( RGBDLocalFilter* filter ) { m_filter = filter; }
 
 protected:
 	void invokeRenderUpdate() { };
@@ -39,9 +42,10 @@ protected:
 	///@}
 
 private:
-	Trackball2      m_trackball;
-	InteractionMode m_mode;
-	RGBDFrame*      m_frame;
+	Trackball2       m_trackball;
+	InteractionMode  m_mode;
+	RGBDFrame*       m_frame;
+	RGBDLocalFilter* m_filter;
 };
 
 #endif // RENDERERWIDGET_H
