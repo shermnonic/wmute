@@ -16,7 +16,6 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/WintermuteCommon.cmake)
 # OpenGL
 #-------------------
 find_package(OpenGL REQUIRED)
-find_package(GLUT   REQUIRED)
 find_package(GLEW   REQUIRED)
 
 set(GLM_INCLUDE_DIR  "${WINTERMUTE_3RDPARTY_LIBS_PATH}/glm"    CACHE PATH "glm include path")
@@ -67,7 +66,6 @@ qt4_automoc( ${app_SRCS} )
 # include directories
 include_directories(
 	${GLEW_INCLUDE_DIR}
-	${GLUT_INCLUDE_DIR}
 	${GLM_INCLUDE_DIR}
 	${GLUTILS_PATH}
 )

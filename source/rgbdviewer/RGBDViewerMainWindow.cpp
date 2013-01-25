@@ -76,7 +76,8 @@ RGBDViewerMainWindow::RGBDViewerMainWindow()
 	//------------------------------------------------------------------------
 	//	Toolbar
 	//------------------------------------------------------------------------	
-	QToolBar *toolbar = this->addToolBar(tr("Controls"));
+	QToolBar *toolbar = this->addToolBar(tr("Default toolbar"));
+	toolbar->setObjectName(tr("Default toolbar"));
 	toolbar->addAction( actOpen );
 	toolbar->addAction( actQuit );
 	toolbar->addSeparator();
