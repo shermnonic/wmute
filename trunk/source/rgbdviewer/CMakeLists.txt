@@ -38,6 +38,7 @@ set( app_RCCS rgbdviewer.qrc )
 set( app_MOC_HDRS
 	RGBDViewerMainWindow.h
 	RendererWidget.h
+	ParameterWidget.h
 )
 
 #-------------------

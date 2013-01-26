@@ -1,5 +1,6 @@
 #include "RGBDViewerMainWindow.h"
 #include "RendererWidget.h"
+#include "ParameterWidget.h"
 #include <QtGui>
 
 //-----------------------------------------------------------------------------
@@ -25,6 +26,20 @@ RGBDViewerMainWindow::RGBDViewerMainWindow()
 	m_playingTime = new QTime();
 	m_animationTimer = new QTimer();	
 	connect( m_animationTimer, SIGNAL(timeout()), this, SLOT(updateAnimation()) );
+
+	//------------------------------------------------------------------------
+	//	Dock widget
+	//------------------------------------------------------------------------
+	QDockWidget* dock = new QDockWidget( tr("Filter Parameters") );
+	dock->setAllowedAreas( Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea );
+	
+	m_parameterWidget = new ParameterWidget();
+	dock->setWidget( m_parameterWidget );
+
+	addDockWidget( Qt::RightDockWidgetArea, dock );
+
+	// Setup parameter widget
+	m_parameterWidget->setParameters( m_filters.getFloatParameters() );
 
 	//------------------------------------------------------------------------
 	//	Actions
@@ -56,22 +71,6 @@ RGBDViewerMainWindow::RGBDViewerMainWindow()
 	m_actPlayPause->setShortcut( tr("Ctrl+P") );
 	m_actPlayPause->setIcon( QIcon(QPixmap(":data/icons/media-playback-start.png")) );;
 	connect( m_actPlayPause, SIGNAL(triggered()), this, SLOT(togglePlayPause()) );
-	
-	//------------------------------------------------------------------------
-	//	Menu
-	//------------------------------------------------------------------------	
-	QMenu 
-		*menuFile,
-		*menuPlayback;
-
-	menuFile = menuBar()->addMenu( tr("&File") );
-	menuFile->addAction( actOpen );
-	menuFile->addAction( actSave );
-	menuFile->addSeparator();
-	menuFile->addAction( actQuit );
-
-	menuPlayback = menuBar()->addMenu( tr("Playback") );
-	menuPlayback->addAction( m_actPlayPause );
 
 	//------------------------------------------------------------------------
 	//	Toolbar
@@ -82,6 +81,27 @@ RGBDViewerMainWindow::RGBDViewerMainWindow()
 	toolbar->addAction( actQuit );
 	toolbar->addSeparator();
 	toolbar->addAction( m_actPlayPause );
+	
+	//------------------------------------------------------------------------
+	//	Menu
+	//------------------------------------------------------------------------	
+	QMenu 
+		*menuFile,
+		*menuPlayback,
+		*menuView;
+
+	menuFile = menuBar()->addMenu( tr("&File") );
+	menuFile->addAction( actOpen );
+	menuFile->addAction( actSave );
+	menuFile->addSeparator();
+	menuFile->addAction( actQuit );
+
+	menuPlayback = menuBar()->addMenu( tr("Playback") );
+	menuPlayback->addAction( m_actPlayPause );
+
+	menuView = menuBar()->addMenu( tr("View") );
+	menuView->addAction( toolbar->toggleViewAction() );
+	menuView->addAction( dock->toggleViewAction() );
 
 	//------------------------------------------------------------------------
 	//	Finish up
@@ -229,6 +249,7 @@ void RGBDViewerMainWindow::setupFilters()
 	//       programs execution!
 	static RGBDDepthScale      filterDepthScale;
 	static RGBDDepthThreshold  filterDepthTreshold;
-	m_filters.push_back( &filterDepthScale );
 	m_filters.push_back( &filterDepthTreshold );
+	m_filters.push_back( &filterDepthScale );
+	m_filters.registerParameters();
 }
