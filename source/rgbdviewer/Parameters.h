@@ -2,6 +2,7 @@
 #define PARAMETERS_H
 
 #include <string>
+#include <vector>
 
 /// Real valued parameter with name, description, min, max and default value
 struct FloatParameter
@@ -26,5 +27,8 @@ struct FloatParameter
 	float value, defaultValue, min, max;
 	std::string name, desc;
 };
+
+// FIXME: Use some sort of smart pointer for the FloatParameterVector
+typedef std::vector<FloatParameter*> FloatParameterVector;
 
 #endif // PARAMETERS_H

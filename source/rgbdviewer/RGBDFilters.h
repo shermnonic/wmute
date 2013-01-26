@@ -11,9 +11,7 @@ class RGBDLocalFilter
 {
 public:
 	virtual void processColor( float& r, float& g, float& b, float& a ) {}
-	virtual void processPosition( float& x, float &y, float &depth, bool& discard ) {}
-
-	typedef std::vector<FloatParameter*> FloatParameterVector;
+	virtual void processPosition( float& x, float &y, float &depth, bool& discard ) {}	
 
 	/// Returns parameter list
 	FloatParameterVector getFloatParameters()
@@ -62,6 +60,12 @@ protected:
 		m_floatParams.push_back( param );
 	}
 
+	// Internal clear functional, only call this if you know what you are doing
+	void clearParameters()
+	{
+		m_floatParams.clear();
+	}
+
 private:
 	FloatParameterVector m_floatParams;
 };
@@ -89,6 +93,28 @@ public:
 			RGBDLocalFilter* filter = this->at(i);
 			if( filter )
 				filter->processPosition( x, y, depth, discard );
+		}
+	}
+
+	// Workaround: Accumulate all filters parameters in queues parameter vector.
+	//             Probably 'finalize()' is a more suited function name?
+	void registerParameters()
+	{
+		// Clear queue's parameter vector to avoid parameter duplication if
+		// this function is called multiple times.
+		clearParameters();
+
+		for( int i=0; i < this->size(); i++ )
+		{
+			RGBDLocalFilter* filter = this->at(i);
+
+			// Register all parameters of the current filter
+			FloatParameterVector params = filter->getFloatParameters();
+			FloatParameterVector::iterator it = params.begin();
+			for( ; it != params.end(); it++ )
+			{
+				registerParameter( *it );				
+			}
 		}
 	}
 };
