@@ -3,6 +3,11 @@
 #include <iostream>
 #include "RGBDFrame.h"
 
+// provided for convenience
+void RendererWidget::setRenderModeSurface() { m_renderMode = RGBDFrame::RenderSurface; }
+void RendererWidget::setRenderModePoints () { m_renderMode = RGBDFrame::RenderPoints; }
+
+
 //-----------------------------------------------------------------------------
 //	C'tor
 //-----------------------------------------------------------------------------
@@ -11,7 +16,8 @@ RendererWidget::RendererWidget( QWidget* parent, const QGLWidget* shareWidget,
 	: QGLWidget( parent, shareWidget, f ),
 	  m_mode( ModeTrackball ),
 	  m_frame( NULL ),
-	  m_filter( NULL )
+	  m_filter( NULL ),
+	  m_renderMode( RGBDFrame::RenderSurface )
 {
 	// Render update timer
 	m_renderUpdateTimer = new QTimer( this );
@@ -80,7 +86,7 @@ void RendererWidget::paintGL()
 
 	// RGBD frame visualization
 	if( m_frame ) 
-		m_frame->render( m_filter );
+		m_frame->render( m_filter, m_renderMode );
 	
 	// Overlay additional information
 	if( true )
@@ -111,6 +117,18 @@ void RendererWidget::paintGL()
 		renderText( 10, 2*lineHeight, tr("Mode: %1").arg(infoMode), labelFont );
 		renderText( 10, 3*lineHeight, tr("Time: %1").arg(infoTimecode), labelFont );
 	}
+}
+
+//-----------------------------------------------------------------------------
+//	toggleBlackBackground()
+//-----------------------------------------------------------------------------
+void RendererWidget::toggleBlackBackground( bool b )
+{
+	this->makeCurrent();
+	if( b )
+		glClearColor( 0,0,0,1 );
+	else
+		glClearColor( 0,0,1,1 );
 }
 
 //-----------------------------------------------------------------------------

@@ -7,12 +7,19 @@ For Visual Studio execute "copydata.bat" first to copy the required data files l
 
 Some TODO's:
 
+- "Live" preview via OpenNI
+	- realtime input
+	- replay of OpenNI raw format
+
+- VBO object should be shared across frames (currently each frame allocates
+  in addition to its data buffer also own VBO buffers)
+
 - Performant binary format
   - zipped / run-length-encoded float raw streams
   - 2x ffmpeg streams?
 
-- Filters (local operations):
-  - Depth threshold (min,max)
-  - Depth scaling
+- Non-float parameters
+
+- Non-local filters
 
 - Video-playback in background

@@ -65,6 +65,32 @@ RGBDViewerMainWindow::RGBDViewerMainWindow()
 	actQuit->setStatusTip( tr("Quit application.") );
 	connect( actQuit, SIGNAL(triggered()), this, SLOT(close()) );
 
+	// Render modes
+
+	QActionGroup* renderMode = new QActionGroup(this);
+	QAction
+		*actSurface,
+		*actPoints;
+	actSurface = new QAction( tr("Surface"), renderMode );
+	actSurface->setCheckable( true );
+	actSurface->setChecked( true );
+	actPoints  = new QAction( tr("Points"), renderMode );
+	actPoints->setCheckable( true );
+	connect( actSurface, SIGNAL(triggered()), 
+				m_rendererWidget, SLOT(setRenderModeSurface()) );
+	connect( actPoints,  SIGNAL(triggered()), 
+				m_rendererWidget, SLOT(setRenderModePoints()) );
+
+	// More rendering related actions
+
+	QAction
+		*actBlack;
+	actBlack = new QAction( tr("Black background"), this );
+	actBlack->setCheckable( true );
+	actBlack->setChecked( false );
+	connect( actBlack, SIGNAL(toggled(bool)), 
+				m_rendererWidget, SLOT(toggleBlackBackground(bool)) );
+
 	// Global actions
 	
 	m_actPlayPause = new QAction( tr("&Play"), this );
@@ -81,6 +107,10 @@ RGBDViewerMainWindow::RGBDViewerMainWindow()
 	toolbar->addAction( actQuit );
 	toolbar->addSeparator();
 	toolbar->addAction( m_actPlayPause );
+	toolbar->addSeparator();
+	toolbar->addAction( actSurface );
+	toolbar->addAction( actPoints );
+	toolbar->addAction( actBlack );
 	
 	//------------------------------------------------------------------------
 	//	Menu
@@ -102,12 +132,25 @@ RGBDViewerMainWindow::RGBDViewerMainWindow()
 	menuView = menuBar()->addMenu( tr("View") );
 	menuView->addAction( toolbar->toggleViewAction() );
 	menuView->addAction( dock->toggleViewAction() );
+	menuView->addSeparator();
+	menuView->addAction( actSurface );
+	menuView->addAction( actPoints );
+	menuView->addSeparator();
+	menuView->addAction( actBlack );
 
 	//------------------------------------------------------------------------
 	//	Finish up
 	//------------------------------------------------------------------------
 	setCentralWidget( m_rendererWidget );
 	readSettings();
+}
+
+//-----------------------------------------------------------------------------
+//	d'tor
+//-----------------------------------------------------------------------------
+RGBDViewerMainWindow::~RGBDViewerMainWindow()
+{
+	m_rendererWidget->setRGBDFrame( NULL );
 }
 
 //-----------------------------------------------------------------------------

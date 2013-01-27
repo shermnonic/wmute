@@ -23,6 +23,15 @@ public:
 	void setRGBDFrame( RGBDFrame* frame ) { m_frame = frame; }
 
 	void setFilter( RGBDLocalFilter* filter ) { m_filter = filter; }
+	
+	/// Choose one of \a RGBDFrame::RenderModes
+	void setRenderMode( int mode ) { m_renderMode = mode; }
+public slots:
+	// provided for convenience
+	void setRenderModeSurface();
+	void setRenderModePoints();
+
+	void toggleBlackBackground( bool );
 
 protected:
 	void invokeRenderUpdate() { };
@@ -46,6 +55,7 @@ private:
 	InteractionMode  m_mode;
 	RGBDFrame*       m_frame;
 	RGBDLocalFilter* m_filter;
+	int              m_renderMode; // one of RGBDFrame::RenderModes
 };
 
 #endif // RENDERERWIDGET_H

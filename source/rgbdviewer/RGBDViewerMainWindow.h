@@ -21,6 +21,7 @@ class RGBDViewerMainWindow : public QMainWindow
 
 public:
 	RGBDViewerMainWindow();
+	~RGBDViewerMainWindow();
 
 public slots:
 	void openDataset();
