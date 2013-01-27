@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <vector>
+#include "Buffer2D.h"
 
 class RGBDLocalFilter;
 
@@ -12,40 +13,12 @@ class RGBDLocalFilter;
 /// convention.
 class RGBDFrame
 {
-	template <class T>
-	struct BufferT
-	{
-		BufferT(): width(0),height(0), channels(0) {}
-		int width, height, channels;
-		std::vector<T> data;
-		void update( int w, int h, int ch )
-		{
-			// If size has not changed and data is allocated, leave it as it is
-			if( width==w && height==h && channels==ch && data.size()==w*h*ch )
-				return;
-			// Else we have to allocate data anew
-			data.resize( w*h*ch );
-			width = w;
-			height = h;
-			channels = ch;
-		}
-		T* ptr( int x, int y )
-		{
-			return &data[channels*(y*width + x)];
-		}
-	};
-	typedef BufferT<float> Buffer;
-	typedef std::vector<unsigned int> Indexset;
-	
 public:
-	enum RenderModes { RenderPoints, RenderSurface };
+	typedef Buffer2D<float> Buffer;
 
 	/// Load depth and color from a directory (rgbd-demo format)
 	/// rgbd-demo stores depth and color of a frame in a single directory.
 	bool loadDir( QString path );
-
-	/// Simple rendering functionality with applied realtime filter
-	void render( RGBDLocalFilter* filter=NULL, int mode=RenderSurface );
 
 	/// Debug rendering functionality
 	/// Draws points in immediate mode and applies filter in realtime.
@@ -55,6 +28,12 @@ public:
 
 	void  setTimeCode( float t ) { m_timecode = t; }
 	float getTimecode() const { return m_timecode; }
+
+	// Friend functions for RGBDFrameRenderer
+	// FIXME: The buffer getters can not be const because buffer access 
+	//        currently is done through (unqualified) direct member access.
+	Buffer& getDepthBuffer() { return m_depth; }
+	Buffer& getColorBuffer() { return m_color; }
 
 protected:
 	bool updateColor( QString filepath );
@@ -67,12 +46,6 @@ private:
 	Buffer m_depth, m_color;
 
 	float m_timecode;
-
-	// vertex position and color buffer (from processed depth and color data)
-	Buffer m_vpos, m_vcol;
-	Indexset m_vind_triangles;
-	void updateVertexBuffer( RGBDLocalFilter* filter=NULL );
-	void updateIndexsets( int width, int height );
 };
 
 #endif // RGBDFRAME_H

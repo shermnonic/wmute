@@ -5,6 +5,7 @@
 #include <GL/glu.h>
 #include <QGLWidget>
 #include "glutils/Trackball2.h"
+#include "RGBDFrameRenderer.h"
 
 class RGBDFrame;
 class RGBDLocalFilter;
@@ -51,11 +52,12 @@ protected:
 	///@}
 
 private:
-	Trackball2       m_trackball;
-	InteractionMode  m_mode;
-	RGBDFrame*       m_frame;
-	RGBDLocalFilter* m_filter;
-	int              m_renderMode; // one of RGBDFrame::RenderModes
+	Trackball2         m_trackball;
+	InteractionMode    m_mode;
+	RGBDFrame*         m_frame;
+	RGBDLocalFilter*   m_filter;
+	RGBDFrameRenderer  m_renderer;
+	int                m_renderMode; // one of RGBDFrame::RenderModes
 };
 
 #endif // RENDERERWIDGET_H
