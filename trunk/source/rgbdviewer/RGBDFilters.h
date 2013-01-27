@@ -156,6 +156,10 @@ public:
 		float near = m_paramNear.value,
 			  far  = m_paramFar.value;
 		discard = (depth < near) || (depth > far);
+		// Clamp always to far threshold to achieve back-pane effect when those
+		// points are rendered.
+		if( depth < near ) depth = far; else
+		if( depth > far  ) depth = far;
 	}
 
 private:
