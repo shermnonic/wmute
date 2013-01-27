@@ -2,11 +2,11 @@
 #include <QtGui>
 #include <iostream>
 #include "RGBDFrame.h"
+#include "RGBDFrameRenderer.h"
 
 // provided for convenience
-void RendererWidget::setRenderModeSurface() { m_renderMode = RGBDFrame::RenderSurface; }
-void RendererWidget::setRenderModePoints () { m_renderMode = RGBDFrame::RenderPoints; }
-
+void RendererWidget::setRenderModeSurface() { m_renderMode = RGBDFrameRenderer::RenderSurface; }
+void RendererWidget::setRenderModePoints () { m_renderMode = RGBDFrameRenderer::RenderPoints; }
 
 //-----------------------------------------------------------------------------
 //	C'tor
@@ -17,7 +17,7 @@ RendererWidget::RendererWidget( QWidget* parent, const QGLWidget* shareWidget,
 	  m_mode( ModeTrackball ),
 	  m_frame( NULL ),
 	  m_filter( NULL ),
-	  m_renderMode( RGBDFrame::RenderSurface )
+	  m_renderMode( RGBDFrameRenderer::RenderSurface )
 {
 	// Render update timer
 	m_renderUpdateTimer = new QTimer( this );
@@ -86,7 +86,8 @@ void RendererWidget::paintGL()
 
 	// RGBD frame visualization
 	if( m_frame ) 
-		m_frame->render( m_filter, m_renderMode );
+		m_renderer.render( *m_frame, m_filter, m_renderMode );
+		//m_frame->renderImmediate( m_filter ); //, m_renderMode );
 	
 	// Overlay additional information
 	if( true )
