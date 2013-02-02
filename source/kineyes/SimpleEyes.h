@@ -27,6 +27,7 @@ public:
 private:	
 	bool  m_initialized;
 	int   m_eyeBall;   // display list for eyeball
+	int   m_eyePupille;
 	float m_eyeRadius; // radius of eyeball
 	float m_posx, m_posy, m_posz;
 	float m_poix, m_poiy, m_poiz;

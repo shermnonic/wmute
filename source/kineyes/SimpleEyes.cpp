@@ -9,8 +9,8 @@
 int makeSphereDisplayList( float radius=1.0 )
 {
 	GLUquadricObj* sphere = gluNewQuadric();
-	gluQuadricDrawStyle( sphere, GLU_LINE ); //GLU_FILL );
-	gluQuadricTexture( sphere, FALSE ); //TRUE );
+	gluQuadricDrawStyle( sphere, GLU_FILL ); //GLU_LINE );
+	gluQuadricTexture( sphere, FALSE );
 	gluQuadricNormals( sphere, GLU_SMOOTH );
 
 	int dl = glGenLists(1);
@@ -24,13 +24,15 @@ int makeSphereDisplayList( float radius=1.0 )
 
 void SimpleEye::init()
 {
-	m_eyeBall = makeSphereDisplayList( m_eyeRadius );	
+	m_eyeBall    = makeSphereDisplayList( m_eyeRadius );
+	m_eyePupille = makeSphereDisplayList( m_eyeRadius/2.3f );
 	m_initialized = true;
 }
 
 void SimpleEye::destroy()
 {
 	glDeleteLists( m_eyeBall, 1 );
+	glDeleteLists( m_eyePupille, 1 );
 }
 
 void SimpleEye::draw()
@@ -52,11 +54,15 @@ void SimpleEye::draw()
 	// Immediate mode rendering
 	glPushMatrix();
 	
-	//glLoadIdentity();
 	glTranslatef( m_posx, m_posy, m_posz );
 	glRotatef( 180.f*sign_x*theta_z/M_PI, 0,1,0 );
 	//glRotatef( 180.f*sign_y*theta_y/M_PI, 1,0,0 );
+	glColor3f( 1,1,1 );
 	glCallList( m_eyeBall );
+
+	glTranslatef( 0,0, m_eyeRadius );
+	glColor3f( 0,0,1 );
+	glCallList( m_eyePupille );
 	
 	glPopMatrix();
 }
