@@ -15,7 +15,7 @@ public:
 	  m_trackballRadius( .8f ),
 	  m_zoom( 5.f ),
 	  m_speed( 10.f ),
-	  m_immediateUpdate( false )
+	  m_immediateUpdate( true )
 	{
 		m_qrot = glm::fquat(1,0,0,0);
 		m_cur_qrot = glm::fquat(1,0,0,0);

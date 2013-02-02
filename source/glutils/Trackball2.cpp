@@ -64,7 +64,7 @@ glm::fquat Trackball2::combineRotations( glm::fquat q1, glm::fquat q2 )
 	                 v1*q2.w + v2*q1.w + cross(v1,v2) ); // vectorial part
 #else
 	// inconveniently, cross() denots the quaternion multiplication in glm
-	fquat q = cross( q1, q2 ); 
+	fquat q = cross( q2, q1 ); 
 #endif
 	q = normalize( q );
 	return q;
