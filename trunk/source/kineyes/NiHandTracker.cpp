@@ -167,6 +167,8 @@ m_History(MAX_HAND_TRAIL_LENGTH)
 
 HandTracker::~HandTracker()
 {
+	printf("HandTracker destructor called.\n");
+
 	// Remove the current instance from living instances list
 	XnList::ConstIterator it = sm_Instances.Find(this);
 	assert(it != sm_Instances.end());

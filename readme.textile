@@ -5,3 +5,14 @@ A code repository of "386dx25":http://www.386dx25.de, started in December 2012.
 h3. Assembla Readme Markdown
 
 In assembla you can use "textile(Textile Basics)":http://bit.ly/textile-basics, "html(Html Basics)":http://bit.ly/html-basics or "markdown(Markdown Basics)":http://bit.ly/markdown-basics to add some sugar to your readme files. Just add the extention to your readme file, so we can recognize the markup you want to use!
+
+h3. Unordered TODOs
+* check for global WMUTE_BIN_PATH environment variabel in CMakeLists
+* introduce WMUTE_DATA_PATH define; alternative are links in filesystem
+* decide whether to search shaders in data path or locally
+
+h3. Projects to include:
+* mnoise2 (glui and wiiuse dependency)
+* panorama
+* glvidfx (problem with 64bit ffmpeg)
+* depthdark

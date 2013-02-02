@@ -28,6 +28,9 @@ HandTracker*         g_handTracker(NULL);
 
 SimpleEyes           g_eyes;
 
+int g_scene=0;
+const int NUM_SCENES=2;
+
 //-----------------------------------------------------------------------------
 //  OpenNI functions
 //-----------------------------------------------------------------------------
@@ -124,8 +127,10 @@ void drawCube( float xmin, float xmax, float ymin, float ymax, float zmin, float
 	}
 }
 
-void drawScene()
+void drawScene( bool drawDebugItems=false )
 {
+	XnPoint3D p = g_handTracker->GetLastPosition();	
+
 	glPushMatrix();
 	glScalef( .01, .01, .01 );
 	
@@ -133,17 +138,19 @@ void drawScene()
 	glColor3f( 1,1,1 );
 	drawCube( -1000,1000, -1000,1000, 480,3600, Wireframe );
 
-	// Draw Kinect/Xtion position at (0,0,0)
-	glColor3f( 0,0,1 );
-	drawCube( -35,35, -15,15, -10,10, Filled );
+	if( drawDebugItems )
+	{
+		// Draw Kinect/Xtion position at (0,0,0)
+		glColor3f( 0,1,1 );
+		drawCube( -35,35, -15,15, -10,10, Filled );
 	
-	// Draw detected position
-	XnPoint3D p = g_handTracker->GetLastPosition();	
-	glPushMatrix();	
-	glTranslatef( p.X, p.Y, p.Z );
-	glColor3f( 1,1,0 );
-	drawCube( -50,50, -50,50, -50,50, Filled );
-	glPopMatrix();
+		// Draw detected position		
+		glPushMatrix();	
+		glTranslatef( p.X, p.Y, p.Z );
+		glColor3f( 1,1,0 );
+		drawCube( -50,50, -50,50, -50,50, Filled );
+		glPopMatrix();
+	}
 
 	// Draw eyes
 	glPushAttrib( GL_ENABLE_BIT );
@@ -154,11 +161,9 @@ void drawScene()
 	g_eyes.setSeparation( 400 );
 	g_eyes.setPOI( p.X, p.Y, p.Z );
 	g_eyes.draw();
-	glPopAttrib();
-	
+	glPopAttrib();	
 
-	glPopMatrix();
-	
+	glPopMatrix();	
 }
 
 //-----------------------------------------------------------------------------
@@ -182,23 +187,22 @@ void glutRender()
 	glEnable( GL_LINE_SMOOTH );
 	glLineWidth( 0.5 );
 
-#if 1
-	glLoadIdentity();
-	glTranslatef( 0,0,-60 );
-	glRotatef( 30, 1,0,0 );
-	glTranslatef( 0,0,-20 );
-	drawScene();
-#else
-	// Wireframe mode
-	glColor3f( 1,1,1 );
-	glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-	glEnable( GL_CULL_FACE );
-	
-	// Render scene
-	glLoadIdentity();
-	g_eyes.setPosition( 0, 0, -15 );
-	g_eyes.draw();
-#endif
+	if( g_scene==1 )
+	{
+		// Render overview
+		glLoadIdentity();
+		glTranslatef( 0,0,-60 );
+		glRotatef( 30, 1,0,0 );
+		glTranslatef( 0,0,-20 );
+		drawScene( true );
+	}
+	else
+	{
+		// Render scene
+		glLoadIdentity();
+		glTranslatef( 0,0,-20 );
+		drawScene();
+	}
 
 	glutSwapBuffers();
 }
@@ -214,6 +218,16 @@ void glutReshape( GLint w, GLint h )
 	glLoadIdentity();
 }
 
+void mousePOI( int mousex, int mousey )
+{
+	int viewport[4];
+	glGetIntegerv( GL_VIEWPORT, viewport );
+	float px = mousex / (float)viewport[2] - .5f,
+	      py = (viewport[3]-mousey) / (float)viewport[3] - .5f;	
+	g_eyes.setPOI( 10.f*px, 0.f, 10.*(py+.5f) );
+	printf("\nClicked %4.2f, %4.2f\n",px,py);
+}
+
 void glutKeyboard( unsigned char key, int mousex, int mousey )
 {
 	switch( key )
@@ -221,15 +235,15 @@ void glutKeyboard( unsigned char key, int mousex, int mousey )
 	case 27: // Escape
 		exit(EXIT_SUCCESS);
 		break;
-	}
-		
-	int viewport[4];
-	glGetIntegerv( GL_VIEWPORT, viewport );
-	float px = mousex / (float)viewport[2] - .5f,
-	      py = (viewport[3]-mousey) / (float)viewport[3] - .5f;
-	g_eyes.setPOI( 10.f*px, 0.f, 10.*(py+.5f) );
 
-	printf("\nClicked %4.2f, %4.2f\n",px,py);
+	case ' ': // Space
+		g_scene = (g_scene+1) % NUM_SCENES;
+		break;
+
+	case 'm':
+		mousePOI( mousex, mousey );
+		break;
+	}		
 
 	glutPostRedisplay();
 }
@@ -296,7 +310,7 @@ int main( int argc, char* argv[] )
 	glutInit( &argc, argv );
 	glutInitDisplayMode( GLUT_RGBA | GLUT_SINGLE );
 	glutInitWindowSize( 512, 512 );
-	glutCreateWindow( "Little GLUT Test" );
+	glutCreateWindow( "kineyes" );
 	
 	glutIdleFunc( glutIdle );
 	glutDisplayFunc( glutRender );
