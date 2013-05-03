@@ -101,11 +101,11 @@ GL3App* g_globalApp = &g_gl3test;
 
 
 const GLchar* GL3Test_vshader[] = {
-"#version 140\n",
+"#version 330\n",
 "uniform mat4 mx_projectionMatrix;\n",
 "uniform mat4 mx_viewMatrix;\n",
-"in vec3 mx_color;\n",
-"in vec3 mx_vertex;\n",
+"layout(location=0) in vec3 mx_color;\n",
+"layout(location=1) in vec3 mx_vertex;\n",
 "smooth out vec3 mx_smoothColor;\n",
 "void main()\n",
 "{\n",
@@ -116,7 +116,7 @@ const GLchar* GL3Test_vshader[] = {
 
 
 const GLchar* GL3Test_fshader[] = {
-"#version 140\n",
+"#version 330\n",
 "smooth in vec3 mx_smoothColor;\n",
 "out vec4 mx_fragColor;\n",
 "void main()\n",
