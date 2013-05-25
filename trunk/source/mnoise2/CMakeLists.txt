@@ -1,5 +1,5 @@
 # mnoise2 (Wintermute version)
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8)
 project(mnoise2)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/WintermuteCommon.cmake)
