@@ -14,7 +14,7 @@
 //#define SCREENSHOT_AUTO_ADJUST_LINEWIDTH
 
 // Put GLUI user controls into separate windows
-#define UI_SEPARATE_WINDOWS
+//#define UI_SEPARATE_WINDOWS
 
 // Override GLUI user interface and use plain GLUT (for debugging)
 //#define USE_PLAIN_GLUT_INSTEAD_OF_GLUI       /* Set by CMake configuration. */

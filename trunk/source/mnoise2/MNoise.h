@@ -22,6 +22,10 @@ public:
 	
 	int  build();
 	void draw();
+	/// Debug visualization: Show octree AABB's
+	void draw_octree();
+	/// Debug mode: Draw all cubes (ignore octree and frustum culling completely)
+	void draw_all();
 	
 	/// Set viewing frustum for culling
 	/// Although passed as pointer, Frustum is guaranteed to not be changed.
@@ -32,8 +36,8 @@ public:
 	
 	int   get_cubecount() { return cubecount; };
 
-	void  set_scale( float s ) { scale = s; };
-	float get_scale() { return scale; };
+	//void  set_scale( float s ) { scale = s; };
+	//float get_scale() { return scale; };
 
 	void  set_posz( float z ) { posz = z; };
 	float get_posz() const { return posz; };
@@ -111,7 +115,6 @@ private:
 	Octree*  root;          // root of octree
 	Frustum* frust;         // viewing frustum
 	int   size;		        // size as power of two (2^size)
-	float scale;	
 	int   cubecount;        // numer of cubes drawn	
 	float posx,posy,posz;
 	int   octaves;
