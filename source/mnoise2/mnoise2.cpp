@@ -83,6 +83,7 @@ int		fog=1;
 float	clear[3];
 float   fgcol[4];
 float 	scale=1;
+float   cellscale=1.f;
 
 int   linesmooth=1;
 float linewidth=1.f;
@@ -94,6 +95,9 @@ int update=1;
 int update_once=0;
 int do_normals=1;
 int color_material=1;
+
+int dbg_show_octree=0;
+int dbg_draw_all=0;
 
 float persistance;
 int octaves;
@@ -341,6 +345,7 @@ void setup_mnoise()
 	
 	persistance = mycube->get_persistance();
 	octaves = mycube->get_octaves();
+	cellscale = mycube->get_scale();
 }
 
 void deinit()
@@ -363,12 +368,25 @@ void reshape( int width, int height )
 	
 	glMatrixMode( GL_PROJECTION );
 	glLoadIdentity();
-	gluPerspective( 90/*120*/, aspect, 0.1, 5 );
+	gluPerspective( 90/*120*/, aspect, 0.1, 50 );
 	glMatrixMode( GL_MODELVIEW );
 
 }
 
 //------------------------------------------------------------------------------
+
+void draw_internal()
+{
+	// for debug purposes frustum culling can be disabled
+	if( dbg_draw_all )
+	{
+		glColor3f( 0,1,0 );
+		mycube->draw_all();
+	}
+	else
+		mycube->draw();
+}
+
 void draw_frustum()
 {
 	// extract frustum from current modelview and projection-matrix
@@ -383,7 +401,7 @@ void draw_frustum()
 	if( update || !dl_cube || update_once )
 	{		
 		glNewList( dl_cube, GL_COMPILE );
-		mycube->draw();
+		draw_internal();
 		glEndList();
 		update_once = 0;
 	}
@@ -395,7 +413,7 @@ void draw_frustum()
 	glPushMatrix();
 	glLoadIdentity();
 	glTranslatef( 0,0,-4 );
-	mycube->draw();
+	draw_internal();
 	glPopMatrix();
 	#endif
 }
@@ -405,6 +423,30 @@ void render()
 {
 	glClearColor( clear[0], clear[1], clear[2], 1 );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+	// -- Camera
+
+	glMatrixMode( GL_MODELVIEW );
+	glLoadIdentity();
+	glTranslatef( 0,0, posz );
+	glMultMatrixf( view_rotate );
+
+	glRotatef( -view_tilt_alpha, 0,0,1 );
+	glRotatef( view_tilt_beta, 1,0,0 );
+
+	// -- Debug visualization of octree
+
+	if( dbg_show_octree )
+	{
+		glDisable( GL_LIGHTING );
+		glDisable( GL_FOG );
+		glColor3f( 1,0,0 );
+		glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+		glLineWidth( linewidth );
+		mycube->draw_octree();
+	}
+
+	// -- States
 
 	if( color_material )
 		glEnable( GL_COLOR_MATERIAL );
@@ -427,15 +469,7 @@ void render()
 	if( fog )
 		glEnable( GL_FOG );
 	else
-		glDisable( GL_FOG );
-	
-	glMatrixMode( GL_MODELVIEW );
-	glLoadIdentity();
-	glTranslatef( 0,0, posz );
-	glMultMatrixf( view_rotate );
-
-	glRotatef( -view_tilt_alpha, 0,0,1 );
-	glRotatef( view_tilt_beta, 1,0,0 );
+		glDisable( GL_FOG );	
 	
 	if( wireframe ) 
 	{
@@ -482,6 +516,7 @@ void render()
 	}
 	else	
 	{	
+		glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 		draw_frustum();
 	}
 }
@@ -809,7 +844,8 @@ void export_offscreen( int )
 #define ID_SCALE_CHANGE 56
 #define ID_MODE_CHANGE 57
 #define ID_NORMALS_CHANGE 58
-#define ID_LAST 58
+#define ID_CELLSCALE_CHANGE 59
+#define ID_LAST 59
 
 void callback( int id )
 {
@@ -840,6 +876,10 @@ void callback( int id )
 		
 		case ID_NORMALS_CHANGE:
 			mycube->set_compute_normals( do_normals );
+			break;
+
+		case ID_CELLSCALE_CHANGE:
+			mycube->set_scale( cellscale );
 			break;
 			
 		case ID_BLEND_CHANGE:
@@ -931,6 +971,15 @@ void glut_keyboard( unsigned char key, int x, int y )
 	case 'r':
 		randstate();
 		break;
+
+	case 'o':
+		dbg_show_octree=(dbg_show_octree+1)%2;
+		break;
+
+	case 'a':
+		dbg_draw_all=(dbg_draw_all+1)%2;
+		break;
+
 	case 27:
 	case 'q':
 		exit(0);
@@ -1027,8 +1076,8 @@ int main( int argc, char* argv[] )
 		return 0;
 	}
 
-	if( argc > 1 ) { FIELDsize = atoi(argv[1]); MCsize=1<<(FIELDsize-1); MCscale=1./(float)MCsize; }
-	if( argc > 2 ) { MCscale   = atof(argv[2]); MCsize=1<<(FIELDsize-1); }
+	if( argc > 1 ) { FIELDsize = atoi(argv[1]); MCsize=1<<FIELDsize; MCscale=1./(float)(MCsize/2); }
+	if( argc > 2 ) { MCscale   = atof(argv[2]); MCsize=1<<FIELDsize; }
 	if( argc > 3 ) { MCsize    = atoi(argv[3]); }
 #endif
 
@@ -1197,10 +1246,10 @@ int main( int argc, char* argv[] )
 	fgcol1_spinner->set_float_limits( 0, 1, GLUI_LIMIT_CLAMP );
 	fgcol2_spinner->set_float_limits( 0, 1, GLUI_LIMIT_CLAMP );
 
-	glui->add_statictext( "" );
-	GLUI_Spinner* scale_spinner = 
-		glui->add_spinner( "Scale", GLUI_SPINNER_FLOAT, &scale, ID_SCALE_CHANGE, (GLUI_Update_CB)callback );
-	scale_spinner->set_float_limits( -3, 5, GLUI_LIMIT_CLAMP );
+	//glui->add_statictext( "" );
+	//GLUI_Spinner* scale_spinner = 
+	//	glui->add_spinner( "Scale", GLUI_SPINNER_FLOAT, &scale, ID_SCALE_CHANGE, (GLUI_Update_CB)callback );
+	//scale_spinner->set_float_limits( -3, 5, GLUI_LIMIT_CLAMP );
 
 	glui->add_statictext( "" );
 	GLUI_Spinner* isovalue_spinner = 
@@ -1216,6 +1265,11 @@ int main( int argc, char* argv[] )
 	octaves_spinner->set_int_limits( 0, 6, GLUI_LIMIT_CLAMP );
 
 	glui->add_spinner( "Speed", GLUI_SPINNER_FLOAT, &speed, ID_SPEED_CHANGE, (GLUI_Update_CB)callback );
+
+	GLUI_Spinner* cellscale_spinner =
+		glui->add_spinner( "Cell scale", GLUI_SPINNER_FLOAT, &cellscale, ID_CELLSCALE_CHANGE, (GLUI_Update_CB)callback );
+	cellscale_spinner->set_float_limits( 1.f/128.f, 2.f, GLUI_LIMIT_CLAMP );
+
 
 	glui->add_statictext( "" );
 	glui->add_edittext( "Cubes", GLUI_EDITTEXT_INT, &cubecount );

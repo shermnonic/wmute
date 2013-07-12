@@ -34,6 +34,7 @@
  \endcode
 */
 MNoise::MNoise( int size_, float MCscale, int MCsize )
+	//: MarchingCubes( 0.5, MCscale, 2<<size_), //MCsize ),
 	: MarchingCubes( 0.5, MCscale, MCsize ),
 	  root(NULL),
 	  frust(NULL)
@@ -41,7 +42,6 @@ MNoise::MNoise( int size_, float MCscale, int MCsize )
 	root = new Octree( vector3(-1,-1,-1), vector3(1,1,1) );
 	size = size_; 
 	posz = posy = posz = 1.23456789f;
-	scale = 1;	
 	octaves = 2;
 	persistance = 0.75;
 	mode = 1;
@@ -58,12 +58,16 @@ MNoise::~MNoise()
 }
 
 /******************************************************************************/
+
+void MNoise::draw_octree()
+{
+	// Debug visualization: Show octree AABB's
+	root->draw_leaves( frust );
+}
+
 void MNoise::draw()
 {
-//	root->draw_leafs( frust );
-//	glColor3f( 1,0,0 );
-//	draw_marchingcubes();	
-
+	// Draw visible octree leaves after frustum culling
 	Leaves leaves;
 
 	root->give_visible_leaves( frust, &leaves );
@@ -78,16 +82,13 @@ void MNoise::draw()
 		cubecount++;
 		
 		leaves.pop();
-	}	
-	
-/*
- 		for( int x=0; x < datasize; x++ )
-		for( int y=0; y < datasize; y++ )
-		for( int z=0; z < datasize; z++ )
-			marchcube( (x-datasize/2)*scale, 
-			           (y-datasize/2)*scale,
-			           (z-datasize/2)*scale );
- */
+	}
+}
+
+void MNoise::draw_all()
+{
+	// Debug mode: Draw all cubes (ignore octree and frustum culling completely)
+	this->draw_mcubes();
 }
 
 /******************************************************************************/
@@ -184,7 +185,14 @@ void MNoise::Octree::draw_leaves( Frustum* frust )
 	
 	if( is_leaf() )
 	{
+#if 0
 		draw_aabb( aabb_min, aabb_max );
+#else
+		// draw slightly smaller box to check boundary calculations
+		vector3 d = (aabb_max - aabb_min) / 2.f;
+		vector3 center = aabb_min + d;
+		draw_aabb( center - d*.9, center + d*.9 );
+#endif
 	}
 	else
 	{

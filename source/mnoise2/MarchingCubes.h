@@ -38,6 +38,15 @@ public:
 	
 	void  set_compute_normals( bool b ) { compute_normals = b; }
 
+	///@{ Scale sampling of octree leaf cell to produce overdraw effect.
+	///   For the base domain from (-1,-1,-1) to (1,1,1) and an octree edge
+	///   length (in number of cells) of 2^n the correct scaling factor for a
+	///   a single octree leaf cell would be 2*(1/(2^n)), where the factor two
+	///   reflects the edge length of the domain.
+	float get_scale() const { return scale; }
+	void  set_scale( float s ) { scale = s; }
+	///@}
+
 protected:
 	void  marchcube( float x, float y, float z );
 	float get_offset( float val1, float val2, float desired );
