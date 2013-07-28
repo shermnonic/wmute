@@ -108,6 +108,7 @@ void MarchingCubes::marchcube( float x, float y, float z )
 		}
 	}
 	
+#if 1
 	// draw triangles
 	glBegin( GL_TRIANGLE_STRIP );
 	for( i=0; i < 5; i++ ) if( tri_tab[index][3*i] >= 0 )
@@ -122,4 +123,27 @@ void MarchingCubes::marchcube( float x, float y, float z )
 		}
 	}
 	glEnd();
+#else
+	// Debug visualization: Show sample points		
+	glPointSize( 5.f );
+	glBegin( GL_POINTS );
+	for( i=0; i < 8; i++ )
+	{
+		// build index
+		if( cube[i] < isovalue ) 
+		{
+			glColor3f( 0.6,0.6,1 );
+		}
+		else
+		{
+			glColor3f( 0.1,0.1,.4 );
+		}
+
+		// local copy of cube values for intersection-calc
+		glVertex3f( x + cube_ofs[i][0]*scale, 
+		            y + cube_ofs[i][1]*scale, 
+		            z + cube_ofs[i][2]*scale );
+	}
+	glEnd();
+#endif
 }
