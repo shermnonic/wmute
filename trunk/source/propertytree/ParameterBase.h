@@ -1,12 +1,16 @@
-#include <iostream>
+#ifndef PARAMETERBASE_H
+#define PARAMETERBASE_H
+
+#include <string>
+//#include <map> // for factory
 #include <vector>
-#include <map>
 #include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/xml_parser.hpp>
 #include <boost/optional.hpp>
-#include <boost/foreach.hpp>
 
 /*
+	Parameter system
+	----------------
+
 	Requirements:
 	- Different data types
 	- Default value and range (if applicable)
@@ -39,8 +43,17 @@
 	  http://www.math.utah.edu/~tsinghai/papers/parameterPatterns.pdf	  
 */
 
+//-----------------------------------------------------------------------------
 // --- Parameter base classes ---
+//-----------------------------------------------------------------------------
 
+class ParameterBase;
+
+typedef std::vector<ParameterBase*> ParameterList;
+
+//-----------------------------------------------------------------------------
+//	ParameterBase
+//-----------------------------------------------------------------------------
 class ParameterBase // AbstractParameter ?
 {
 public:
@@ -76,13 +89,19 @@ private:
 	std::string m_type;
 };
 
+//-----------------------------------------------------------------------------
+//	ParameterBaseDefault< T >
+//-----------------------------------------------------------------------------
 template<class T> // ParameterBase
 class ParameterBaseDefault: public ParameterBase
 {
 public:
 	ParameterBaseDefault( const std::string& key )
 		: ParameterBase( key )
-	{}
+	{
+		// Initialize w/ default c'tor
+		m_default = m_value = T();
+	}
 
 	// Default value semantics
 
@@ -129,6 +148,9 @@ private:
 	T m_default;
 };
 
+//-----------------------------------------------------------------------------
+//	NumericParameter< T >
+//-----------------------------------------------------------------------------
 template<class T>
 class NumericParameter: public ParameterBaseDefault<T>
 {
@@ -202,7 +224,10 @@ private:
 	Range m_limits;
 };
 
-// --- Parameter factory ---
+
+//-----------------------------------------------------------------------------
+// --- Parameter factory ---  (NOT YET!)
+//-----------------------------------------------------------------------------
 /*
 class ParameterFactory
 {
@@ -236,125 +261,5 @@ private:
 	ParameterFactory& operator = ( const ParameterFactory& ) { return *this; }
 };
 */
-// --- Concrete parameter types ---
 
-class DoubleParameter: public NumericParameter<double>
-{
-public:
-	DoubleParameter( const std::string& key )
-		: NumericParameter( key )
-	{}
-
-	std::string type() const { return "double"; };
-};
-
-class IntParameter: public NumericParameter<int>
-{
-public:
-	IntParameter( const std::string& key )
-		: NumericParameter( key )
-	{}
-
-	std::string type() const { return "int"; };
-};
-
-class StringParameter: public ParameterBaseDefault<std::string>
-{
-public:
-	StringParameter( const std::string& key )
-		: ParameterBaseDefault( key )
-	{}
-
-	std::string type() const { return "string"; };
-};
-
-// --- Parameter IO ---
-
-typedef std::vector<ParameterBase*> ParameterList;
-
-void save_params( const char* filename, const ParameterList& parms )
-{
-	using boost::property_tree::ptree;	
-	ptree root;
-
-	ParameterList::const_iterator it = parms.begin();
-	for( ; it != parms.end(); it++ )
-	{
-		ptree pt;
-		(*it)->write( pt );		
-		root.add_child( "ParameterList.Parameter", pt );
-	}
-
-	write_xml( filename, root );
-}
-
-// Load w/o factory to known ParameterList
-void load_params( const char* filename, ParameterList& parms )
-{
-	using boost::property_tree::ptree;
-	ptree root;
-	
-	read_xml( filename, root );
-
-	// ParameterList's on disk and in parms must match!
-	// Iterate simultaneously over both.
-	ParameterList::iterator it = parms.begin();	
-
-	BOOST_FOREACH( ptree::value_type &v, root.get_child("ParameterList") )
-	{
-		std::cout << v.second.get<std::string>("key")
-			<< "(" << v.second.get<std::string>("type") << ")" << std::endl;
-	}
-
-	ptree pt = root.get_child("ParameterList");
-	boost::property_tree::ptree::iterator pit = pt.begin();	
-	for( ; it != parms.end() && pit != pt.end(); it++, pit++ )
-	{			
-		(*it)->read( pit->second );
-	}	
-
-	//boost::property_tree::ptree::iterator pit = root.get_child("Parameterlist").begin();
-	//for( ; it != parms.end() && pit != root.get_child("Parameterlist").end(); it++ )
-}
-
-
-// --- Parameter test program ---
-
-struct Foo
-{
-	Foo()
-		: d0( "d0" ),
-		  d1( "d1" ),
-		  index( "index" ),
-		  title( "title" )
-	{
-		parms.push_back( &d0 );
-		parms.push_back( &d1 );
-		parms.push_back( &index );
-		parms.push_back( &title );		
-	}
-
-	void test()
-	{
-		save_params( "foobar.xml", parms );
-
-		load_params( "foobar.xml", parms );
-	}
-
-	DoubleParameter d0;
-	DoubleParameter d1;
-	IntParameter    index;
-	StringParameter title;
-
-	ParameterList   parms;
-};
-
-int main( int argc, char* argv[] )
-{
-	using namespace std;
-
-	Foo foo;
-	foo.test();
-
-	return EXIT_SUCCESS;
-}
+#endif // PARAMETERBASE_H
