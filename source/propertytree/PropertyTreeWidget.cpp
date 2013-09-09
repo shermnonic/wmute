@@ -1,4 +1,5 @@
 #include "PropertyTreeWidget.h"
+#include "PropertyTreeDelegate.h"
 #include "ParameterTypes.h"
 
 #include <QStandardItemModel>
@@ -14,28 +15,30 @@ PropertyTreeWidget
 	m_model = new QStandardItemModel;
 	setParameters( NULL );
 
-	QTreeView* view = new QTreeView;
-	view->setModel( m_model );
+	m_view = new QTreeView;
+	m_view->setModel( m_model );
 
 	QVBoxLayout* layout = new QVBoxLayout;
-	layout->addWidget( view );
+	layout->addWidget( m_view );
 	setLayout( layout );
 }
 
 void PropertyTreeWidget
   ::setParameters( ParameterList* params )
 {
+	// Reset model
 	m_model->clear();
 	m_model->setHorizontalHeaderLabels( 
 		QStringList() << "Property" << "Value" << "Type" );
-
+	
 	m_params = params;
 
+	// If called with NULL, simply return
 	if( !params )
 		return;
 
+	// Fill model with parameters
 	ParameterList::iterator it = params->begin();
-
 	for( int row=0; it != params->end(); ++it, row++ )
 	{		
 		QStandardItem *itemName, *itemValue, *itemType;
@@ -52,6 +55,15 @@ void PropertyTreeWidget
 		m_model->setItem( row, 2, itemType );
 	}
 
+	// FIXME: Will the delegate instance created here automatically be deleted?
+	PropertyTreeDelegate* valueDelegate = new PropertyTreeDelegate;
+	valueDelegate->setParameters( params );
+	m_view->setItemDelegateForColumn( 1, valueDelegate );
+
+	// Auto resize columns
+	for( int i=0; i < 4; i++ )
+		m_view->resizeColumnToContents( i );
+	
 	update();
 }
 
