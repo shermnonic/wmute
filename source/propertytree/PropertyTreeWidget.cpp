@@ -20,7 +20,7 @@ PropertyTreeWidget
 
 	QVBoxLayout* layout = new QVBoxLayout;
 	layout->addWidget( m_view );
-	setLayout( layout );
+	setLayout( layout );	
 }
 
 void PropertyTreeWidget
@@ -50,15 +50,22 @@ void PropertyTreeWidget
 		itemValue = getParameterValueItem( (*it) );
 		itemType  = new QStandardItem( tr("<%1>").arg( type ));
 
+		itemName->setEditable( false );
+		itemType->setEditable( false );
+
 		m_model->setItem( row, 0, itemName );
 		m_model->setItem( row, 1, itemValue );
 		m_model->setItem( row, 2, itemType );
 	}
 
 	// FIXME: Will the delegate instance created here automatically be deleted?
-	PropertyTreeDelegate* valueDelegate = new PropertyTreeDelegate;
+	PropertyTreeDelegate* valueDelegate = new PropertyTreeDelegate;	
 	valueDelegate->setParameters( params );
 	m_view->setItemDelegateForColumn( 1, valueDelegate );
+
+	// Customize view
+	m_view->hideColumn( 2 );
+	m_view->setAlternatingRowColors( true );
 
 	// Auto resize columns
 	for( int i=0; i < 4; i++ )
@@ -76,6 +83,15 @@ QStandardItem* PropertyTreeWidget::
 	if( p_double )
 	{
 		item = new QStandardItem( tr("%1").arg(p_double->value()) );
+		return item;
+	}
+
+	// EnumParameter must be checked before its parent class IntParameter
+	EnumParameter* p_enum = dynamic_cast<EnumParameter*>( p );
+	if( p_enum )
+	{
+		item = new QStandardItem( 
+			QString::fromStdString( p_enum->enumNames().at(p_enum->value()) ));
 		return item;
 	}
 

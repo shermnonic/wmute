@@ -5,12 +5,21 @@
 #include <QDoubleSpinBox>
 #include <QSpinBox>
 #include <QLineEdit>
+#include <QComboBox>
+#include <QPainter>
 
 PropertyTreeDelegate
   ::PropertyTreeDelegate( QObject* parent )
-  : QItemDelegate( parent ),
+  : QStyledItemDelegate( parent ),
     m_params( NULL )
 {
+}
+
+void PropertyTreeDelegate
+  ::paint( QPainter *painter, const QStyleOptionViewItem &option,
+           const QModelIndex &index ) const
+{
+	QStyledItemDelegate::paint( painter, option, index );
 }
 
 QWidget* PropertyTreeDelegate
@@ -58,6 +67,13 @@ void PropertyTreeDelegate
 		edit->setText( value );
 	}
 	else
+	if( param->type()=="enum" )
+	{
+		QString value = index.model()->data(index, Qt::EditRole).toString();
+		QComboBox* comboBox = static_cast<QComboBox*>(editor);		
+		comboBox->setCurrentIndex( comboBox->findText(value) );
+	}
+	else
 	{
 		// Unkown type
 	}	
@@ -93,6 +109,21 @@ void PropertyTreeDelegate
 		model->setData( index, value, Qt::EditRole );
 	}
 	else
+	if( param->type()=="enum" )
+	{
+		QComboBox* combo = static_cast<QComboBox*>(editor);
+
+		// Instead of castin to EnumParameter we could add a valueAsString() 
+		// function to ParameterBase which is overloaded for EnumParameter to 
+		// return the enum name.
+		EnumParameter* p_enum = dynamic_cast<EnumParameter*>(param);
+		if( p_enum )
+		{
+			std::string value = p_enum->enumNames().at( combo->currentIndex() );
+			model->setData( index, QString::fromStdString(value), Qt::EditRole );
+		}
+	}
+	else
 	{
 		// Unkown type
 	}	
@@ -117,6 +148,16 @@ QWidget* PropertyTreeDelegate
 		return spin;
 	}
 
+	// EnumParameter must be checked before its parent class IntParameter
+	EnumParameter* p_enum = dynamic_cast<EnumParameter*>( p );
+	if( p_enum )
+	{
+		QComboBox* combo = new QComboBox(parent);
+		for( unsigned i=0; i < p_enum->enumNames().size(); i++ )
+			combo->addItem( QString::fromStdString(p_enum->enumNames().at(i)) );
+		return combo;
+	}
+
 	IntParameter* p_int = dynamic_cast<IntParameter*>( p );
 	if( p_int )
 	{
@@ -130,7 +171,7 @@ QWidget* PropertyTreeDelegate
 	{
 		QLineEdit* edit = new QLineEdit(parent);		
 		return edit;
-	}	
+	}
 	
 	return NULL; // FIXME: Is returning NULL here allowed?
 }
