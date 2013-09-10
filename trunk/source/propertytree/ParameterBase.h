@@ -7,40 +7,60 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/optional.hpp>
 
-/*
-	Parameter system
-	----------------
+/**\verbatim
 
-	Requirements:
-	- Different data types
-	- Default value and range (if applicable)
-	- Description
-	- Serialization (boost::property_tree)
+	Parameter system
+	================
+	Max Hermann, September 2013
+
+	Class hierarchy
+	---------------
+	ParameterBase               // Abstract base class provides key(), type()
+	+- ParameterBaseDefault<T>  // Provides value(), default()
+	   +- NumericParameter<T>   // Provides limits()
+	   |  |                     // Classes below are defined in ParameterTypes.h
+	   |  +- DoubleParameter
+	   |  +- IntParameter
+	   |     +- EnumParameter
+	   +- StringParameter
+
+	Requirements / Features
+	-----------------------
+	(Marked with + are already implemented features)
+	+ Different data types
+	+ Default value and range (if applicable)
+	+ Description
+	+ Serialization (boost::property_tree)
 	- Interpolation
 	- Easy adaptor system to integrate complex types of different libraries
 	- Automatic UI generation, extendable for custom types (Qt)
 	- Compound parameter types?
+	- Reference semantics (m_value as reference to member variable) and / or
+	  some kind of update mechanism (visitor, callback?).
 
-	Default UI should be provided for the following (base) classes:
-	- ParameterBaseDefault
-	- ParameterNumericParameter
-
+	Serialization
+	-------------
 	Serialization is realized via boost::property_tree. Each class has to
 	provide an implementation of \a read() and \a write() responsible to
 	serialize its own members. Note that in this design the derived class to 
 	invoke the serialization functions of its super class.
 
+	Notes
+	-----
 	Further thoughts:
 	- UI implementations for custom types could be realized via a factory 
 	  pattern.
 	- Serialization could be realized via strategy pattern.
-	- Reference semantics (m_value as reference to member variable) and / or
-	  some kind of update mechanism (visitor, callback?).
+
+	Future extensions:
+	- Support for change history?
 	  
 	For inspiration see also:
 	- Parameter management article and code by Qinghai Zhang:
 	  "C++ Design Patterns for Managing Parameters in Scientific Computing."
 	  http://www.math.utah.edu/~tsinghai/papers/parameterPatterns.pdf	  
+
+\endverbatim
 */
 
 //-----------------------------------------------------------------------------

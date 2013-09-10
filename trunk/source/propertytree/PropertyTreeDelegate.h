@@ -1,16 +1,17 @@
 #ifndef PROPERTYTREEDELEGATE_H
 #define PROPERTYTREEDELEGATE_H
 
-#include <QItemDelegate>
+#include <QStyledItemDelegate>
 #include "ParameterBase.h"
 
 class QObject;
 class QWidget;
 
-/// Item delegate for ParameterBase and its specializations
-/// See also:
-/// http://qt-project.org/doc/qt-4.8/itemviews-spinboxdelegate.html
-class PropertyTreeDelegate : public QItemDelegate
+/// Item delegate for ParameterBase and its specializations.
+/// Probably a QItemEditorFactory() is more appropriate for the task to supply
+/// different delegate widgets for the individual parameter types.
+/// See also QStyledItemDelegate.
+class PropertyTreeDelegate : public QStyledItemDelegate
 {
 	Q_OBJECT
 
@@ -18,6 +19,10 @@ public:
 	PropertyTreeDelegate( QObject* parent=0 );
 
 	// -- QItemDelegate implementation --
+
+	 void paint(QPainter *painter, const QStyleOptionViewItem &option,
+                const QModelIndex &index) const;
+
 	QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
 						const QModelIndex &index) const;
 
@@ -29,6 +34,7 @@ public:
 		const QStyleOptionViewItem &option, const QModelIndex &index) const;
 
 	// -- Custom functions --
+
 	void setParameters( ParameterList* params ) { m_params = params; }
 
 protected:
