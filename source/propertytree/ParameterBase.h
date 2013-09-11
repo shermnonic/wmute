@@ -51,6 +51,13 @@
 	- UI implementations for custom types could be realized via a factory 
 	  pattern.
 	- Serialization could be realized via strategy pattern.
+	- Adding value[To|From]String() functions to ParameterBase would enable
+	  canonic GUI treatment. Though, in the end we want to use some extendable
+	  factory solution for custom Qt delegates.
+	- Hierarchy and parameter groups could be realized via naming convention,
+	  e.g. a slash ('/') could separate levels of an (acyclic) tree. So far I
+	  see no advantage in reflecting a parameter hierarchy in our storage class
+	  and would argue that the exisiting ParameterList concept is sufficient.	  
 
 	Future extensions:
 	- Support for change history?
@@ -69,11 +76,15 @@
 
 class ParameterBase;
 
+/// List of pointers to parameter instances.
 typedef std::vector<ParameterBase*> ParameterList;
 
 //-----------------------------------------------------------------------------
 //	ParameterBase
 //-----------------------------------------------------------------------------
+/// Abstract parameter base class, providing key and type semantics.
+/// Value semantics is not included here but realized in a template child 
+/// class. This serves a template free super class for all parameter types.
 class ParameterBase // AbstractParameter ?
 {
 public:
@@ -112,6 +123,7 @@ private:
 //-----------------------------------------------------------------------------
 //	ParameterBaseDefault< T >
 //-----------------------------------------------------------------------------
+/// Templated base parameter class providing value and default value semantics.
 template<class T> // ParameterBase
 class ParameterBaseDefault: public ParameterBase
 {
@@ -171,6 +183,7 @@ private:
 //-----------------------------------------------------------------------------
 //	NumericParameter< T >
 //-----------------------------------------------------------------------------
+/// Base class for all numeric parameters, providing min/max range semantic.
 template<class T>
 class NumericParameter: public ParameterBaseDefault<T>
 {
