@@ -9,6 +9,7 @@
 // --- Concrete parameter types ---
 //-----------------------------------------------------------------------------
 
+/// A double parameter.
 class DoubleParameter: public NumericParameter<double>
 {
 public:
@@ -19,6 +20,7 @@ public:
 	std::string type() const { return "double"; };
 };
 
+/// An integer parameter.
 class IntParameter: public NumericParameter<int>
 {
 public:
@@ -29,6 +31,7 @@ public:
 	virtual std::string type() const { return "int"; };
 };
 
+/// A string parameter.
 class StringParameter: public ParameterBaseDefault<std::string>
 {
 public:
@@ -39,6 +42,7 @@ public:
 	std::string type() const { return "string"; };
 };
 
+/// An enum parameter, realized as a named and range limited integer parameter.
 class EnumParameter: public IntParameter
 {
 public:
@@ -48,6 +52,9 @@ public:
 	{
 		setLimits( 0, (int)enumNames.size() );
 	}
+
+	// vector<> initializers are quite inconvenient, therefore we provide some
+	// unrolled explicit initializer lists
 
 	EnumParameter( const std::string& key, std::string enumName0 )
 		: IntParameter( key )

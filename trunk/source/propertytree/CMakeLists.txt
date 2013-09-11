@@ -12,19 +12,13 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/WintermuteCommon.cmake)
 #  Boost
 #-------------------
 ### --> So far we are only using header only dependencies, found in path
-#set(Boost_USE_STATIC_LIBS ON)
-#find_package(Boost COMPONENTS 
-#	system 
-#	filesystem 
-#	program_options 
-#	REQUIRED)
-#add_definitions(-DBOOST_ALL_NO_LIB) # prevent boost automatic linkage on Windows
-#set(BOOST_USED_LIBRARIES
-#   ${Boost_FILESYSTEM_LIBRARY}
-#   ${Boost_SYSTEM_LIBRARY}
-#	${Boost_PROGRAM_OPTIONS_LIBRARY}
-#)
-
+set(Boost_USE_STATIC_LIBS ON)
+find_package(Boost REQUIRED) #COMPONENTS system filesystem program_options 
+add_definitions(-DBOOST_ALL_NO_LIB) # prevent boost automatic linkage on Windows
+include_directories(${Boost_INCLUDE_DIR})
+message(STATUS "Boost_INCLUDE_DIR=${Boost_INCLUDE_DIR}")
+message(STATUS "Boost_LIBRARIES=${Boost_LIBRARIES}")
+	
 #-------------------
 # Qt4
 #-------------------
@@ -92,6 +86,6 @@ add_executable( testptreegui
 
 target_link_libraries( testptreegui
 	params
-	${QT_LIBRARIES}
-	${BOOST_USED_LIBRARIES}	
+	${QT_LIBRARIES}	
+	${Boost_LIBRARIES}	
 )

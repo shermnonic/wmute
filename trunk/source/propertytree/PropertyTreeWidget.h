@@ -8,7 +8,7 @@ class QStandardItemModel;
 class QStandardItem;
 class QTreeView;
 
-/// Tree view onto a parameter list
+/// Tree view onto a \a ParameterList.
 class PropertyTreeWidget : public QWidget
 {
 	Q_OBJECT

@@ -10,7 +10,8 @@ class QWidget;
 /// Item delegate for ParameterBase and its specializations.
 /// Probably a QItemEditorFactory() is more appropriate for the task to supply
 /// different delegate widgets for the individual parameter types.
-/// See also QStyledItemDelegate.
+/// Using a QStyledItemDelegate instead of a QItemDelegate is the recommended
+/// strategy and guarantees fluent integration into a styled GUI.
 class PropertyTreeDelegate : public QStyledItemDelegate
 {
 	Q_OBJECT
