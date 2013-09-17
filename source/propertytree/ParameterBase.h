@@ -7,6 +7,8 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/optional.hpp>
 
+typedef boost::property_tree::ptree PTree;
+
 /**\verbatim
 
 	Parameter system
@@ -16,7 +18,7 @@
 	Class hierarchy
 	---------------
 	ParameterBase               // Abstract base class provides key(), type()
-	+- ParameterBaseDefault<T>  // Provides value(), default()
+	+- ParameterBaseDefault<T>  // Provides value(), defaultValue()
 	   +- NumericParameter<T>   // Provides limits()
 	   |  |                     // Classes below are defined in ParameterTypes.h
 	   |  +- DoubleParameter
@@ -99,9 +101,7 @@ public:
 	std::string         key()  const { return m_key; }
 	virtual std::string type() const { return m_type; } //=0;
 
-	// Serialization
-
-	typedef boost::property_tree::ptree PTree;
+	// Serialization	
 
 	virtual void write( PTree& pt ) const
 	{
@@ -142,7 +142,7 @@ public:
 		m_default = val;
 	}
 
-	T default() const  // FIXME: default is keyword in C++11
+	T defaultValue() const  // FIXME: default is keyword in C++11
 	{ 
 		return m_default; 
 	}
@@ -165,7 +165,7 @@ public:
 	{
 		ParameterBase::write( pt ); // call super
 		pt.put( "value"  ,value() );
-		pt.put( "default",default() );
+		pt.put( "default",defaultValue() );
 	}
 
 	virtual void read( const PTree& pt )
@@ -188,8 +188,10 @@ template<class T>
 class NumericParameter: public ParameterBaseDefault<T>
 {
 public:
+	typedef ParameterBaseDefault<T> Super;
+
 	NumericParameter( const std::string& key )
-		: ParameterBaseDefault( key )		  
+		: Super( key )		  
 	{}
 
 	struct Range { 
@@ -235,7 +237,7 @@ public:
 
 	virtual void write( PTree& pt ) const
 	{
-		ParameterBaseDefault::write( pt ); // call super
+		Super::write( pt ); // call super
 		// Do not store limits if they are not used (i.e. initialized)
 		if( m_limits.active ) {
 			pt.put( "limit_min", limits().min_ );
@@ -245,7 +247,7 @@ public:
 
 	virtual void read( const PTree& pt )
 	{
-		ParameterBaseDefault::read( pt ); // call super
+		Super::read( pt ); // call super
 		boost::optional<T> min_ = pt.get_optional<T>( "limits_min" );
 		boost::optional<T> max_ = pt.get_optional<T>( "limits_max" );
 		// Only set limits if *both* min and max are provided
