@@ -42,6 +42,30 @@ public:
 	std::string type() const { return "string"; };
 };
 
+/// A boolean parameter, realized two-value limited integer parameter.
+class BoolParameter: public IntParameter
+{
+public:
+	BoolParameter( const std::string& key )
+		: IntParameter( key )
+	{
+		setLimits( 0, 1 );
+	}
+
+	std::string type() const { return "bool"; };
+
+protected:
+	// Override limit functions and make them inaccessible from outside
+	void setLimits( const int& min_, const int& max_ )
+	{
+		IntParameter::setLimits( min_, max_ );
+	}
+	void setLimits( const Range& limits )
+	{
+		IntParameter::setLimits( limits );
+	}
+};
+
 /// An enum parameter, realized as a named and range limited integer parameter.
 class EnumParameter: public IntParameter
 {

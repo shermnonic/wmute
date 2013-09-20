@@ -2,11 +2,16 @@
 #include "ParameterTypes.h"
 
 #include <QStyleOptionViewItem>
+#include <QStyleOptionButton>
+#include <QStyle>
+#include <QApplication> // for QApplication::style()
 #include <QDoubleSpinBox>
 #include <QSpinBox>
 #include <QLineEdit>
 #include <QComboBox>
+#include <QCheckBox>
 #include <QPainter>
+
 
 PropertyTreeDelegate
   ::PropertyTreeDelegate( QObject* parent )
@@ -19,7 +24,36 @@ void PropertyTreeDelegate
   ::paint( QPainter *painter, const QStyleOptionViewItem &option,
            const QModelIndex &index ) const
 {
+	// Draw default style
 	QStyledItemDelegate::paint( painter, option, index );
+
+	// Overdraw specific content
+	if( index.column() == 1 )
+	{
+		// Specifically style column 1, containing our editable property values
+
+		// Assume 1:1 mapping between row and parameter index
+		ParameterBase* param = (*m_params)[index.row()];
+
+		// Only the checkbox for the bool type is specialized for now
+		if( param->type()=="bool" )
+		{
+			painter->save();
+
+			// Configure checkbox
+			bool checked = (bool)index.model()->data(index, Qt::EditRole).toInt();
+			QStyleOptionButton butOpt;
+			butOpt.state = QStyle::State_Enabled;
+			butOpt.state = checked ? QStyle::State_On : QStyle::State_Off;
+			butOpt.rect = option.rect;
+
+			// Draw checkbox
+			QStyle* style = QApplication::style();			
+			style->drawControl( QStyle::CE_CheckBox, &butOpt, painter );
+
+			painter->restore();
+		}
+	}
 }
 
 QWidget* PropertyTreeDelegate
@@ -41,8 +75,6 @@ QWidget* PropertyTreeDelegate
 void PropertyTreeDelegate
   ::setEditorData( QWidget *editor, const QModelIndex &index ) const
 {
-    int value = index.model()->data(index, Qt::EditRole).toInt();
-
 	// Assume 1:1 mapping between row and parameter index
 	ParameterBase* param = (*m_params)[index.row()];
 	
@@ -72,6 +104,13 @@ void PropertyTreeDelegate
 		QString value = index.model()->data(index, Qt::EditRole).toString();
 		QComboBox* comboBox = static_cast<QComboBox*>(editor);		
 		comboBox->setCurrentIndex( comboBox->findText(value) );
+	}
+	else
+	if( param->type()=="bool" )
+	{
+		int value = index.model()->data(index, Qt::EditRole).toInt();
+		QCheckBox* checkBox = static_cast<QCheckBox*>(editor);
+		checkBox->setChecked( value!=0 );
 	}
 	else
 	{
@@ -124,6 +163,18 @@ void PropertyTreeDelegate
 		}
 	}
 	else
+	if( param->type()=="bool" )
+	{
+		QCheckBox* chbx = static_cast<QCheckBox*>(editor);
+
+		BoolParameter* p_bool = dynamic_cast<BoolParameter*>(param);
+		if( p_bool )
+		{
+			int value = (int)chbx->isChecked();
+			model->setData( index, value, Qt::EditRole );
+		}
+	}
+	else
 	{
 		// Unkown type
 	}	
@@ -156,6 +207,14 @@ QWidget* PropertyTreeDelegate
 		for( unsigned i=0; i < p_enum->enumNames().size(); i++ )
 			combo->addItem( QString::fromStdString(p_enum->enumNames().at(i)) );
 		return combo;
+	}
+
+	// BoolParameter must be checked before its parent class IntParameter
+	BoolParameter* p_bool = dynamic_cast<BoolParameter*>( p );
+	if( p_bool )
+	{
+		QCheckBox* chkbx = new QCheckBox(parent);
+		return chkbx;
 	}
 
 	IntParameter* p_int = dynamic_cast<IntParameter*>( p );
