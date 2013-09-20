@@ -4,14 +4,25 @@
 #include <QWidget>
 #include "ParameterBase.h"
 
+/*
+  For use in a shared library:
+	#include <QtGlobal>
+	#ifdef QPARAMS_LIB
+	# define QPARAMS_EXPORT Q_DECL_EXPORT
+	#else
+	# define QPARAMS_EXPORT Q_DECL_IMPORT
+	#endif
+*/
+#define QPARAMS_EXPORT
+
 class QStandardItemModel;
 class QStandardItem;
 class QTreeView;
 
 /// Tree view onto a \a ParameterList.
-class PropertyTreeWidget : public QWidget
+class QPARAMS_EXPORT PropertyTreeWidget : public QWidget
 {
-	Q_OBJECT
+	//Q_OBJECT
 
 public:
 	PropertyTreeWidget( QWidget* parent=0 );

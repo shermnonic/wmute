@@ -14,7 +14,7 @@ class QWidget;
 /// strategy and guarantees fluent integration into a styled GUI.
 class PropertyTreeDelegate : public QStyledItemDelegate
 {
-	Q_OBJECT
+	//Q_OBJECT
 
 public:	
 	PropertyTreeDelegate( QObject* parent=0 );
