@@ -2,10 +2,12 @@
 #define PARAMETERBASE_H
 
 #include <string>
+#include <sstream> // stringstream (for default value to string conversion)
 //#include <map> // for factory
 #include <vector>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/optional.hpp>
+#include <cassert>
 
 typedef boost::property_tree::ptree PTree;
 
@@ -79,7 +81,17 @@ typedef boost::property_tree::ptree PTree;
 class ParameterBase;
 
 /// List of pointers to parameter instances.
-typedef std::vector<ParameterBase*> ParameterList;
+class ParameterList : public std::vector<ParameterBase*>
+{
+public:
+	/// Access parameter by key, returns NULL if no matching parameter found
+	ParameterBase* get_param( std::string key );
+};
+
+/// Equality operator based on key comparison.
+/// Note that ParameterList has a custom function get_param(key).
+bool operator == ( const ParameterBase& a, const ParameterBase& b );
+
 
 //-----------------------------------------------------------------------------
 //	ParameterBase
@@ -90,30 +102,27 @@ typedef std::vector<ParameterBase*> ParameterList;
 class ParameterBase // AbstractParameter ?
 {
 public:
-	ParameterBase( const std::string& key )
-		: m_key(key)
-	{
-		m_type = type();
-	}
+	ParameterBase( const std::string& key );
 
 	// Key and type semantics
 
-	std::string         key()  const { return m_key; }
-	virtual std::string type() const { return m_type; } //=0;
+	std::string         key()  const;
+	virtual std::string type() const;
 
-	// Serialization	
+	// Equality operator (via key comparison, defined globally)
 
-	virtual void write( PTree& pt ) const
-	{
-		pt.put( "key" , key() );
-		pt.put( "type", type() );
-	}
+	friend bool operator == ( const ParameterBase& a, const ParameterBase& b );
 
-	virtual void read ( const PTree& pt )
-	{
-		m_key  = pt.get<std::string>( "key" );		
-		m_type = pt.get<std::string>( "type" );
-	}
+	// Serialization
+
+	virtual void write( PTree& pt ) const;
+	virtual void read ( const PTree& pt );
+
+	/// Return string representation of current value
+	virtual std::string str() const;
+
+	/// Reset to default value (implemented in subclass ParameterBaseDefault)
+	virtual void reset() { assert(false); /* should never be executed */ };
 
 private:
 	std::string m_key;
@@ -147,6 +156,11 @@ public:
 		return m_default; 
 	}
 
+	void reset()
+	{
+		m_value = m_default;
+	}
+
 	// Value semantics
 
 	void setValue( const T& val )
@@ -173,6 +187,15 @@ public:
 		ParameterBase::read( pt ); // call super
 		m_value   = pt.get<T>( "value" );
 		m_default = pt.get<T>( "default" );
+	}
+
+	// Default value to string conversion
+
+	std::string str() const
+	{
+		std::stringstream ss;
+		ss << m_value;
+		return ss.str();
 	}
 
 private:
