@@ -12,19 +12,22 @@ struct Foo
 		  d1( "d1" ),
 		  index( "index" ),
 		  title( "title" ),
-		  mode( "mode", "NoMode", "FooMode", "BarMode", "FoobarMode" )
+		  mode( "mode", "NoMode", "FooMode", "BarMode", "FoobarMode" ),
+		  doit( "doit" )
 	{
 		parms.push_back( &d0 );
 		parms.push_back( &d1 );
 		parms.push_back( &index );
 		parms.push_back( &title );
 		parms.push_back( &mode );
+		parms.push_back( &doit );
 
 		d0.setValue( 42.3 ); d0.setLimits(0.0,100.0);
 		d1.setValue( 23.7 ); d0.setLimits(-50.0,50.0);
 		index.setValue( 77 ); index.setLimits(0,1000);
 		title.setValue( "Foobar" );
 		mode.setValue( 2 );
+		doit.setValue( true );
 	}
 
 	DoubleParameter d0;
@@ -32,6 +35,7 @@ struct Foo
 	IntParameter    index;
 	StringParameter title;
 	EnumParameter   mode;
+	BoolParameter   doit;
 
 	ParameterList   parms;
 };
