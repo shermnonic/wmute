@@ -17,6 +17,12 @@ struct Foo
 		parms.push_back( &index );
 		parms.push_back( &title );
 
+		// shuffle ordering
+		parms2.push_back( &d0 );
+		parms2.push_back( &title );
+		parms2.push_back( &d1 );
+		parms2.push_back( &index );
+
 		d0.setValue( 42.3 );
 		d1.setValue( 23.7 );
 		index.setValue( 77 );
@@ -25,9 +31,21 @@ struct Foo
 
 	void test()
 	{
-		save_params( "foobar.xml", parms );
+		using namespace std;
 
-		load_params( "foobar.xml", parms );
+		string filename("foobar.xml");
+
+		cout << "Defined following list of parameters:" << endl;
+		print_params( parms );
+
+		cout << "Writing to " << filename << "..." << endl;
+		save_params( filename.c_str(), parms );
+
+		cout << "Loading again from disk (with changed ordering)..." << endl;
+		load_params( filename.c_str(), parms2 );
+
+		cout << "Loaded list of parameters (with changed ordering):" << endl;
+		print_params( parms2 );
 	}
 
 	DoubleParameter d0;
@@ -36,6 +54,7 @@ struct Foo
 	StringParameter title;
 
 	ParameterList   parms;
+	ParameterList   parms2; // different ordering
 };
 
 int main( int argc, char* argv[] )

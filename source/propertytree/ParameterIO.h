@@ -2,10 +2,14 @@
 #define PARAMETERIO_H
 
 #include "ParameterBase.h"
+#include <iostream>
 
 //-----------------------------------------------------------------------------
 // --- Parameter IO ---
 //-----------------------------------------------------------------------------
+
+/// Print parameters to an output stream.
+void print_params( const ParameterList& parms, std::ostream& os=std::cout );
 
 /// Write parameters to disk.
 void save_params( const char* filename, const ParameterList& parms );
