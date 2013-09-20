@@ -44,8 +44,8 @@ typedef boost::property_tree::ptree PTree;
 	-------------
 	Serialization is realized via boost::property_tree. Each class has to
 	provide an implementation of \a read() and \a write() responsible to
-	serialize its own members. Note that in this design the derived class to 
-	invoke the serialization functions of its super class.
+	serialize its own members. Note that in this design the derived class is 
+	responsible to invoke the serialization functions of its super class.
 
 	Notes
 	-----
