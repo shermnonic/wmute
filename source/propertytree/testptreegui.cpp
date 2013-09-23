@@ -1,8 +1,8 @@
 // testptreegui - GUI for my Parameter library
 // Max Hermann, September 2013
 #include <QApplication>
-#include "PropertyTreeWidget.h"
-#include "ParameterTypes.h"
+#include "param/PropertyTreeWidget.h"
+#include "param/ParameterTypes.h"
 #include <iostream>
 
 struct Foo
