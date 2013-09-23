@@ -6,6 +6,7 @@ message("Wintermute common CMake configuration:")
 set(WINTERMUTE_BIN_PATH "${CMAKE_CURRENT_LIST_DIR}/../../bin"  CACHE PATH "Output binary path")
 
 set(EXECUTABLE_OUTPUT_PATH    ${WINTERMUTE_BIN_PATH})
+set(LIBRARY_OUTPUT_PATH       ${WINTERMUTE_BIN_PATH})
 set(CMAKE_RUNTIME_OUTPUT_PATH ${WINTERMUTE_BIN_PATH})
 
 # CMAKE_CURRENT_LIST_DIR only available from CMake version greater 2.8.3
