@@ -1,6 +1,6 @@
 #include <iostream>
-#include "ParameterTypes.h"
-#include "ParameterIO.h"
+#include "param/ParameterTypes.h"
+#include "param/ParameterIO.h"
 
 // --- Parameter test program ---
 
