@@ -17,9 +17,9 @@
 
 class QStandardItemModel;
 class QStandardItem;
-class QTreeView;
+class PropertyTreeView;
 
-/// Tree view onto a \a ParameterList.
+/// Widget to show and edit a a \a ParameterList in a \a PropertyTreeView.
 class QPARAMS_EXPORT PropertyTreeWidget : public QWidget
 {
 	//Q_OBJECT
@@ -34,7 +34,7 @@ protected:
 
 private:
 	QStandardItemModel* m_model;	
-	QTreeView*          m_view;
+	PropertyTreeView*   m_view;
 	ParameterList*      m_params;	
 };
 

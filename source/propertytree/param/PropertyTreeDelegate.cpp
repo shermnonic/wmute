@@ -103,7 +103,8 @@ void PropertyTreeDelegate
 	{
 		QString value = index.model()->data(index, Qt::EditRole).toString();
 		QComboBox* comboBox = static_cast<QComboBox*>(editor);		
-		comboBox->setCurrentIndex( comboBox->findText(value) );
+		comboBox->setCurrentIndex( comboBox->findText(value) );		
+		comboBox->showPopup(); // Workaround for one-click editing
 	}
 	else
 	if( param->type()=="bool" )
@@ -152,7 +153,7 @@ void PropertyTreeDelegate
 	{
 		QComboBox* combo = static_cast<QComboBox*>(editor);
 
-		// Instead of castin to EnumParameter we could add a valueAsString() 
+		// Instead of casting to EnumParameter we could add a valueAsString() 
 		// function to ParameterBase which is overloaded for EnumParameter to 
 		// return the enum name.
 		EnumParameter* p_enum = dynamic_cast<EnumParameter*>(param);
