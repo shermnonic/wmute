@@ -46,10 +46,12 @@ if( QT_FOUND )
 	set( qlib_HEADER
 		${param_INCLUDE_DIR}/PropertyTreeWidget.h
 		${param_INCLUDE_DIR}/PropertyTreeDelegate.h
+		${param_INCLUDE_DIR}/PropertyTreeView.h
 		)
 	set( qlib_SOURCE
 		${param_SOURCE_DIR}/PropertyTreeWidget.cpp
 		${param_SOURCE_DIR}/PropertyTreeDelegate.cpp
+		${param_SOURCE_DIR}/PropertyTreeView.cpp
 		)
 
 	qt4_wrap_cpp( qlib_HEADER_MOC ${qlib_HEADER} )

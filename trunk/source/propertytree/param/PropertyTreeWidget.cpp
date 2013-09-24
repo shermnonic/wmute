@@ -1,5 +1,6 @@
 #include "PropertyTreeWidget.h"
 #include "PropertyTreeDelegate.h"
+#include "PropertyTreeView.h"
 #include "ParameterTypes.h"
 
 #include <QStandardItemModel>
@@ -15,8 +16,9 @@ PropertyTreeWidget
 	m_model = new QStandardItemModel;
 	setParameters( NULL );
 
-	m_view = new QTreeView;
-	m_view->setModel( m_model );
+	m_view = new PropertyTreeView;
+	m_view->setModel( m_model );	
+	m_view->setOneClickEditing( false );
 
 	QVBoxLayout* layout = new QVBoxLayout;
 	layout->addWidget( m_view );
@@ -52,6 +54,8 @@ void PropertyTreeWidget
 
 		itemName->setEditable( false );
 		itemType->setEditable( false );
+
+		itemValue->setFlags( Qt::ItemIsEditable | Qt::ItemIsEnabled | Qt::ItemIsSelectable );
 
 		m_model->setItem( row, 0, itemName );
 		m_model->setItem( row, 1, itemValue );
@@ -95,6 +99,7 @@ QStandardItem* PropertyTreeWidget::
 		return item;
 	}
 
+	// Int also covers its subclasses (not handled above), i.e. Bool for now
 	IntParameter* p_int = dynamic_cast<IntParameter*>( p );
 	if( p_int )
 	{
