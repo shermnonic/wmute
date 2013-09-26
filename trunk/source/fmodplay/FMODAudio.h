@@ -34,6 +34,8 @@ public:
 	void create_music( const char* filename );
 	void play_music();
 
+	std::vector<float>& get_spectrum() { return m_spectrum; }
+
 protected:
 	void check_and_handle_error( FMOD_RESULT result );
 	void fatal_error( const char* format, ... );
