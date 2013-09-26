@@ -18,7 +18,7 @@ set( E8_LIBRARIES
 	e8viewer
 )
 
-include_directories(
+set( E8_INCLUDE_DIRS
 	../e8/include
 	../propertytree/param
 	../fmodplay				# FMODAudio
@@ -42,8 +42,9 @@ add_executable(demo
 
 include_directories(demo
 	${GLFW_INCLUDE_DIRS}
-	${OPENGL_INCLUDE_DIR}
+	${OPENGL_INCLUDE_DIR}	
 	${FMOD_INCLUDE_DIR}
+	${E8_INCLUDE_DIRS}
 )
 
 target_link_libraries(demo
