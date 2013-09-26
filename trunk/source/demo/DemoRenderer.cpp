@@ -1,5 +1,5 @@
 #include "DemoRenderer.h"
-#include <GLFW/glfw3.h>
+#include <e8/base/gl.h>
 
 void DemoRenderer::initialize()
 {
