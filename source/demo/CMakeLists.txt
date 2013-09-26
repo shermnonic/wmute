@@ -1,31 +1,55 @@
 # demo
+# September 2013
 cmake_minimum_required(VERSION 2.8)
 project(demo)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/WintermuteCommon.cmake)
 
-# libs
+# wmute dependencies
+wmuteImportLibrary(fmodaudio)
+wmuteImportLibrary(param)
+wmuteImportLibrary(e8base)
+wmuteImportLibrary(e8viewer)
+
+set( E8_LIBRARIES
+	fmodaudio
+	param
+	e8base
+	e8viewer
+)
+
+include_directories(
+	../e8/include
+	../propertytree/param
+	../fmodplay				# FMODAudio
+)
+
+# dependencies
 find_package(OpenGL REQUIRED)
-find_package(GLEW   REQUIRED)
 find_package(GLFW   REQUIRED)
 find_package(FMOD   REQUIRED)
 
 message(STATUS "GLFW_LIBRARIES=${GLFW_LIBRARIES}")
 
+add_library(demo_module
+	DemoRenderer.h
+	DemoRenderer.cpp
+)
+
 add_executable(demo
-	demo.cpp
+	demo_viewer.cpp
 )
 
 include_directories(demo
-	${GLEW_INCLUDE_DIR}
 	${GLFW_INCLUDE_DIRS}
 	${OPENGL_INCLUDE_DIR}
 	${FMOD_INCLUDE_DIR}
 )
 
 target_link_libraries(demo
-	${GLEW_LIBRARY}
 	${GLFW_LIBRARIES}
 	${OPENGL_LIBRARY}
 	${FMOD_LIBRARY}
+	${E8_LIBRARIES}
+	demo_module
 )
