@@ -30,7 +30,7 @@ void DemoRenderer::render()
 
 	if( m_specBuf && m_specLen>0 )
 	{
-		float max_ = *std::max_element( m_specBuf, m_specBuf+m_specLen );
+		float max_ = 1.f; //*std::max_element( m_specBuf, m_specBuf+m_specLen );
 
 		glBegin( GL_LINE_STRIP );
 		for( unsigned i=0; i < m_specLen; i++ )
