@@ -17,6 +17,16 @@ public:
 	
 	std::string getModuleName() const { return m_name; }
 	
+	// non-const access
+	ParameterList&    paramlist() { return m_params; }
+	ParameterPresets& presets()   { return m_presets; }
+	
+	void addPreset( const ParameterList& plist ) { m_presets.push_back(plist); }
+	
+	// const access
+	const ParameterPresets& getPresets()   const { return m_presets; }
+	const ParameterList&    getParamList() const { return m_params; }
+	
 protected:
 	void setModuleName( std::string name ) { m_name = name; }
 	

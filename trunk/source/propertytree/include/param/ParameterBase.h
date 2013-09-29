@@ -132,19 +132,51 @@ private:
 //-----------------------------------------------------------------------------
 //	ParameterBaseDefault< T >
 //-----------------------------------------------------------------------------
+
+//#define PARAMETERBASE_DEFAULT_CTORS( NAME, TYPE, TYPENAME )   \	
+//	NAME( const std::string& key )                            \
+//		: ParameterBaseDefault( key )                         \
+//	{}                                                        \
+//	                                                          \
+//	NAME( const std::string& key, TYPE value_and_default )    \
+//		: ParameterBaseDefault( key, value_and_default )      \
+//	{}                                                        \
+//	                                                          \
+//	NAME( const std::string& key, TYPE value, TYPE default_ ) \
+//		: ParameterBaseDefault( key, value, default_ )        \
+//	{}                                                        \
+//	virtual std::string type() const { return TYPENAME; }
+
 /// Templated base parameter class providing value and default value semantics.
 template<class T> // ParameterBase
 class ParameterBaseDefault: public ParameterBase
 {
 public:
 	ParameterBaseDefault( const std::string& key )
-		: ParameterBase( key )
-	{
-		// Initialize w/ default c'tor
-		m_default = m_value = T();
-	}
+		: ParameterBase( key ),
+		  m_value  ( T() ), // Initialize w/ default c'tor
+		  m_default( T() )
+	{}
+
+	ParameterBaseDefault( const std::string& key, T value_and_default_ )
+		: ParameterBase( key ),
+		  m_value  ( value_and_default_ ),
+		  m_default( value_and_default_ )
+	{}
+
+	ParameterBaseDefault( const std::string& key, T value, T default_ )
+		: ParameterBase( key ),
+		  m_value  ( value ),
+		  m_default( default_ )
+	{}
 
 	// Default value semantics
+
+	void setValueAndDefault( const T& val )
+	{
+		setValue( val );
+		m_default = val;
+	}
 
 	void setDefault( const T& val )
 	{
@@ -206,6 +238,26 @@ private:
 //-----------------------------------------------------------------------------
 //	NumericParameter< T >
 //-----------------------------------------------------------------------------
+
+#define PARAMETERBASE_NUMERIC_PARAM( NAME, TYPE, TYPENAME )   \
+	public:                                                   \
+	NAME( const std::string& key )                            \
+	 	: NumericParameter( key )                             \
+	{}                                                        \
+	NAME( const std::string& key, TYPE value_ )               \
+		: NumericParameter( key, value_ )                     \
+	{}                                                        \
+	NAME( const std::string& key,                             \
+	                  TYPE value_, TYPE min_, TYPE max_ )     \
+		: NumericParameter( key, value_, min_, max_ )         \
+	{}                                                        \
+	NAME( const std::string& key,                             \
+	                  TYPE value_, TYPE min_, TYPE max_,      \
+	                  TYPE default_ )                         \
+		: NumericParameter( key, value_, min_, max_, default_ ) \
+	{}                                                        \
+	virtual std::string type() const { return TYPENAME; }
+
 /// Base class for all numeric parameters, providing min/max range semantic.
 template<class T>
 class NumericParameter: public ParameterBaseDefault<T>
@@ -215,6 +267,21 @@ public:
 
 	NumericParameter( const std::string& key )
 		: Super( key )		  
+	{}
+
+	NumericParameter( const std::string& key, T value_and_default )
+		: Super( key, value_and_default, value_and_default )
+	{}
+
+	NumericParameter( const std::string& key, T value_and_default, T min_, T max_ )
+		: Super( key, value_and_default, value_and_default ),
+		  m_limits( min_, max_ )
+	{}
+
+	NumericParameter( const std::string& key, T value_, T min_, T max_,
+	                  T default_ )
+		: Super( key, value_, default_ ),
+		  m_limits( min_, max_ )
 	{}
 
 	struct Range { 
@@ -277,7 +344,7 @@ public:
 		if( min_ && max_ )
 			setLimits( Range(min_.get(),max_.get()) );		
 	}
-	
+
 private:
 	Range m_limits;
 };

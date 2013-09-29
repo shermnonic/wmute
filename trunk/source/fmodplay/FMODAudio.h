@@ -31,7 +31,7 @@ public:
 #ifdef FMODAUDIO_USE_FMODEX
 		  m_recordsound (NULL),
 		  m_recorddriver(0),
-		  m_recordlength(1./10.f),
+		  m_recordlength(1.f/10.f),
 #endif
 		  m_outputrate(48000),
 		  m_spectrum(2048,0.f),

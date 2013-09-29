@@ -2,6 +2,8 @@
 #include <sstream>
 #include <iostream>
 
+int Module::s_moduleCount = 0;
+
 Module::Module( std::string name )
 {
 	s_moduleCount++;
