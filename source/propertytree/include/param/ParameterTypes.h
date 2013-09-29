@@ -12,34 +12,33 @@
 /// A double parameter.
 class DoubleParameter: public NumericParameter<double>
 {
-public:
-	DoubleParameter( const std::string& key )
-		: NumericParameter( key )
-	{}
-
-	std::string type() const { return "double"; };
+	PARAMETERBASE_NUMERIC_PARAM( DoubleParameter, double, "double" )
 };
 
 /// An integer parameter.
 class IntParameter: public NumericParameter<int>
 {
-public:
-	IntParameter( const std::string& key )
-		: NumericParameter( key )
-	{}
-
-	virtual std::string type() const { return "int"; };
+	PARAMETERBASE_NUMERIC_PARAM( IntParameter, int, "int" )
 };
 
 /// A string parameter.
 class StringParameter: public ParameterBaseDefault<std::string>
 {
+	//PARAMETERBASE_DEFAULT_CTORS( StringParameter, std::string, "string" )
 public:
-	StringParameter( const std::string& key )
-		: ParameterBaseDefault( key )
-	{}
+	StringParameter( const std::string& key )                            
+		: ParameterBaseDefault( key )                         
+	{}                                                        
+	                                                          
+	StringParameter( const std::string& key, std::string value_and_default )    
+		: ParameterBaseDefault( key, value_and_default )      
+	{}                                                        
+	                                                          
+	StringParameter( const std::string& key, std::string value, std::string default_ ) 
+		: ParameterBaseDefault( key, value, default_ )        
+	{}        
 
-	std::string type() const { return "string"; };
+	virtual std::string type() const { return "string"; }
 };
 
 /// A boolean parameter, realized two-value limited integer parameter.
@@ -47,10 +46,12 @@ class BoolParameter: public IntParameter
 {
 public:
 	BoolParameter( const std::string& key )
-		: IntParameter( key )
-	{
-		setLimits( 0, 1 );
-	}
+		: IntParameter( key, (int)true, 0,1 )
+	{}
+
+	BoolParameter( const std::string& key, bool value_and_default )
+		: IntParameter( key, value_and_default, 0,1 )
+	{}
 
 	std::string type() const { return "bool"; };
 
@@ -72,6 +73,14 @@ class EnumParameter: public IntParameter
 public:
 	EnumParameter( const std::string& key, std::vector<std::string> enumNames )
 		: IntParameter( key ),
+		  m_enumNames( enumNames )
+	{
+		setLimits( 0, (int)enumNames.size() );
+	}
+
+	EnumParameter( const std::string& key, int value_and_default, 
+		           std::vector<std::string> enumNames )
+		: IntParameter( key, value_and_default ),
 		  m_enumNames( enumNames )
 	{
 		setLimits( 0, (int)enumNames.size() );

@@ -7,9 +7,11 @@ include_directories(${E8VIEWER_INCLUDE_DIR})
 #---- Dependencies ------------------------------------------------------------
 
 find_package(OpenGL REQUIRED)
+find_package(GLEW   REQUIRED)
 find_package(GLFW   REQUIRED)
 
 include_directories(
+	${GLEW_INCLUDE_DIR}
 	${GLFW_INCLUDE_DIRS}
 	${OPENGL_INCLUDE_DIR}
 )
@@ -30,6 +32,7 @@ add_executable( e8viewer_test
 )
 
 target_link_libraries( e8viewer_test
+	${GLEW_LIBRARY}
 	${GLFW_LIBRARIES}
 	${OPENGL_LIBRARY}
 	param     # imported
