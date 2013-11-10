@@ -51,7 +51,7 @@ Keys:\n\
 ";
 
 
-const unsigned long     BUFLEN = 8*2048;  // size of sample buffer
+const unsigned long     BUFLEN = 2048;  // size of sample buffer
 const int               K_MAX  = 128;
 short                   g_buf[BUFLEN];    // sample buffer
 
@@ -178,6 +178,9 @@ void update( int data )
 	if( g_keys[' '] ) { g_sound.togglePause(); g_keys[' '] = false;	}
 	if( g_keys['R'] ) {	g_sound.restart();     g_keys['R'] = false;	}
 
+	// more controls
+	if( g_keys['n'] ) { g_pspace.setNormalize( !g_pspace.getNormalize() ); }
+
 	// update phase space
 	if( !g_keys['#'] )
 		g_pspace.pollWaveSamples( buf, numBytesRead/2 ); //BUFLEN );
@@ -246,7 +249,7 @@ void draw_phaseSpace( int mode=0 )
 #endif
 }
 
-float orthoOn()
+float orthoOn( bool keep_aspect = true )
 {
 	int viewport[4];
 	glGetIntegerv( GL_VIEWPORT, viewport );
@@ -256,7 +259,10 @@ float orthoOn()
 	glMatrixMode( GL_PROJECTION );
 	glPushMatrix();
 	glLoadIdentity();
-	glOrtho( -asp,asp, -1,1, -1,1 );
+	if( keep_aspect )
+		glOrtho( -asp,asp, -1,1, -1,1 );
+	else
+		glOrtho( -1,1, -1,1, -1,1 );
 	glMatrixMode( GL_MODELVIEW );
 
 	return asp;
@@ -268,6 +274,23 @@ void orthoOff()
 	glMatrixMode( GL_PROJECTION );
 	glPopMatrix();
 	glMatrixMode( GL_MODELVIEW );
+}
+
+void drawOrthoQuad()
+{
+	const float verts[3*4] = 
+	{ -1,1,0, 1,1,0, 1,-1,0, -1,-1,0 };
+
+	orthoOn( false );
+
+	glBegin( GL_QUADS );
+	glVertex3fv( &verts[0] );
+	glVertex3fv( &verts[3] );
+	glVertex3fv( &verts[6] );
+	glVertex3fv( &verts[9] );
+	glEnd();
+
+	orthoOff();
 }
 
 // draw progress when playing from file
@@ -361,9 +384,28 @@ void display()
 	if( g_keys['l'] ) { lineWidth*=0.9; g_keys['l']=false; }
 	glLineWidth( lineWidth );
 
+	// clear screen
 	if( !g_keys['W'] ) glClearColor( 0,0,0,1 ); else glClearColor( 1,1,1,1 );
-	glClear( GL_COLOR_BUFFER_BIT );
-	glColor4f( 1,1,1,0.6 );
+	if( !g_keys['B'] )
+	{
+		// plain clear
+		glClear( GL_COLOR_BUFFER_BIT );
+	}
+	else
+	{
+		// visual 'echo' effect
+		glDepthMask( GL_FALSE );
+		glEnable( GL_BLEND );
+		if( !g_keys['W'] ) glColor4f( 0,0,0,0.3 ); else glColor4f( 1,1,1,1.3 );
+		drawOrthoQuad();
+		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA ); 
+		glDepthMask( GL_TRUE );
+	}
+
+	// color
+	float brightness = std::min( .2f + 5.f*g_pspace.getMaximum(), 1.f );
+	if( g_keys['W'] ) brightness = 1.f - brightness;
+	glColor4f( brightness, brightness, brightness, .6f );
 
 	// camera
 	glLoadIdentity();
