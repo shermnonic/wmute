@@ -14,7 +14,18 @@ void MonroPressingPhaseSpace::pollWaveSamples( short* samples, int n )
 		m_pointBuffer.resize( 2*numUsableSamples*DIM );
 		std::cout << "Enlarged phase space buffer to " << m_pointBuffer.size() << "\n";
 	}
+
+	// Normalize buffer
+	short maxval = std::numeric_limits<short>::max();
+	if( m_normalize )
+	{
+		maxval = 0;
+		for( int i=0; i < n; i++ )
+			maxval = std::max( samples[i], maxval );
+	}	
 	
+	m_relmaxval = log( 1.f + fabs((float)maxval / (.5f*65536.f)) );
+
 	int N   = (int)m_pointBuffer.size();
 	int ofs = m_pointBufferOfs;
 	for( int i=0; i < numUsableSamples; i++, ofs+=DIM )
@@ -23,12 +34,12 @@ void MonroPressingPhaseSpace::pollWaveSamples( short* samples, int n )
 		for( int d=0; d < DIM; d++ )
 		{
 			// normalized sample in [-1,1]
-			float v = (float)samples[i+ d * m_phaseShift] / (.5f*65536.f);
+			float v = (float)samples[i+ d * m_phaseShift] / (float)maxval; // was: /	(.5f*65536.f);
 
 			// decibels 
 			float sign = (v > 0.0) ? 1.0 : -1.0;
 			v = log(1+fabs(v));
-			
+	
 			// insert into buffer, wrapping around at beginning if required
 			m_pointBuffer[ofs%N+d] = m_scale * sign * v;
 
