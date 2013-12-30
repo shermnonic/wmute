@@ -14,7 +14,7 @@
 //==============================================================================
 
 /// Indexed face set in linear tightly packed vertex/index buffers
-/// Restricted to triangle faces and vertex normals.
+/// Restricted to triangle facets and vertex normals.
 /// Internally getters map to more convenient custom vector/face type.
 class SimpleGeometry
 {
@@ -36,9 +36,9 @@ protected:
 	/// Reserve memory for vertices
 	void reserve_vertices( int n );
 	/// Reserve memory for face indices
-	void reserve_faces( int n );
+	virtual void reserve_faces( int n );
 	
-	/// Triangle face
+	/// Internal triangle face type
 	/// Assume identical indices for vertices/normals
 	struct Face 
 	{ 
@@ -47,12 +47,14 @@ protected:
 		Face( int i, int j, int k );
 		int vi[3];
 	};
-	
-	vec3 get_vertex( int i );
-	Face get_face( int i );
+
+public:
+	vec3 get_vertex( int i ) const;
+	vec3 get_normal( int i ) const;
+	Face get_face  ( int j ) const;
 	
 	/// Insert face
-	int  add_face( Face f );
+	virtual int  add_face( Face f );
 
 	/// Insert vertex with normal, returns vertex index
 	/// (Yes, you *have* to supply a normal :-)
@@ -114,4 +116,51 @@ private:
 		   m_platonicConstantZ;
 };
 
+//==============================================================================
+//	Penrose tiling
+//==============================================================================
+
+/// Generate a Penrose tiling pattern
+/// Implementation uses a subdivision approach as described on
+///   http://preshing.com/20110831/penrose-tiling-explained/
+class Penrose : public SimpleGeometry
+{
+public:
+	enum FaceTypes { Blue, Red };
+	
+	Penrose();
+
+	void create( int levels=-1 );
+
+	void setDefaultGenerator();
+	void setGenerator( const SimpleGeometry& geom );
+
+	void setPlatonicConstants( double X, double Z ) {}
+	double getPlatonicConstantsX() const { return 0; }
+	double getPlatonicConstantsZ() const { return 0; }
+
+	void setLevels( int levels ) 
+		{ 
+			m_levels = levels; 
+			if( m_levels <= 0 ) m_levels=1;
+		};
+	int getLevels() const { return m_levels; }
+
+protected:
+	///@{ Implement custom face type attribute
+	virtual void reserve_faces( int n );
+	virtual int add_face( SimpleGeometry::Face f );
+	///@}
+	// Internal function called for each added face setting also type attribute
+	int add_face( SimpleGeometry::Face f, int type );
+
+	void add_face_subdivision( SimpleGeometry::Face f, int type, int levels );
+	
+private:	
+	int m_levels;	
+	std::vector<int> m_faceType;
+	SimpleGeometry m_generator;
+};
+
 #endif
+

@@ -43,7 +43,12 @@ Keys:\n\
 ";
 
 // globals
+#define TEST_PENROSE
+#ifdef TEST_PENROSE
+Penrose g_ico;
+#else
 Icosahedron g_ico;
+#endif
 std::vector<float> g_colors;
 double g_linewidth = 1.0;
 std::string g_switches = "wsilcB";  // switches for serialization
@@ -234,6 +239,12 @@ void welcome()
 bool init( int argc, char** argv )
 {
 	glutSetWindowTitle("geometry2");
+
+#ifdef TEST_PENROSE
+	//Icosahedron mico2;
+	//mico2.create( 0 );
+	//g_ico.setGenerator( mico2 );
+#endif
 
 	// generate geometry
 	g_ico.setPlatonicConstants( // New golden ratio method
