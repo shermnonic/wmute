@@ -191,30 +191,50 @@ void filter( int width, int height, unsigned char* data, float chick )
 class BlueX : public GLApp2DScreen
 {
 public:
+	BlueX()
+		: m_chicken(0.),
+		  m_speed(1.0),
+		  m_paused(false)
+	{}
+		  
 	virtual void update( double dt_ )
 	{
 		static double dt = 0;
 		dt += dt_;
-		if( dt < 0.032 ) return; // update at max. 30Hz
+		if( dt < m_speed*0.032 ) return; // update at max. 30Hz
 	
 		if( !m_paused )
 			m_chicken += dt;
 
-		filter( getWidth(), getHeight(), (unsigned char*)getScreenPtr(), 0.01*m_chicken );
+		filter( getWidth(), getHeight(), (unsigned char*)getScreenPtr(), m_chicken );
 		updateScreen();
+
+		dt = 0;
 	}
 
 	void keypress( unsigned char key, int x, int y ) 
 	{
-		if( key == ' ' ) {
+		switch( key )
+		{
+		case ' ': 
 			m_paused = !m_paused;
 			if( m_paused )
 				std::cout << (int)m_chicken << std::endl;
+			break;
+
+		case '-':
+			m_speed *= 0.9;
+			break;
+		
+		case '+':
+			m_speed *= 1.1;
+			break;
 		}
 	}
 
 private:
 	double m_chicken;
+	double m_speed;
 	bool m_paused;
 };
 
