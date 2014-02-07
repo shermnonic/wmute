@@ -1,0 +1,12 @@
+Thoughts on the design of an MeshAnimation class wrt renderina and PCA analysis
+-------------------------------------------------------------------------------
+Jan 2014
+
+Tasks:
+- Rendering using VBOs
+- PCA Analysis on vertex scatter matrix
+- Further covariation tensor analysis
+
+Analysis is performed on vertex matrix created from the non-duplicated vertices as for instance given in an indexed-face set and eigenmodes are given in the same format. For ease of implementation and to avoid format conversion we should use the same format for rendering, i.e. using indexed buffers. 
+
+Storage and transfer patterns effect performance and memory consumption on CPU and GPU side. I expect that matrix computations are performed on CPU side (e.g. using Eigen3). Either we transfer individual frames to GPU buffers for rendering, or we mirror the CPU buffer of all frames on the GPU. The latter will yield the best performance in rendering the animation since we only have to change the vertex and normal pointer without any transfer from CPU side. Also for synthesis from the PCA model the complete set of eigenmodes would be stored on the GPU and linear combinations could be evaluated in the vertex shader or, using a 2-pass strategy, in the fragment shader. The latter would allow to download the result to CPU avoiding code duplication and re-evaluation on CPU side. Nevertheless, implementing on synthesis on the CPU could be more straightforward and foolproof to start with.
