@@ -374,6 +374,9 @@ void SceneViewer::init()
 	//setMouseTracking(true);
 	this->setSelectRegionWidth( 21 );
 	this->setSelectRegionHeight( 21 );	
+
+	m_phongShader.init();
+	m_phongShader.setDefaultLighting();
 }
 
 void SceneViewer::updateScene()
@@ -388,7 +391,9 @@ void SceneViewer::draw()
 	glPushAttrib( GL_ALL_ATTRIB_BITS );
 
 	// Draw scene objects
+	//m_phongShader.bind();
 	m_scene.render();
+	//m_phongShader.release();
 
 	glDisable( GL_LIGHTING );
 	glDisable( GL_DEPTH_TEST );
@@ -475,6 +480,8 @@ void SceneViewer::endSelection( const QPoint& point )
 	glReadPixels( point.x(), point.y(), 1,1, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, (void*)&depth );
 #endif
 	
+	// Get selection
+	std::vector<unsigned> selected;
 	if (nbHits > 0)
 	{
 		// Interpret results : each object created 4 values in the selectBuffer().
@@ -521,15 +528,37 @@ void SceneViewer::endSelection( const QPoint& point )
 			if( discard )
 				continue;
 
-			// Apply selection
-			switch( m_selectionMode )
-			{
-			case SelectAdd    : m_selection.push_back( id ); break;
-			case SelectRemove : qDebug() << "Selection remove not implemented yet!"; break;
-			default: break;
-			}			
+			selected.push_back( id );
 		}
 	}
+
+	// Apply selection	
+	std::vector<unsigned> removed;
+	switch( m_selectionMode )
+	{
+	case SelectAdd    : 
+		m_selection.insert( m_selection.end(), selected.begin(), selected.end() );
+		if( currentMeshObject() ) 
+			currentMeshObject()->meshBuffer().setCBufferSelection( selected );
+		break;
+
+	case SelectRemove : 
+		//qDebug() << "Selection remove not implemented yet!"; 
+		for( unsigned i=0; i < selected.size(); i++ )
+		{
+			std::vector<unsigned>::iterator it =
+			  std::find( m_selection.begin(), m_selection.end(), selected[i] );
+			if( it != m_selection.end() )
+			{
+				m_selection.erase( it );
+				removed.push_back( selected[i] );
+			}
+		}
+		if( currentMeshObject() ) 
+			currentMeshObject()->meshBuffer().setCBufferSelection( removed, false );
+		break;
+	default: break;
+	}			
 }
 
 //----------------------------------------------------------------------------

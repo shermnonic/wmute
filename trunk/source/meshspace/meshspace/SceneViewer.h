@@ -9,6 +9,8 @@
 #include <QRect>
 #include <QList>
 
+#include <glutils/PhongShader.h>
+
 #include "scene.h"
 #include "meshtools.h"
 
@@ -115,6 +117,8 @@ private:
 	qglviewer::Vec m_selectedPoint;
 
 	QList<QAction*> m_actions;
+
+	PhongShader m_phongShader;
 };
 
 #endif // SCENEVIEWER_H

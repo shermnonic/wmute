@@ -22,7 +22,8 @@ public:
 	  m_numNormals(0),
 	  m_initialized(false),
 	  m_dirty(true),
-	  m_frameUpdateRequired(true)
+	  m_frameUpdateRequired(true),
+	  m_cbufferEnabled(true)
 	{}
 
 	void clear();
@@ -46,8 +47,22 @@ public:
 
 	meshtools::Mesh* createMesh( int frame=0 ) const;
 
-	// Return scalar product between given direction and vertex normal of vertex idx (No range checking!).
+	/// Return scalar product between given direction and vertex normal of vertex idx (No range checking!).
 	double projectVertexNormal( unsigned idx, float x, float y, float z ) const;
+
+	/// Setup color buffer (which is used for special attributes as well).
+	/// Must be called after vbuffer is set, i.e. after a file is loaded, but
+	/// before downloadGPU() called for the first time.
+	void setupCBuffer();
+
+	void setCBufferEnabled( bool b ) { m_cbufferEnabled = b; }
+
+	// Requires valid OpenGL context
+	void setCBufferSelection( std::vector<unsigned>, bool selected=true );
+	void setCBufferSelection( unsigned idx, bool selected=true );	
+
+	std::vector<float>& cbuffer() { return m_cbuffer; }
+	const std::vector<float>& cbuffer() const { return m_cbuffer; }
 
 private:	
 	int      m_curFrame;
@@ -60,8 +75,11 @@ private:
 	unsigned m_vbo;     ///< GL vertex buffer object id (should be a GLuint)
 	unsigned m_ibo;     ///< GL index buffer object id (should be a GLuint)
 	std::vector<unsigned> m_ibuffer; ///< index buffer (same for all meshes)
-	std::vector<float>    m_vbuffer;
-	std::vector<float>    m_nbuffer;
+	std::vector<float>    m_vbuffer; ///< vertex buffer (consecutive frames)
+	std::vector<float>    m_nbuffer; ///< vertex-normals buffer (consecutive frames)
+
+	bool m_cbufferEnabled;
+	std::vector<float>    m_cbuffer; ///< color buffer (same for all meshes?!)
 };
 
 #endif // MESHBUFFER_H
