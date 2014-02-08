@@ -454,3 +454,19 @@ meshtools::Mesh* MeshBuffer::createMesh( int frame ) const
 
 	return m;
 }
+
+//------------------------------------------------------------------------------
+double MeshBuffer::projectVertexNormal( unsigned idx, float x, float y, float z ) const
+{
+	// Current frame offset in vertex / normal buffer
+	unsigned ofs = m_numVertices*3 * m_curFrame;
+
+	// Select vertex
+	ofs += 3*idx;
+
+	float nx = m_nbuffer[ofs ],
+		  ny = m_nbuffer[ofs + 1],
+		  nz = m_nbuffer[ofs + 2];
+
+	return nx*x + ny*y + nz*z;
+}

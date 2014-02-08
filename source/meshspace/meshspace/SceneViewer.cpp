@@ -368,40 +368,55 @@ void SceneViewer::updateScene()
 
 void SceneViewer::draw()
 {
+	glPushAttrib( GL_ALL_ATTRIB_BITS );
+
 	// Draw scene objects
 	m_scene.render();
+
+	glDisable( GL_LIGHTING );
+	glDisable( GL_DEPTH_TEST );
+	glPointSize( 5.f );
+	glColor3f( 1,0,0 );
 
 	// Draw selected vertices of current mesh object
 	if( !m_selection.empty() && currentMeshObject() )
 	{
-		glDisable( GL_LIGHTING );
-		glDisable( GL_DEPTH_TEST );
-		glPointSize( 5.f );
-		glColor3f( 1,0,0 );
-
 		currentMeshObject()->renderPoints( m_selection );
-
-		glEnable( GL_DEPTH_TEST );
-		glEnable( GL_LIGHTING );
 	}
+
+	glColor3f( 1,1,0 );
+	glPointSize( 10.f );
+	glBegin( GL_POINTS );
+	glVertex3f( m_selectedPoint.x, m_selectedPoint.y, m_selectedPoint.z );
+	glEnd();
+
+	glEnable( GL_DEPTH_TEST );
+	glEnable( GL_LIGHTING );
 
 	// Draw brush shape
 	if( m_selectionMode != SelectNone )
 		drawSelectionRectangle();
+
+	glPopAttrib();
 }
 
 //----------------------------------------------------------------------------
 // Selection
 //----------------------------------------------------------------------------
 
+// We currently select only vertices on front faces. More convenient would be
+// to perform selection only on closest surface to viewer. Sadly, deciding
+// which points are on closest surface based on depth value is not working yet.
+//#define SCENEVIEWER_SELECTION_DEPTH_DISAMBIGUATION
+
 void SceneViewer::drawWithNames()
 {
 	using namespace scene;
 
-	// Draw each object with a different name
+	// Draw each object with a different name (for object selection)
 	//m_scene.render( Object::RenderSurface | Object::RenderNames );
 
-	// Draw each vertex of current mesh with a different name
+	// Draw each vertex of current mesh with a different name (for vertex selection)
 	if( currentMeshObject() )
 	{
 		currentMeshObject()->render( Object::RenderPoints | Object::RenderNames );
@@ -410,7 +425,7 @@ void SceneViewer::drawWithNames()
 
 void SceneViewer::endSelection( const QPoint& point )
 {
-	// Code snippet from: http://www.libqglviewer.com/examples/multiSelect.html
+	// See: http://www.libqglviewer.com/examples/multiSelect.html
 
 	// Flush GL buffers
 	glFlush();
@@ -418,8 +433,31 @@ void SceneViewer::endSelection( const QPoint& point )
 	// Get the number of objects that were seen through the pick matrix frustum. Reset GL_RENDER mode.
 	GLint nbHits = glRenderMode(GL_RENDER);
 
-	//m_selection.clear();
+	// Find 3D intersection with closest surface point
+	bool found;
+	qglviewer::Vec selectedPoint;
+	m_selectedPoint = QGLViewer::camera()->pointUnderPixel( point, found );
 
+	// Intersection ray
+	qglviewer::Vec ray_origin, ray_dir;
+	QGLViewer::camera()->convertClickToLine( point, ray_origin, ray_dir );
+	ray_dir.normalize();
+
+#ifdef SCENEVIEWER_SELECTION_DEPTH_DISAMBIGUATION
+	// Find depth value of closest surface (assuming render mode is surface)
+	unsigned depth, depth2;
+	const unsigned zrange = std::numeric_limits<unsigned>::max(); // (unsigned)0x7fffffff
+	
+	// Variant 2: Project intersection point again
+	qglviewer::Vec 
+		windowPoint = QGLViewer::camera()->projectedCoordinatesOf( m_selectedPoint );
+	depth2 = m_selectedPoint.z * zrange;
+
+	// Variant 1: Read depth manually from depth buffer
+	updateGL();
+	glReadPixels( point.x(), point.y(), 1,1, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, (void*)&depth );
+#endif
+	
 	if (nbHits > 0)
 	{
 		// Interpret results : each object created 4 values in the selectBuffer().
@@ -428,6 +466,45 @@ void SceneViewer::endSelection( const QPoint& point )
 		{
 			unsigned id = (selectBuffer())[4*i+3];
 
+			// Only consider points on front-facing surfaces
+			bool discard = false;
+			{
+			  #ifdef SCENEVIEWER_SELECTION_DEPTH_DISAMBIGUATION
+				// Only consider points on closest surface
+
+				// Debug hit record
+				GLuint hitrec[4];			
+				memcpy( (void*)&hitrec[0], (void*)&((selectBuffer())[4*i]), sizeof(GLuint)*4 );
+
+				// Window depth of closest hit
+				unsigned min_depth = (selectBuffer())[4*i+1];
+				double thresh  = abs((double)depth - (double)min_depth) / (double)zrange;
+				double thresh2 = abs((double)min_depth - (double)depth2) / (double)zrange;
+
+				// Skip points far away from closest surface
+				//if( fabs(dist) > 0.001f )
+				//	discard = true;
+
+				qDebug() << id << ": min-depth = " << (unsigned)(selectBuffer())[4*i+1] << ", t1 = " << thresh << ", t2 = " << thresh2 << ", sign = " << sign;
+			  #endif
+
+				// Check if hit point is front-facing
+				double sign=42.;
+				if( currentMeshObject() )
+				{
+					scene::MeshObject* mobj = currentMeshObject();
+					sign = mobj->projectVertexNormal( id, ray_origin.x, ray_origin.y, ray_origin.z );
+				}
+
+				// Discard back-facing points
+				if( sign < 0.1 )
+					discard = true;
+			}
+
+			if( discard )
+				continue;
+
+			// Apply selection
 			switch( m_selectionMode )
 			{
 			case SelectAdd    : m_selection.push_back( id ); break;
@@ -475,6 +552,10 @@ void SceneViewer::mouseReleaseEvent( QMouseEvent* e )
 {
 	if( m_selectionMode != SelectNone )
 	{
+		//// Update selection on mouse key release
+		//QGLViewer::select( m_brushRectangle.center() );	
+		//updateGL();
+
 		// Leave selection mode on mouse key release
 		m_selectionMode = SelectNone;
 	}
