@@ -106,6 +106,7 @@ private:
 	std::vector<unsigned> m_selection; ///< Selected vertex indices in current object
 	int m_selectionMode;
 	QRect m_brushRectangle;
+	qglviewer::Vec m_selectedPoint;
 };
 
 #endif // SCENEVIEWER_H

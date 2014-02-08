@@ -135,4 +135,10 @@ BoundingBox MeshObject::getBoundingBox() const
 	return bbox;
 }
 
+//-----------------------------------------------------------------------------
+double MeshObject::projectVertexNormal( unsigned idx, float x, float y, float z ) const
+{
+	return m_meshBuffer.projectVertexNormal( idx, x, y, z );
+}
+
 } // namespace scene

@@ -46,6 +46,9 @@ public:
 
 	meshtools::Mesh* createMesh( int frame=0 ) const;
 
+	// Return scalar product between given direction and vertex normal of vertex idx (No range checking!).
+	double projectVertexNormal( unsigned idx, float x, float y, float z ) const;
+
 private:	
 	int      m_curFrame;
 	unsigned m_numFrames;

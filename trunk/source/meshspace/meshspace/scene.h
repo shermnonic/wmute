@@ -199,6 +199,9 @@ public:
 	MeshBuffer& meshBuffer() { return m_meshBuffer; }
 	const MeshBuffer& meshBuffer() const { return m_meshBuffer; }
 
+	/// Wrap \a MeshBuffer::projectVertexNormal()
+	double projectVertexNormal( unsigned idx, float x, float y, float z ) const;
+
 private:
 	boost::shared_ptr<meshtools::Mesh> m_mesh;  ///< Reference mesh (1st of an animation sequence)
 	MeshBuffer m_meshBuffer; ///< Buffer objects and rendering functionality
