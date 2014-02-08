@@ -47,6 +47,21 @@ include(${QT_USE_FILE})
 find_package(QGLViewer REQUIRED)
 include_directories( ${QGLVIEWER_INCLUDE_DIR} )
 
+#-------------------
+# Custom dependencies
+#-------------------
+set(WINTERMUTE_3RDPARTY_LIBS_PATH "${CMAKE_CURRENT_LIST_DIR}/../../3rdparty")
+set(WINTERMUTE_GLUTILS_PATH       "${CMAKE_CURRENT_LIST_DIR}/../..") # /glutils
+
+set(GLM_INCLUDE_DIR  "${WINTERMUTE_3RDPARTY_LIBS_PATH}/glm"    CACHE PATH "glm include path")
+set(GLUTILS_PATH     "${WINTERMUTE_GLUTILS_PATH}"              CACHE PATH "path to authors custom glutils")
+
+file(GLOB_RECURSE GLUTILS_SOURCES ${GLUTILS_PATH}/glutils/*.cpp)
+source_group("glutils" FILES ${GLUTILS_SOURCES})
+
+include_directories( ${GLUTILS_PATH} )
+include_directories( ${GLM_INCLUDE_DIR} )
+
 #---- Qt4 resources & moc -----------------------------------------------------
 
 # Qt4 resource files
@@ -87,6 +102,7 @@ add_executable( meshspace
 	ObjectPropertiesWidget.cpp
 	${meshspace_MOC_SRCS}
 	${meshspace_RCC_SRCS}
+	${GLUTILS_SOURCES}
 )
 target_link_libraries( meshspace
 	meshtools

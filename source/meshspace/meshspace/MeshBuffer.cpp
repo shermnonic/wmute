@@ -123,7 +123,7 @@ bool MeshBuffer::addFrame( const meshtools::Mesh* mesh )
 				}			
 		}
 		else
-			// Differnt number of indices
+			// Different number of indices
 			matchingConnectivity = false;
 		
 		if( !matchingConnectivity )
@@ -173,6 +173,22 @@ bool MeshBuffer::addFrame( const meshtools::Mesh* mesh )
 }
 
 //------------------------------------------------------------------------------
+void MeshBuffer::setupCBuffer()
+{
+	m_cbuffer.clear();
+	m_cbuffer.resize( m_numVertices*4, 1.f );
+#if 0 // Assign green color for debugging purposes
+	for( unsigned i=0; i < m_numVertices; i++ )
+	{
+		m_cbuffer[4*i  ] = 0.f;
+		m_cbuffer[4*i+1] = 1.f;
+		m_cbuffer[4*i+2] = 0.f;
+		m_cbuffer[4*i+3] = 1.f;
+	}
+#endif
+}
+
+//------------------------------------------------------------------------------
 void MeshBuffer::downloadGPU()
 {
 	// Sanity checks
@@ -198,11 +214,13 @@ void MeshBuffer::downloadGPU()
 	}	
 
 	if( m_dirty )
-	{		
+	{	
+		size_t nfloats = m_numVertices*3 + m_numNormals*3 + m_numVertices*4; //m_cbuffer.size();
+
 		// (Re-)allocate buffer (for a single frame)
 		glBindBuffer( GL_ARRAY_BUFFER, m_vbo );
 		glBufferData( GL_ARRAY_BUFFER, 
-			sizeof(float) * ( m_numVertices*3 + m_numNormals*3 ), NULL,
+			sizeof(float) * nfloats, NULL,
 			GL_STATIC_DRAW );
 		
 		// Download index buffer (static for all frames)
@@ -224,14 +242,56 @@ void MeshBuffer::downloadGPU()
 	glBindBuffer( GL_ARRAY_BUFFER, m_vbo );
 	
 	// Download vertices (of current frame)
-	glBufferSubData( GL_ARRAY_BUFFER, 0,  // offset
-		sizeof(float)*m_numVertices*3, &(m_vbuffer[ofs]) );
+	size_t start = 0;
+	glBufferSubData( GL_ARRAY_BUFFER, start,
+		   sizeof(float)*m_numVertices*3, &(m_vbuffer[ofs]) );
+	start += sizeof(float)*m_numVertices*3;
 
-	// Download normals (of current frame)
-	glBufferSubData( GL_ARRAY_BUFFER, sizeof(float)*m_numVertices*3,
-		sizeof(float)*m_numNormals*3, &(m_nbuffer[ofs]) );
+	// Download normals (of current frame)	
+	glBufferSubData( GL_ARRAY_BUFFER, start,
+		   sizeof(float)*m_numNormals*3, &(m_nbuffer[ofs]) );
+	start += sizeof(float)*m_numNormals*3;
+
+	// Download colors (optional)
+	if( m_cbuffer.empty() )
+		setupCBuffer();
+	{
+		if( m_cbuffer.size() != m_numVertices*4 )
+		{
+			std::cout << "MeshBuffer::downloadGPU() : Color buffer mismatch, must be of format RGBA!" << std::endl;
+			m_cbuffer.clear();
+		}
+		else
+		{
+			glBufferSubData( GL_ARRAY_BUFFER, start,
+				sizeof(float)*m_cbuffer.size(), &(m_cbuffer[0]) );
+		}
+	}
 
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
+}
+
+//------------------------------------------------------------------------------
+void MeshBuffer::setCBufferSelection( std::vector<unsigned> idx, bool selected )
+{
+	size_t start = sizeof(float)*( m_numVertices*3 + m_numNormals*3 );
+	float color_selected[4] = { 1.f, 0.f, 0.f, 1.f };
+	float color_deselected[4] = { 1.f, 1.f, 1.f, 1.f };
+
+	glBindBuffer( GL_ARRAY_BUFFER, m_vbo );
+	for( unsigned i=0; i < idx.size(); i++ )
+	{		
+		glBufferSubData( GL_ARRAY_BUFFER, start + idx[i]*4*sizeof(float), sizeof(float)*4, 
+						(void*)(selected ? color_selected : color_deselected));
+	}
+	glBindBuffer( GL_ARRAY_BUFFER, 0 );
+}
+
+void MeshBuffer::setCBufferSelection( unsigned idx, bool selected )
+{
+	std::vector<unsigned> tmp;
+	tmp.push_back( idx );
+	setCBufferSelection( tmp, selected );
 }
 
 //------------------------------------------------------------------------------
@@ -245,12 +305,20 @@ void MeshBuffer::draw()
 		downloadGPU();
 		m_frameUpdateRequired = false;
 	}
+
+	bool useCBuffer = m_cbufferEnabled && !m_cbuffer.empty();
 	
 	glBindBuffer( GL_ARRAY_BUFFER, m_vbo );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_ibo );
 	
 	glEnableClientState( GL_NORMAL_ARRAY );
 	glEnableClientState( GL_VERTEX_ARRAY );
+
+	if( useCBuffer )
+	{
+		glEnableClientState( GL_COLOR_ARRAY );
+		glColorPointer( 4, GL_FLOAT, 0, (void*)(sizeof(float)*m_numVertices*3+sizeof(float)*m_numNormals*3) );
+	}
 	
 	glNormalPointer( GL_FLOAT, 0, (void*)(sizeof(float)*m_numVertices*3) );
 	glVertexPointer( 3, GL_FLOAT, 0, 0 );
@@ -260,7 +328,8 @@ void MeshBuffer::draw()
 	
 	glDisableClientState( GL_VERTEX_ARRAY );	
 	glDisableClientState( GL_NORMAL_ARRAY );
-	
+	if( useCBuffer )
+		glDisableClientState( GL_COLOR_ARRAY );
 	
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
