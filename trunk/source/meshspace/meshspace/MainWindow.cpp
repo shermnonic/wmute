@@ -56,7 +56,8 @@ MainWindow::MainWindow()
 
 	QMenu
 		*menuFile,
-		*menuWindows;
+		*menuWindows,
+		*menuScene;
 
 	menuFile = menuBar()->addMenu( tr("&File") );
 	menuFile->addAction( actOpenMesh );
@@ -68,6 +69,9 @@ MainWindow::MainWindow()
 	menuWindows = menuBar()->addMenu( tr("&Windows") );
 	menuWindows->addAction( actShowSceneBrowser );
 	menuWindows->addAction( actShowSceneInspector );
+
+	menuScene = menuBar()->addMenu( tr("&Scene") );
+	menuScene->addActions( m_viewer->getActions() );
 
 	// --- connections ---
 

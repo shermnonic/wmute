@@ -7,6 +7,7 @@
 #include <QGLViewer/qglviewer.h>
 #include <QStandardItemModel>
 #include <QRect>
+#include <QList>
 
 #include "scene.h"
 #include "meshtools.h"
@@ -14,6 +15,7 @@
 class ObjectPropertiesWidget;
 class QListView;
 class QMouseEvent;
+class QAction;
 
 /**
 	QGLViewer widget to render a \a scene::Scene.
@@ -30,6 +32,8 @@ class SceneViewer : public QGLViewer
 
 public:
 	SceneViewer( QWidget* parent=0 );
+
+	QList<QAction*> getActions() { return m_actions; }
 	
 public slots:
 	/// Load a mesh from disk and add it under its filename to the scene.
@@ -60,6 +64,8 @@ protected slots:
 	void onModelItemChanged( QStandardItem* );
 	void selectModelItem( const QModelIndex& );
 	void selectModelItem( const QModelIndex& current, const QModelIndex& /*previous*/ );
+
+	void selectNone();
 	
 protected:
 	///@{ QGLViewer implementation
@@ -107,6 +113,8 @@ private:
 	int m_selectionMode;
 	QRect m_brushRectangle;
 	qglviewer::Vec m_selectedPoint;
+
+	QList<QAction*> m_actions;
 };
 
 #endif // SCENEVIEWER_H

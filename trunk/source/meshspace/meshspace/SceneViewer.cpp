@@ -10,6 +10,7 @@
 #include <QApplication>
 #include <QMessageBox>
 #include <QMouseEvent>
+#include <QAction>
 
 
 SceneViewer::SceneViewer( QWidget* parent )
@@ -17,6 +18,7 @@ SceneViewer::SceneViewer( QWidget* parent )
     m_currentObject(-1),
 	m_selectionMode(SelectNone)
 {
+	// --- Widgets ---
 	m_listView = new QListView();
 	m_listView->setModel( &m_model );
 	m_listView->setSelectionMode( QAbstractItemView::SingleSelection );
@@ -24,7 +26,16 @@ SceneViewer::SceneViewer( QWidget* parent )
 	
 	connect( m_listView->selectionModel(), SIGNAL(currentRowChanged(const QModelIndex&, const QModelIndex&)), 
 		     this, SLOT(selectModelItem(const QModelIndex&)) );
-	connect( m_propertiesWidget, SIGNAL(sceneObjectFrameChanged()), this, SLOT(updateScene()) );	
+	connect( m_propertiesWidget, SIGNAL(sceneObjectFrameChanged()), this, SLOT(updateScene()) );
+
+	// --- Actions ---
+	QAction* actSelectNone = new QAction(tr("Select none (%1)"),this);
+	actSelectNone->setShortcut( Qt::CTRL + Qt::SHIFT + Qt::Key_A );
+	QGLViewer::setKeyDescription( Qt::CTRL + Qt::SHIFT + Qt::Key_A, "Select none (deselects all vertices)" );
+	
+	connect( actSelectNone, SIGNAL(triggered()), this, SLOT(selectNone()) );
+
+	m_actions.push_back( actSelectNone );
 }
 
 void SceneViewer::showInspector()
@@ -45,6 +56,12 @@ QString SceneViewer::helpString() const
 		"Max Hermann (<a href='mailto:hermann@cs.uni-bonn.de'>hermann@cs.uni-bonn.de</a>)<br>"
 		"University of Bonn, Computer Graphics Group<br>"
 		"Jan. 2014");
+}
+
+void SceneViewer::selectNone()
+{
+	m_selection.clear();
+	updateGL();
 }
 
 //----------------------------------------------------------------------------
