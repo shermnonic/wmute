@@ -29,13 +29,21 @@ SceneViewer::SceneViewer( QWidget* parent )
 	connect( m_propertiesWidget, SIGNAL(sceneObjectFrameChanged()), this, SLOT(updateScene()) );
 
 	// --- Actions ---
+	// Shortcut description is also added to QGLViewer help.
+
 	QAction* actSelectNone = new QAction(tr("Select none"),this);
 	actSelectNone->setShortcut( Qt::CTRL + Qt::SHIFT + Qt::Key_A );
 	QGLViewer::setKeyDescription( Qt::CTRL + Qt::SHIFT + Qt::Key_A, "Select none (deselects all vertices)" );
-	
+
+	QAction* actReloadShaders = new QAction(tr("Reload shaders"),this);
+	actReloadShaders->setShortcut( Qt::CTRL + Qt::Key_R );
+	QGLViewer::setKeyDescription( Qt::CTRL + Qt::Key_R, "Reload shaders" );
+
 	connect( actSelectNone, SIGNAL(triggered()), this, SLOT(selectNone()) );
+	connect( actReloadShaders, SIGNAL(triggered()), this, SLOT(reloadShaders()) );
 
 	m_actions.push_back( actSelectNone );
+	m_actions.push_back( actReloadShaders );
 }
 
 void SceneViewer::showInspector()
@@ -343,6 +351,12 @@ scene::MeshObject* SceneViewer::newMeshObject( QString name )
 // Rendering
 //----------------------------------------------------------------------------
 
+void SceneViewer::reloadShaders()
+{
+	m_phongShader.init();
+	updateGL();
+}
+
 void SceneViewer::init()
 {
 	// Restore previous viewer state.
@@ -385,9 +399,9 @@ void SceneViewer::draw()
 	glPushAttrib( GL_ALL_ATTRIB_BITS );
 
 	// Draw scene objects
-	//m_phongShader.bind();
+	m_phongShader.bind();
 	m_scene.render();
-	//m_phongShader.release();
+	m_phongShader.release();
 
 	glDisable( GL_LIGHTING );
 	glDisable( GL_DEPTH_TEST );
