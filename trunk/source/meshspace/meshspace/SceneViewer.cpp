@@ -16,7 +16,9 @@
 SceneViewer::SceneViewer( QWidget* parent )
   : QGLViewer(parent),
     m_currentObject(-1),
-	m_selectionMode(SelectNone)
+	m_selectionMode(SelectNone),
+	m_selectFrontFaces(true),
+	m_curShader(ShaderMesh)
 {
 	// --- Widgets ---
 	m_listView = new QListView();
@@ -39,10 +41,16 @@ SceneViewer::SceneViewer( QWidget* parent )
 	actReloadShaders->setShortcut( Qt::CTRL + Qt::Key_R );
 	QGLViewer::setKeyDescription( Qt::CTRL + Qt::Key_R, "Reload shaders" );
 
+	QAction* actSelectFrontFaces = new QAction(tr("Select vertices only on front faces"),this);
+	actSelectFrontFaces->setCheckable( true );
+	actSelectFrontFaces->setChecked( m_selectFrontFaces );
+
 	connect( actSelectNone, SIGNAL(triggered()), this, SLOT(selectNone()) );
 	connect( actReloadShaders, SIGNAL(triggered()), this, SLOT(reloadShaders()) );
+	connect( actSelectFrontFaces, SIGNAL(toggled(bool)), this, SLOT(selectFrontFaces(bool)) );
 
 	m_actions.push_back( actSelectNone );
+	m_actions.push_back( actSelectFrontFaces );
 	m_actions.push_back( actReloadShaders );
 }
 
@@ -354,6 +362,7 @@ scene::MeshObject* SceneViewer::newMeshObject( QString name )
 void SceneViewer::reloadShaders()
 {
 	m_phongShader.init();
+	m_meshShader.init();
 	updateGL();
 }
 
@@ -385,6 +394,8 @@ void SceneViewer::init()
 
 	m_phongShader.init();
 	m_phongShader.setDefaultLighting();
+	m_meshShader.init();
+	m_meshShader.setDefaultLighting();
 }
 
 void SceneViewer::updateScene()
@@ -394,14 +405,30 @@ void SceneViewer::updateScene()
 	updateGL();
 }
 
+void SceneViewer::bindShader()
+{
+	switch( m_curShader )
+	{
+	case ShaderPhong: m_phongShader.bind(); break;
+	case ShaderMesh : m_meshShader.bind(); break;
+	default:
+	case ShaderNone : break;
+	}
+}
+
+void SceneViewer::releaseShader()
+{
+	glUseProgram( 0 );
+}
+
 void SceneViewer::draw()
 {
 	glPushAttrib( GL_ALL_ATTRIB_BITS );
 
-	// Draw scene objects
-	m_phongShader.bind();
+	// Draw scene objects	
+	bindShader();
 	m_scene.render();
-	m_phongShader.release();
+	releaseShader();
 
 	glDisable( GL_LIGHTING );
 	glDisable( GL_DEPTH_TEST );
@@ -447,6 +474,11 @@ void SceneViewer::selectNone()
 	// Clear selection
 	m_selection.clear();
 	updateGL();
+}
+
+void SceneViewer::selectFrontFaces( bool enable )
+{
+	m_selectFrontFaces = enable;
 }
 
 void SceneViewer::drawWithNames()
@@ -507,13 +539,29 @@ void SceneViewer::endSelection( const QPoint& point )
 		for( int i=0; i<nbHits; ++i )
 		{
 			unsigned id = (selectBuffer())[4*i+3];
+			
+			bool discard = false;
 
 			// Only consider points on front-facing surfaces
-			bool discard = false;
+			if( m_selectFrontFaces )
 			{
-			  #ifdef SCENEVIEWER_SELECTION_DEPTH_DISAMBIGUATION
-				// Only consider points on closest surface
+				// Check if hit point is front-facing
+				double sign=42.;
+				if( currentMeshObject() )
+				{
+					scene::MeshObject* mobj = currentMeshObject();
+					sign = mobj->projectVertexNormal( id, ray_origin.x, ray_origin.y, ray_origin.z );
+				}
 
+				// Discard back-facing points
+				if( sign < 0.1 )
+					discard = true;
+			}
+
+		  #ifdef SCENEVIEWER_SELECTION_DEPTH_DISAMBIGUATION
+			// Only consider points on closest surface
+			if( false )			
+			{
 				// Debug hit record
 				GLuint hitrec[4];			
 				memcpy( (void*)&hitrec[0], (void*)&((selectBuffer())[4*i]), sizeof(GLuint)*4 );
@@ -528,20 +576,8 @@ void SceneViewer::endSelection( const QPoint& point )
 				//	discard = true;
 
 				qDebug() << id << ": min-depth = " << (unsigned)(selectBuffer())[4*i+1] << ", t1 = " << thresh << ", t2 = " << thresh2 << ", sign = " << sign;
-			  #endif
-
-				// Check if hit point is front-facing
-				double sign=42.;
-				if( currentMeshObject() )
-				{
-					scene::MeshObject* mobj = currentMeshObject();
-					sign = mobj->projectVertexNormal( id, ray_origin.x, ray_origin.y, ray_origin.z );
-				}
-
-				// Discard back-facing points
-				if( sign < 0.1 )
-					discard = true;
 			}
+		  #endif
 
 			if( discard )
 				continue;
