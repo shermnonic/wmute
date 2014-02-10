@@ -29,7 +29,7 @@ SceneViewer::SceneViewer( QWidget* parent )
 	connect( m_propertiesWidget, SIGNAL(sceneObjectFrameChanged()), this, SLOT(updateScene()) );
 
 	// --- Actions ---
-	QAction* actSelectNone = new QAction(tr("Select none (%1)"),this);
+	QAction* actSelectNone = new QAction(tr("Select none"),this);
 	actSelectNone->setShortcut( Qt::CTRL + Qt::SHIFT + Qt::Key_A );
 	QGLViewer::setKeyDescription( Qt::CTRL + Qt::SHIFT + Qt::Key_A, "Select none (deselects all vertices)" );
 	
@@ -56,12 +56,6 @@ QString SceneViewer::helpString() const
 		"Max Hermann (<a href='mailto:hermann@cs.uni-bonn.de'>hermann@cs.uni-bonn.de</a>)<br>"
 		"University of Bonn, Computer Graphics Group<br>"
 		"Jan. 2014");
-}
-
-void SceneViewer::selectNone()
-{
-	m_selection.clear();
-	updateGL();
 }
 
 //----------------------------------------------------------------------------
@@ -430,6 +424,16 @@ void SceneViewer::draw()
 // to perform selection only on closest surface to viewer. Sadly, deciding
 // which points are on closest surface based on depth value is not working yet.
 //#define SCENEVIEWER_SELECTION_DEPTH_DISAMBIGUATION
+
+void SceneViewer::selectNone()
+{
+	// De-select vertices
+	if( currentMeshObject() ) 
+		currentMeshObject()->meshBuffer().setCBufferSelection( m_selection, false );
+	// Clear selection
+	m_selection.clear();
+	updateGL();
+}
 
 void SceneViewer::drawWithNames()
 {
