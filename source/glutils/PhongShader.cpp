@@ -7,13 +7,22 @@ PhongShader::PhongShader()
 
 bool PhongShader::init()
 {
+	if( m_program )
+		delete m_program;
+	m_program = NULL;
+
 	m_program = new GL::GLSLProgram;
+
+#if 1 // LOAD SHADERS FROM DISK
+	if( !m_program->load_from_disk( "shaders/phong.vs", "shaders/phong.fs" ) )
+#else // USE BUILT-IN SHADERS
 	if( !m_program->load( s_vertexShader, s_fragmentShader ) )
+#endif
 	{
 		std::cerr << "PhongShader: Failed to load GLSL program!" << std::endl;
 		return false;
 	}
-	
+
 	return true;
 }
 
