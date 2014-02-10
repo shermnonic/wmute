@@ -4,13 +4,12 @@
 #include <string>
 #include <glutils/GLSLProgram.h>
 
+#include "TransferFunction.h"
+
 /// Per-pixel Phong shader equivalent to OpenGL fixed function pipeline.
 /// Note that only the first OpenGL light is considered for shading yet.
 class MeshShader
 {
-	static std::string s_vertexShader;
-	static std::string s_fragmentShader;
-	
 public:
 	MeshShader();
 
@@ -27,6 +26,7 @@ public:
 
 private:
 	GL::GLSLProgram* m_program;
+	TransferFunction m_tf;
 };
 
 #endif // MESHSHADER_H

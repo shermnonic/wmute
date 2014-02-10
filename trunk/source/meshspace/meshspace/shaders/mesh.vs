@@ -1,3 +1,7 @@
+#version 120
+
+uniform sampler1D lookup;
+
 varying vec3 vNormal;
 varying vec4 vColor;
 
@@ -7,6 +11,9 @@ varying vec3 vLightPos;
 
 //attribute float scalar;
 //attribute float selection;
+
+varying float vScalar;
+varying float vSelection;
 
 void main(void)
 { 
@@ -20,6 +27,10 @@ void main(void)
 	
 	// Temporary vertex position in view space
 	vec3 viewpos = vec3(modelview * position);
+	
+	// Special variables
+	
+	vSelection = 1.0 - color.g;
 	
 	// Interpolated variables
 	
