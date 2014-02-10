@@ -18,7 +18,10 @@ void main(void)
 	mat3 normal_matrix = gl_NormalMatrix;
 	mat4 mviewproj = gl_ModelViewProjectionMatrix;
 	
+	// Temporary vertex position in view space
 	vec3 viewpos = vec3(modelview * position);
+	
+	// Interpolated variables
 	
 	vViewDir = -1.0 * viewpos;
 	vNormal = normalize(normal_matrix * normal);
@@ -28,6 +31,7 @@ void main(void)
 	
 	vColor = color;
 	
+	// Pipeline output
 	gl_FrontColor = color;	
 	gl_Position   = mviewproj * gl_Vertex;
-}	
+}

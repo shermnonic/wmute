@@ -33,4 +33,4 @@ void main(void)
 		Idiff = clamp( vColor * max(dot(N,L), 0.0), 0.0, 1.0 );
 
 	gl_FragColor = scene + Iamb + Idiff + Ispec;
-}	
+}
