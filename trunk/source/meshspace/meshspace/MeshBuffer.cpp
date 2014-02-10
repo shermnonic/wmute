@@ -272,7 +272,7 @@ void MeshBuffer::downloadGPU()
 }
 
 //------------------------------------------------------------------------------
-void MeshBuffer::setCBufferSelection( std::vector<unsigned> idx, bool selected )
+void MeshBuffer::setCBufferSelection( const std::vector<unsigned>& idx, bool selected )
 {
 	size_t start = sizeof(float)*( m_numVertices*3 + m_numNormals*3 );
 	float color_selected[4] = { 1.f, 0.f, 0.f, 1.f };
