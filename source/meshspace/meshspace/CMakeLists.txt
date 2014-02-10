@@ -102,6 +102,8 @@ add_executable( meshspace
 	ObjectPropertiesWidget.cpp
 	MeshShader.h
 	MeshShader.cpp
+	TransferFunction.h
+	TransferFunction.cpp
 	${meshspace_MOC_SRCS}
 	${meshspace_RCC_SRCS}
 	${GLUTILS_SOURCES}

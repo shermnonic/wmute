@@ -7,6 +7,10 @@ MeshShader::MeshShader()
 
 bool MeshShader::init()
 {
+	// Create color lookup texture
+	m_tf.create();
+
+	// Create shader
 	if( m_program )
 		delete m_program;
 	m_program = NULL;
@@ -26,14 +30,27 @@ bool MeshShader::init()
 	return true;
 }
 
+void MeshShader::destroy()
+{
+	m_tf.destroy();
+	delete m_program; m_program = NULL;
+}
+
 void MeshShader::bind()
 {
-	if( m_program ) m_program->bind();
+	if( !m_program ) return;
+
+	m_tf.bind( 0 );
+	glUniform1i( m_program->getUniformLocation("lookup"), 0 );
+	m_program->bind();
 }
 
 void MeshShader::release()
 {
-	if( m_program ) m_program->release();
+	if( !m_program ) return;	
+
+	m_program->release();
+	m_tf.release();
 }
 
 void MeshShader::setDefaultLighting()
@@ -92,59 +109,3 @@ void MeshShader::setDefaultLighting()
 	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION , material_Ke);
 	glMaterialf (GL_FRONT_AND_BACK, GL_SHININESS, material_Se);		
 }
-
-//------------------------------------------------------------------------------
-// 	Shader
-//------------------------------------------------------------------------------
-#define GLUTILS_SHADER_STRING(S) #S;
-
-// REMARK:
-// Per-pixel lighting works correctly if all OpenGL materials and lighting
-// parameters are fully specified. But if GL_COLOR_MATERIAL is enabled, the
-// current version of the shader doesn't produce correct result.
-// Observation: 
-// 	- For SHININESS==0 we get "black border" on default lit shapes.
-
-// Per-pixel lighting (vertex shader)
-std::string MeshShader::s_vertexShader = GLUTILS_SHADER_STRING
-(
-	varying vec3 N;
-	varying vec3 v;
-
-	void main(void)
-	{ 
-		// v needed in fragment shader for lighting calculation.
-		// Normalize and multiplication by NormalMatrix are required to achieve
-		// equivalent results to OpenGL fixed pipeline.
-		v = vec3(gl_ModelViewMatrix * gl_Vertex);   
-		N = normalize(gl_NormalMatrix * gl_Normal);		
-		
-		gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
-	}	
-)
-
-// Per-pixel lighting (fragment shader)
-std::string MeshShader::s_fragmentShader = GLUTILS_SHADER_STRING
-(
-	varying vec3 N;
-	varying vec3 v;
-
-	void main(void)
-	{		
-		vec3 L = normalize(gl_LightSource[0].position.xyz - v);
-		vec3 E = normalize(-v);
-		vec3 R = normalize(-reflect(L,N));
-		
-		vec4 Iamb = gl_FrontLightProduct[0].ambient;
-			
-		vec4 Idiff = gl_FrontLightProduct[0].diffuse * max(dot(N,L), 0.0);     
-		Idiff = clamp(Idiff, 0.0, 1.0);
-		
-		vec4 Ispec = gl_FrontLightProduct[0].specular
-		  * pow( max(dot(R,E),0.0), 0.3 * gl_FrontMaterial.shininess );
-		Ispec = clamp(Ispec, 0.0, 1.0);
-
-		gl_FragColor = gl_FrontLightModelProduct.sceneColor 
-					 + Iamb + Idiff + Ispec;
-	}	
-)
