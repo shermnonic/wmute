@@ -100,6 +100,8 @@ add_executable( meshspace
 	SceneViewer.h
 	ObjectPropertiesWidget.h
 	ObjectPropertiesWidget.cpp
+	MeshShader.h
+	MeshShader.cpp
 	${meshspace_MOC_SRCS}
 	${meshspace_RCC_SRCS}
 	${GLUTILS_SOURCES}

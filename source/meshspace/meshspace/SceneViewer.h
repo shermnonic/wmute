@@ -10,6 +10,7 @@
 #include <QList>
 
 #include <glutils/PhongShader.h>
+#include "MeshShader.h"
 
 #include "scene.h"
 #include "meshtools.h"
@@ -30,6 +31,12 @@ class SceneViewer : public QGLViewer
 		SelectNone,
 		SelectAdd,
 		SelectRemove		
+	};
+
+	enum ShaderMode {
+		ShaderNone,
+		ShaderPhong,
+		ShaderMesh
 	};
 
 public:
@@ -69,6 +76,7 @@ protected slots:
 
 	void selectNone();
 	void reloadShaders();
+	void selectFrontFaces(bool);
 	
 protected:
 	///@{ QGLViewer implementation
@@ -104,6 +112,9 @@ protected:
 	void drawSelectionRectangle() const;
 	///@}
 
+	void bindShader();
+	void releaseShader();
+
 private:
 	scene::Scene       m_scene; ///< The scene to be rendered
 	QStandardItemModel m_model; ///< A model for manipulating the scenegraph
@@ -116,10 +127,13 @@ private:
 	int m_selectionMode;
 	QRect m_brushRectangle;
 	qglviewer::Vec m_selectedPoint;
+	bool m_selectFrontFaces;
 
 	QList<QAction*> m_actions;
 
+	int m_curShader;
 	PhongShader m_phongShader;
+	MeshShader m_meshShader;
 };
 
 #endif // SCENEVIEWER_H
