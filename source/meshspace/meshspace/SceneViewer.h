@@ -68,6 +68,7 @@ protected slots:
 	void selectModelItem( const QModelIndex& current, const QModelIndex& /*previous*/ );
 
 	void selectNone();
+	void reloadShaders();
 	
 protected:
 	///@{ QGLViewer implementation
