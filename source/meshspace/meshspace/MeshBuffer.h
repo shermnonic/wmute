@@ -58,7 +58,7 @@ public:
 	void setCBufferEnabled( bool b ) { m_cbufferEnabled = b; }
 
 	// Requires valid OpenGL context
-	void setCBufferSelection( std::vector<unsigned>, bool selected=true );
+	void setCBufferSelection( const std::vector<unsigned>&, bool selected=true );
 	void setCBufferSelection( unsigned idx, bool selected=true );	
 
 	std::vector<float>& cbuffer() { return m_cbuffer; }
