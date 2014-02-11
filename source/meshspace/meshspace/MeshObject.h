@@ -29,8 +29,10 @@ public:
 	MeshObject()
 	{}
 
+	///@{ Implementation of \a scene::Object
 	void render( int flags=Object::RenderDefault );
 	BoundingBox getBoundingBox() const;
+	///@}
 	
 	/// Render specified vertices as GL_POINTS. (No index check is performed.)
 	void renderPoints( const std::vector<unsigned>& idx );
@@ -61,13 +63,17 @@ public:
 	void setFrame( int i ) { m_meshBuffer.setFrame(i); }
 	///@}
 
+	/// Return number of vertices in (reference) mesh
 	int numVertices() const { return m_mesh ? (int)m_mesh->n_vertices() : 0; }
+	/// Return number of (triangle) faces in (reference) mesh
 	int numFaces()    const { return m_mesh ? (int)m_mesh->n_faces() : 0; }
-
+	// Return the currently active frame of \a MeshBuffer
 	int curFrame() const { return m_meshBuffer.curFrame(); }
 
+	///@{ Direct access to the underlying \a MeshBuffer instance
 	MeshBuffer& meshBuffer() { return m_meshBuffer; }
 	const MeshBuffer& meshBuffer() const { return m_meshBuffer; }
+	///@}
 
 	/// Wrap \a MeshBuffer::projectVertexNormal()
 	double projectVertexNormal( unsigned idx, float x, float y, float z ) const;
