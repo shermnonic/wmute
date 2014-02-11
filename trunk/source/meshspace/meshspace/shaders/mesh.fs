@@ -2,6 +2,9 @@
 
 uniform sampler1D lookup;
 
+//attribute float scalar;
+attribute float selection;
+
 varying vec3 vNormal;
 varying vec4 vColor;
 
@@ -39,7 +42,7 @@ void main(void)
 	if( vSelection > .5 )
 		diffuse = vec3(1.0,1.0,0.0);
 	
-	diffuse = texture1D( lookup, 0.5 ).rgb;
+	diffuse = texture1D( lookup, vNormal.z ).rgb;
 	
 	// Phong shading
 	vec3 shading = 

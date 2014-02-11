@@ -92,6 +92,8 @@ add_executable( meshspace
 	meshspace.cpp
 	scene.cpp
 	scene.h	
+	MeshObject.h
+	MeshObject.cpp
 	MeshBuffer.h
 	MeshBuffer.cpp
 	MainWindow.cpp

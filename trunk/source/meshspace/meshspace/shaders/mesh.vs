@@ -1,6 +1,9 @@
 #version 120
 
-uniform sampler1D lookup;
+//uniform sampler1D lookup;
+
+//attribute float scalar;
+//attribute float selection;
 
 varying vec3 vNormal;
 varying vec4 vColor;
@@ -8,9 +11,6 @@ varying vec4 vColor;
 varying vec3 vViewDir;
 varying vec3 vLightDir;
 varying vec3 vLightPos;
-
-//attribute float scalar;
-//attribute float selection;
 
 varying float vScalar;
 varying float vSelection;
