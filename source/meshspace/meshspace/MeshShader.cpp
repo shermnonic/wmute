@@ -1,4 +1,5 @@
 #include "MeshShader.h"
+#include <glutils/GLError.h>
 
 MeshShader::MeshShader()
 : m_program(NULL)
@@ -40,9 +41,17 @@ void MeshShader::bind()
 {
 	if( !m_program ) return;
 
-	m_tf.bind( 0 );
-	glUniform1i( m_program->getUniformLocation("lookup"), 0 );
 	m_program->bind();
+	GL::CheckGLError("MeshShader::bind()");
+
+	GLint loc_lookup = m_program->getUniformLocation("lookup");
+	GL::CheckGLError("MeshShader::bind() - glUniformLocation()");
+
+	glUniform1i( loc_lookup, 3 );
+	GL::CheckGLError("MeshShader::bind() - glUniform()");
+
+	m_tf.bind( 3 );
+	GL::CheckGLError("MeshShader::bind() - texture bind");
 }
 
 void MeshShader::release()

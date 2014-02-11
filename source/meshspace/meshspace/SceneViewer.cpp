@@ -12,6 +12,7 @@
 #include <QMouseEvent>
 #include <QAction>
 
+#include <glutils/GLError.h>
 
 SceneViewer::SceneViewer( QWidget* parent )
   : QGLViewer(parent),
@@ -414,21 +415,35 @@ void SceneViewer::bindShader()
 	default:
 	case ShaderNone : break;
 	}
+
+	GL::CheckGLError("SceneViewer::bindShader()");
 }
 
 void SceneViewer::releaseShader()
 {
-	glUseProgram( 0 );
+	switch( m_curShader )
+	{
+	case ShaderPhong: m_phongShader.release(); break;
+	case ShaderMesh : m_meshShader.release(); break;
+	default:
+	case ShaderNone : break;
+	}
+
+	GL::CheckGLError("SceneViewer::releaseShader()");
 }
 
 void SceneViewer::draw()
 {
 	glPushAttrib( GL_ALL_ATTRIB_BITS );
 
+	GL::CheckGLError("SceneViewer::draw() - berfore rendering the scene");
+
 	// Draw scene objects	
 	bindShader();
 	m_scene.render();
 	releaseShader();
+
+	GL::CheckGLError("SceneViewer::draw() - after rendering the scene");
 
 	glDisable( GL_LIGHTING );
 	glDisable( GL_DEPTH_TEST );
