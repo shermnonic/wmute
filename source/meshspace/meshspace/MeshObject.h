@@ -24,6 +24,10 @@ namespace scene {
 	
 	The (reference) mesh is stored in a shared pointer throughout the lifetime 
 	of an instance of \a MeshObject.
+
+	\a MeshObject provides vertex selection functionality. Internally \a
+	MeshShader is used to render the selection color-coded. Further a scalar
+	vertex attribute can be visualized by color-coding via \a TransferFunction.
 */
 class MeshObject : public Object
 {
@@ -38,7 +42,7 @@ public:
 	
 	/// Render specified vertices as GL_POINTS. (No index check is performed.)
 	void renderPoints( const std::vector<unsigned>& idx );
-
+	/// Render currently selected vertices as GL_POINTS
 	void renderSelectedPoints();
 
 	/// Set reference mesh, overwrites any existing mesh or mesh animation.
@@ -91,15 +95,15 @@ public:
 	bool reloadShader();
 
 private:
-	boost::shared_ptr<meshtools::Mesh> m_mesh;  ///< Reference mesh (1st of an animation sequence)
+	boost::shared_ptr<meshtools::Mesh> m_mesh;  ///< Reference mesh (1st frame of an animation sequence)
 	MeshBuffer m_meshBuffer; ///< Buffer objects and rendering functionality
 
-	MeshShader m_shader;
+	MeshShader m_shader; ///< GLSL shader with support for selection and scalar vertex attributes
 
-	std::vector<float>    m_selectionAttribBuffer;
-	std::vector<float>    m_scalarAttribBuffer;
+	std::vector<float> m_selectionAttribBuffer; ///< Selection vertex attribute, 1.0 for selected vertex, 0.0 else
+	std::vector<float> m_scalarAttribBuffer;    ///< Scalar vertex attribute, visualized via color transfer function
 
-	std::set<unsigned> m_selectedVertices;
+	std::set<unsigned> m_selectedVertices; ///< Indices of currently selected vertices
 };
 
 } // namespace scene 
