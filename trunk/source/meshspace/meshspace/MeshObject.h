@@ -58,7 +58,7 @@ public:
 	/// Returns true if mesh buffer contains more than one frame.
 	bool isAnimation() const { return m_meshBuffer.numFrames() > 1; }
 
-	///@{ Wrapper around MeshBuffer mesh animation functions
+	///@{ Wrapper around \a MeshBuffer mesh animation functions
 	unsigned numFrames() const { return m_meshBuffer.numFrames(); }
 	void setFrame( int i ) { m_meshBuffer.setFrame(i); }
 	///@}
