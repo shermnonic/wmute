@@ -105,6 +105,15 @@ void MeshObject::renderPoints( const std::vector<unsigned>& idx )
 	m_meshBuffer.drawPoints( idx );
 }
 
+//-----------------------------------------------------------------------------
+void MeshObject::renderSelectedPoints()
+{	
+	if( m_selectedVertices.empty() ) return;
+	// TODO: Update index vector only on change in selection set.
+	std::vector<unsigned> idx;
+	idx.insert( idx.begin(), m_selectedVertices.begin(), m_selectedVertices.end() );
+	m_meshBuffer.drawPoints( idx );
+}
 
 //-----------------------------------------------------------------------------
 BoundingBox MeshObject::getBoundingBox() const
@@ -140,13 +149,28 @@ void MeshObject::selectVertices( const std::vector<unsigned>& idx, bool selected
 	if( m_selectionAttribBuffer.size() != numVerts )
 	{
 		m_selectionAttribBuffer.clear();
-		m_selectionAttribBuffer.resize( numVertices(), 0.0 );
+		m_selectionAttribBuffer.resize( numVerts, 0.0 );
 	}
 	// Set selected vertices to 1.0
 	for( unsigned i=0; i < idx.size(); i++ )
 	{	
-		if( idx[i] < numVerts )
-			m_selectionAttribBuffer[idx[i]] = selected ? 1.f : 0.f;
+		unsigned id = idx[i];
+		if( id < numVerts ) {
+			m_selectionAttribBuffer[id] = selected ? 1.f : 0.f;
+
+			if( selected )
+			{
+				// Add index to selected set
+				m_selectedVertices.insert( id );
+			}
+			else
+			{
+				// Remove index from selected set
+				std::set<unsigned>::iterator it = m_selectedVertices.find( id );
+				if( it != m_selectedVertices.end() )
+					m_selectedVertices.erase( it );
+			}
+		}
 	}
 }
 
@@ -156,6 +180,14 @@ void MeshObject::selectVertex( unsigned idx, bool selected )
 	std::vector<unsigned> tmp;
 	tmp.push_back( idx );
 	selectVertices( tmp, selected );
+}
+
+//------------------------------------------------------------------------------
+void MeshObject::selectNone()
+{
+	m_selectedVertices.clear();
+	m_selectionAttribBuffer.clear();
+	m_selectionAttribBuffer.resize( numVertices(), 0.0 );
 }
 
 } // namespace scene

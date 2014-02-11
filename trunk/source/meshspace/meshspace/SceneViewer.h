@@ -115,11 +115,10 @@ private:
 	int m_currentObject; ///< Currently selected scene object (row) in list view
 
 	// Vertex selection	
-	std::vector<unsigned> m_selection; ///< Selected vertex indices in current object
-	int m_selectionMode;
-	QRect m_brushRectangle;
-	qglviewer::Vec m_selectedPoint;
-	bool m_selectFrontFaces;
+	int            m_selectionMode;
+	QRect          m_brushRectangle;  ///< Selection viewport rectangle
+	qglviewer::Vec m_selectedPoint;   ///< Closest surface intersection
+	bool           m_selectFrontFaces;///< Select only vertices on front-faces?
 
 	QList<QAction*> m_actions;
 };

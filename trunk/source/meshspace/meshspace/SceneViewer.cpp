@@ -416,10 +416,8 @@ void SceneViewer::draw()
 	glColor3f( 1,0,0 );
 
 	// Draw selected vertices of current mesh object
-	if( !m_selection.empty() && currentMeshObject() )
-	{
-		currentMeshObject()->renderPoints( m_selection );
-	}
+	if( currentMeshObject() )
+		currentMeshObject()->renderSelectedPoints();
 
 	glColor3f( 1,1,0 );
 	glPointSize( 10.f );
@@ -450,9 +448,7 @@ void SceneViewer::selectNone()
 {
 	// De-select vertices
 	if( currentMeshObject() ) 
-		currentMeshObject()->selectVertices( m_selection, false );
-	// Clear selection
-	m_selection.clear();
+		currentMeshObject()->selectNone();
 	updateGL();
 }
 
@@ -509,6 +505,11 @@ void SceneViewer::endSelection( const QPoint& point )
 	updateGL();
 	glReadPixels( point.x(), point.y(), 1,1, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, (void*)&depth );
 #endif
+
+	// Vertex selection is currently only implemented for MeshObjects
+	scene::MeshObject* meshObject = currentMeshObject();
+	if( !meshObject )
+		return;	
 	
 	// Get selection
 	std::vector<unsigned> selected;
@@ -526,12 +527,8 @@ void SceneViewer::endSelection( const QPoint& point )
 			if( m_selectFrontFaces )
 			{
 				// Check if hit point is front-facing
-				double sign=42.;
-				if( currentMeshObject() )
-				{
-					scene::MeshObject* mobj = currentMeshObject();
-					sign = mobj->projectVertexNormal( id, ray_origin.x, ray_origin.y, ray_origin.z );
-				}
+				double sign = meshObject->projectVertexNormal( id, 
+					                ray_origin.x, ray_origin.y, ray_origin.z );
 
 				// Discard back-facing points
 				if( sign < 0.1 )
@@ -566,31 +563,11 @@ void SceneViewer::endSelection( const QPoint& point )
 		}
 	}
 
-	// Apply selection	
-	std::vector<unsigned> removed;
+	// Apply selection
 	switch( m_selectionMode )
 	{
-	case SelectAdd    : 
-		m_selection.insert( m_selection.end(), selected.begin(), selected.end() );
-		if( currentMeshObject() ) 
-			currentMeshObject()->selectVertices( selected );
-		break;
-
-	case SelectRemove : 
-		//qDebug() << "Selection remove not implemented yet!"; 
-		for( unsigned i=0; i < selected.size(); i++ )
-		{
-			std::vector<unsigned>::iterator it =
-			  std::find( m_selection.begin(), m_selection.end(), selected[i] );
-			if( it != m_selection.end() )
-			{
-				m_selection.erase( it );
-				removed.push_back( selected[i] );
-			}
-		}
-		if( currentMeshObject() ) 
-			currentMeshObject()->selectVertices( removed, false );
-		break;
+	case SelectAdd    : meshObject->selectVertices( selected );	        break;
+	case SelectRemove : meshObject->selectVertices( selected, false );	break;
 	default: break;
 	}			
 }
