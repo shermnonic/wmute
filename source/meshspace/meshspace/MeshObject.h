@@ -4,6 +4,7 @@
 #define MESHOBJECT_H
 
 #include "scene.h"
+#include <set>
 #include <boost/shared_ptr.hpp>
 #include <meshtools.h>
 #include "MeshBuffer.h"
@@ -37,6 +38,8 @@ public:
 	
 	/// Render specified vertices as GL_POINTS. (No index check is performed.)
 	void renderPoints( const std::vector<unsigned>& idx );
+
+	void renderSelectedPoints();
 
 	/// Set reference mesh, overwrites any existing mesh or mesh animation.
 	/// Equivalent to calling \a addFrame() on an empty animation sequence.
@@ -82,6 +85,7 @@ public:
 	///@{ Vertex selection
 	void selectVertices( const std::vector<unsigned>&, bool selected=true );
 	void selectVertex( unsigned idx, bool selected=true );	
+	void selectNone();
 	///@}
 
 	bool reloadShader();
@@ -94,6 +98,8 @@ private:
 
 	std::vector<float>    m_selectionAttribBuffer;
 	std::vector<float>    m_scalarAttribBuffer;
+
+	std::set<unsigned> m_selectedVertices;
 };
 
 } // namespace scene 
