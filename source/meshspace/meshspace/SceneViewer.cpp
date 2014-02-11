@@ -18,8 +18,7 @@ SceneViewer::SceneViewer( QWidget* parent )
   : QGLViewer(parent),
     m_currentObject(-1),
 	m_selectionMode(SelectNone),
-	m_selectFrontFaces(true),
-	m_curShader(ShaderMesh)
+	m_selectFrontFaces(true)
 {
 	// --- Widgets ---
 	m_listView = new QListView();
@@ -362,8 +361,7 @@ scene::MeshObject* SceneViewer::newMeshObject( QString name )
 
 void SceneViewer::reloadShaders()
 {
-	m_phongShader.init();
-	m_meshShader.init();
+	// TBD
 	updateGL();
 }
 
@@ -392,11 +390,6 @@ void SceneViewer::init()
 	//setMouseTracking(true);
 	this->setSelectRegionWidth( 21 );
 	this->setSelectRegionHeight( 21 );	
-
-	m_phongShader.init();
-	m_phongShader.setDefaultLighting();
-	m_meshShader.init();
-	m_meshShader.setDefaultLighting();
 }
 
 void SceneViewer::updateScene()
@@ -406,32 +399,6 @@ void SceneViewer::updateScene()
 	updateGL();
 }
 
-void SceneViewer::bindShader()
-{
-	switch( m_curShader )
-	{
-	case ShaderPhong: m_phongShader.bind(); break;
-	case ShaderMesh : m_meshShader.bind(); break;
-	default:
-	case ShaderNone : break;
-	}
-
-	GL::CheckGLError("SceneViewer::bindShader()");
-}
-
-void SceneViewer::releaseShader()
-{
-	switch( m_curShader )
-	{
-	case ShaderPhong: m_phongShader.release(); break;
-	case ShaderMesh : m_meshShader.release(); break;
-	default:
-	case ShaderNone : break;
-	}
-
-	GL::CheckGLError("SceneViewer::releaseShader()");
-}
-
 void SceneViewer::draw()
 {
 	glPushAttrib( GL_ALL_ATTRIB_BITS );
@@ -439,9 +406,7 @@ void SceneViewer::draw()
 	GL::CheckGLError("SceneViewer::draw() - berfore rendering the scene");
 
 	// Draw scene objects	
-	bindShader();
 	m_scene.render();
-	releaseShader();
 
 	GL::CheckGLError("SceneViewer::draw() - after rendering the scene");
 

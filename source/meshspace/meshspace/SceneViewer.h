@@ -34,12 +34,6 @@ class SceneViewer : public QGLViewer
 		SelectRemove		
 	};
 
-	enum ShaderMode {
-		ShaderNone,
-		ShaderPhong,
-		ShaderMesh
-	};
-
 public:
 	SceneViewer( QWidget* parent=0 );
 
@@ -113,9 +107,6 @@ protected:
 	void drawSelectionRectangle() const;
 	///@}
 
-	void bindShader();
-	void releaseShader();
-
 private:
 	scene::Scene       m_scene; ///< The scene to be rendered
 	QStandardItemModel m_model; ///< A model for manipulating the scenegraph
@@ -131,10 +122,6 @@ private:
 	bool m_selectFrontFaces;
 
 	QList<QAction*> m_actions;
-
-	int m_curShader;
-	PhongShader m_phongShader;
-	MeshShader m_meshShader;
 };
 
 #endif // SCENEVIEWER_H
