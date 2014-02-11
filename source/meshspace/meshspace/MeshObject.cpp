@@ -82,7 +82,17 @@ void MeshObject::render( int flags )
 			reloadShader();
 
 		m_shader.bind();
+		int selectionLoc = m_shader.program()->getAttribLocation("selection");
+		if( !m_selectionAttribBuffer.empty() && selectionLoc >= 0 ) 
+		{
+			glVertexAttribPointer( selectionLoc, 1, GL_FLOAT, GL_FALSE, 0, 
+				(GLvoid*)(&m_selectionAttribBuffer[0]) );
+			glEnableVertexAttribArray( selectionLoc );
+		}
+		
 		m_meshBuffer.draw();
+
+		glDisableVertexAttribArray( selectionLoc );
 		m_shader.release();
 	}
 

@@ -2,9 +2,6 @@
 
 uniform sampler1D lookup;
 
-//attribute float scalar;
-attribute float selection;
-
 varying vec3 vNormal;
 varying vec4 vColor;
 
@@ -36,13 +33,13 @@ vec3 phong( vec3 N, vec3 E, vec3 L,
 
 void main(void)
 {
-	vec3 diffuse = gl_FrontLightProduct[0].diffuse.rgb;
+	vec3 diffuse = gl_FrontLightProduct[0].diffuse.rgb;	
+	
+	//diffuse = texture1D( lookup, vNormal.z ).rgb;
 	
 	// Custom selection shading based on vertex color
 	if( vSelection > .5 )
-		diffuse = vec3(1.0,1.0,0.0);
-	
-	diffuse = texture1D( lookup, vNormal.z ).rgb;
+		diffuse = vec3(1.0,1.0,0.0);	
 	
 	// Phong shading
 	vec3 shading = 

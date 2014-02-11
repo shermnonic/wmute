@@ -361,7 +361,9 @@ scene::MeshObject* SceneViewer::newMeshObject( QString name )
 
 void SceneViewer::reloadShaders()
 {
-	// TBD
+	if( currentMeshObject() )
+		currentMeshObject()->reloadShader();
+	
 	updateGL();
 }
 
