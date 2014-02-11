@@ -6,6 +6,8 @@
 #endif
 #include <GL/glew.h>
 #include <GL/GL.h>
+#include <glutils/GLError.h>
+#include <sstream>
 
 //#define SCENE_USE_IMMEDIATE_MODE
 
@@ -17,12 +19,24 @@ void Scene::render( int flags )
 	ObjectPtrArray::iterator it = m_objects.begin();
 	for( unsigned i=0; it != m_objects.end(); ++it, i++ )
 	{
-		glPushName( i );
+		GL::CheckGLError("Scene::render() - start single object");
+
+		if( flags & Object::RenderNames )
+		{
+			glPushName( i );  
+			GL::CheckGLError("Scene::render() - single object glPushName()");
+		}
 
 		if( (*it)->isVisible() )
 			(*it)->render( flags );
+		
+		GL::CheckGLError("Scene::render() - single object render()");
 
-		glPopName();
+		if( flags & Object::RenderNames )
+		{
+			glPopName();      
+			GL::CheckGLError("Scene::render() - single object  glPopName()");
+		}
 	}
 }
 
@@ -95,7 +109,7 @@ bool MeshObject::addFrame( meshtools::Mesh* mesh )
 void MeshObject::render( int flags )
 {
 	glPushAttrib( GL_CURRENT_BIT );
-	glColor3f( (GLfloat)getColor().r, (GLfloat)getColor().g, (GLfloat)getColor().b );
+	glColor3f( (GLfloat)getColor().r, (GLfloat)getColor().g, (GLfloat)getColor().b );	
 
 	if( flags & Object::RenderSurface )
 		m_meshBuffer.draw();
@@ -107,6 +121,9 @@ void MeshObject::render( int flags )
 			m_meshBuffer.drawPoints();
 
 	glPopAttrib();
+
+	std::stringstream ss; ss << "MeshObject::render(" << flags << ")";
+	GL::CheckGLError( ss.str() );
 }
 
 //-----------------------------------------------------------------------------

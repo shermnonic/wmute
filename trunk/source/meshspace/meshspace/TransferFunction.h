@@ -10,7 +10,7 @@ public:
 	bool create();
 	void destroy();	
 
-	void bind( int tex_unit=0 );
+	void bind( int tex_unit=-1 );
 	void release();
 
 private:

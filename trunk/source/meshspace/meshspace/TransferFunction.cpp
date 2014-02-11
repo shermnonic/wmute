@@ -1,4 +1,5 @@
 #include "TransferFunction.h"
+#include <glutils/GLError.h>
 #include <iostream>
 
 bool TransferFunction::create()
@@ -35,7 +36,7 @@ bool TransferFunction::create()
 	}	
 	
 	// Download data to GPU
-	m_tex.Image( 0, GL_RGBA32F, n, 0, GL_RGB, GL_FLOAT, (void*)tf_poettkow );	
+	m_tex.Image( 0, GL_RGBA32F, n, 0, GL_RGB, GL_FLOAT, (void*)tf_poettkow );
 	
 	// Set texture parameters
 	m_tex.SetWrapMode( GL_CLAMP_TO_EDGE );
@@ -57,4 +58,5 @@ void TransferFunction::bind( int tex_unit )
 void TransferFunction::release()
 {
 	m_tex.Unbind();
+	GL::CheckGLError("TransferFunction::release()");
 }

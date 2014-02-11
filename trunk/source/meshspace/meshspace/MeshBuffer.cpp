@@ -2,6 +2,7 @@
 // Max Hermann, Jan 2014
 #include "MeshBuffer.h"
 #include <GL/glew.h>
+#include <glutils/GLError.h>
 #include <fstream>
 
 //------------------------------------------------------------------------------
@@ -210,6 +211,8 @@ void MeshBuffer::downloadGPU()
 		glGenBuffers( 1, &m_ibo );
 		m_initialized = true;		
 
+		GL::CheckGLError("MeshBuffer::downloadGPU() - glGenBuffers()");
+
 		// FIXME: Add error checking and also delete buffers in the end!
 	}	
 
@@ -234,6 +237,8 @@ void MeshBuffer::downloadGPU()
 		// Unbind buffers
 		glBindBuffer( GL_ARRAY_BUFFER, 0 );
 		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+
+		GL::CheckGLError("MeshBuffer::downloadGPU() - dirty buffers");
 	}
 	
 	// Current frame offset in vertex / normal buffer
@@ -268,7 +273,10 @@ void MeshBuffer::downloadGPU()
 		}
 	}
 
+	GL::CheckGLError("MeshBuffer::downloadGPU() - glBufferSubData()");
+
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
+	GL::CheckGLError("MeshBuffer::downloadGPU()");
 }
 
 //------------------------------------------------------------------------------
@@ -310,29 +318,43 @@ void MeshBuffer::draw()
 	
 	glBindBuffer( GL_ARRAY_BUFFER, m_vbo );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_ibo );
+
+	GL::CheckGLError( "MeshBuffer::draw() - glBindBuffer()" );
 	
 	glEnableClientState( GL_NORMAL_ARRAY );
 	glEnableClientState( GL_VERTEX_ARRAY );
+
+	GL::CheckGLError( "MeshBuffer::draw() - glEnableClientState()" );
 
 	if( useCBuffer )
 	{
 		glEnableClientState( GL_COLOR_ARRAY );
 		glColorPointer( 4, GL_FLOAT, 0, (void*)(sizeof(float)*m_numVertices*3+sizeof(float)*m_numNormals*3) );
 	}
+
+	GL::CheckGLError( "MeshBuffer::draw() - glEnableClientState(), glBindBuffer(), GL_COLOR_ARRAY" );
 	
-	glNormalPointer( GL_FLOAT, 0, (void*)(sizeof(float)*m_numVertices*3) );
+	glNormalPointer( GL_FLOAT, 0, (GLvoid*)(sizeof(float)*m_numVertices*3) );
 	glVertexPointer( 3, GL_FLOAT, 0, 0 );
-	glIndexPointer( GL_UNSIGNED_INT, 0, 0 );
+	glIndexPointer( GL_INT, 0, 0 );
+
+	GL::CheckGLError( "MeshBuffer::draw() - gl[Normal/Vertex/Index]Pointer()" );
 	
 	glDrawElements( GL_TRIANGLES, (GLsizei)m_ibuffer.size(), GL_UNSIGNED_INT, 0 );
+
+	GL::CheckGLError( "MeshBuffer::draw() - glDrawElements( GL_TRIANGELS, ... )" );
 	
 	glDisableClientState( GL_VERTEX_ARRAY );	
 	glDisableClientState( GL_NORMAL_ARRAY );
 	if( useCBuffer )
 		glDisableClientState( GL_COLOR_ARRAY );
+
+	GL::CheckGLError( "MeshBuffer::draw() - glDisableClientState()" );
 	
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+
+	GL::CheckGLError( "MeshBuffer::draw() - glBindBuffer(..., 0)" );
 }
 
 //------------------------------------------------------------------------------
