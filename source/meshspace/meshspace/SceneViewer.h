@@ -72,6 +72,7 @@ protected slots:
 	void selectNone();
 	void reloadShaders();
 	void selectFrontFaces(bool);
+	void computeDistance();
 	
 protected:
 	///@{ QGLViewer implementation

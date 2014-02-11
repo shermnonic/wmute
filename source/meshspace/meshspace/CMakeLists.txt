@@ -92,8 +92,6 @@ add_executable( meshspace
 	meshspace.cpp
 	scene.cpp
 	scene.h	
-	MeshObject.h
-	MeshObject.cpp
 	MeshBuffer.h
 	MeshBuffer.cpp
 	MainWindow.cpp
@@ -106,6 +104,10 @@ add_executable( meshspace
 	MeshShader.cpp
 	TransferFunction.h
 	TransferFunction.cpp
+	MeshObject.h
+	MeshObject.cpp
+	filters.h
+	filters.cpp
 	${meshspace_MOC_SRCS}
 	${meshspace_RCC_SRCS}
 	${GLUTILS_SOURCES}

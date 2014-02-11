@@ -92,6 +92,8 @@ public:
 	void selectNone();
 	///@}
 
+	void setScalars( const std::vector<float>& scalars );
+
 	bool reloadShader();
 
 private:
@@ -102,6 +104,8 @@ private:
 
 	std::vector<float> m_selectionAttribBuffer; ///< Selection vertex attribute, 1.0 for selected vertex, 0.0 else
 	std::vector<float> m_scalarAttribBuffer;    ///< Scalar vertex attribute, visualized via color transfer function
+
+	float m_scalarShift, m_scalarScale; // Shift-scale scalars to [0,1]
 
 	std::set<unsigned> m_selectedVertices; ///< Indices of currently selected vertices
 };

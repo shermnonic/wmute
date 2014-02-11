@@ -2,7 +2,7 @@
 
 //uniform sampler1D lookup;
 
-//attribute float scalar;
+attribute float scalar;
 attribute float selection;
 
 varying vec3 vNormal;
@@ -30,7 +30,8 @@ void main(void)
 	
 	// Special variables
 	
-	vSelection = selection; //1.0 - color.g;
+	vSelection = selection;
+	vScalar = scalar;
 	
 	// Interpolated variables
 	

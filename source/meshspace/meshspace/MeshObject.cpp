@@ -96,9 +96,14 @@ void MeshObject::render( int flags )
 		int scalarLoc = m_shader.program()->getAttribLocation("scalar");
 		if( !m_scalarAttribBuffer.empty() && scalarLoc >= 0 )
 		{
+			// Attribute buffer
 			glVertexAttribPointer( scalarLoc, 1, GL_FLOAT, GL_FALSE, 0, 
 				(GLvoid*)(&m_scalarAttribBuffer[0]) );
 			glEnableVertexAttribArray( scalarLoc );
+
+			// Uniforms
+			glUniform1f( m_shader.program()->getUniformLocation("scalarShift"), m_scalarShift );
+			glUniform1f( m_shader.program()->getUniformLocation("scalarScale"), m_scalarScale );
 		}
 		
 		m_meshBuffer.draw();
@@ -211,5 +216,29 @@ void MeshObject::selectNone()
 	m_selectionAttribBuffer.clear();
 	m_selectionAttribBuffer.resize( numVertices(), 0.0 );
 }
+
+//------------------------------------------------------------------------------
+void MeshObject::setScalars( const std::vector<float>& scalars )
+{
+	m_scalarAttribBuffer.clear();
+	m_scalarAttribBuffer.insert( m_scalarAttribBuffer.begin(),
+		scalars.begin(), scalars.end() );
+
+	// Find min/max value
+	float minval=std::numeric_limits<float>::max(),
+		  maxval=-minval;	
+	for( unsigned int i=0; i < scalars.size(); i++ )
+	{
+		maxval = scalars[i] > maxval ? scalars[i] : maxval;
+		minval = scalars[i] < minval ? scalars[i] : minval;
+	}
+
+	// Set parameters to rescale to [0,1] inside shader
+	m_scalarShift = -minval;
+	m_scalarScale = 1.f / (maxval - minval);
+
+	std::cout << "Scalars shift=" << m_scalarShift << ", scale=" << m_scalarScale << std::endl;
+}
+
 
 } // namespace scene
