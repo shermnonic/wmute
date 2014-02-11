@@ -82,6 +82,8 @@ void MeshObject::render( int flags )
 			reloadShader();
 
 		m_shader.bind();
+
+		// Selection attribute
 		int selectionLoc = m_shader.program()->getAttribLocation("selection");
 		if( !m_selectionAttribBuffer.empty() && selectionLoc >= 0 ) 
 		{
@@ -89,10 +91,20 @@ void MeshObject::render( int flags )
 				(GLvoid*)(&m_selectionAttribBuffer[0]) );
 			glEnableVertexAttribArray( selectionLoc );
 		}
+
+		// Scalar attribute
+		int scalarLoc = m_shader.program()->getAttribLocation("scalar");
+		if( !m_scalarAttribBuffer.empty() && scalarLoc >= 0 )
+		{
+			glVertexAttribPointer( scalarLoc, 1, GL_FLOAT, GL_FALSE, 0, 
+				(GLvoid*)(&m_scalarAttribBuffer[0]) );
+			glEnableVertexAttribArray( scalarLoc );
+		}
 		
 		m_meshBuffer.draw();
 
-		glDisableVertexAttribArray( selectionLoc );
+		if( selectionLoc>=0 ) glDisableVertexAttribArray( selectionLoc );
+		if( scalarLoc>=0 )    glDisableVertexAttribArray( scalarLoc );
 		m_shader.release();
 	}
 
