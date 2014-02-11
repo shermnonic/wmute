@@ -7,6 +7,7 @@
 #include <boost/shared_ptr.hpp>
 #include <meshtools.h>
 #include "MeshBuffer.h"
+#include "MeshShader.h"
 
 namespace scene {
 
@@ -78,9 +79,21 @@ public:
 	/// Wrap \a MeshBuffer::projectVertexNormal()
 	double projectVertexNormal( unsigned idx, float x, float y, float z ) const;
 
+	///@{ Vertex selection
+	void selectVertices( const std::vector<unsigned>&, bool selected=true );
+	void selectVertex( unsigned idx, bool selected=true );	
+	///@}
+
+	bool reloadShader();
+
 private:
 	boost::shared_ptr<meshtools::Mesh> m_mesh;  ///< Reference mesh (1st of an animation sequence)
 	MeshBuffer m_meshBuffer; ///< Buffer objects and rendering functionality
+
+	MeshShader m_shader;
+
+	std::vector<float>    m_selectionAttribBuffer;
+	std::vector<float>    m_scalarAttribBuffer;
 };
 
 } // namespace scene 

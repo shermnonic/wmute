@@ -57,6 +57,16 @@ bool MeshObject::addFrame( meshtools::Mesh* mesh )
 	return m_meshBuffer.addFrame( mesh );
 }
 
+bool MeshObject::reloadShader()
+{
+	bool success = m_shader.init();
+	if( !success )
+	{
+		std::cerr << "MeshObject::reloadShader() - could not reload shader!"
+			<< std::endl;
+	}
+	return success;
+}
 
 //-----------------------------------------------------------------------------
 void MeshObject::render( int flags )
@@ -64,9 +74,19 @@ void MeshObject::render( int flags )
 	glPushAttrib( GL_CURRENT_BIT );
 	glColor3f( (GLfloat)getColor().r, (GLfloat)getColor().g, (GLfloat)getColor().b );	
 
+	// Render shaded scene
 	if( flags & Object::RenderSurface )
-		m_meshBuffer.draw();
+	{
+		// Initialize shader (if required)
+		if( !m_shader.isInitialized() )
+			reloadShader();
 
+		m_shader.bind();
+		m_meshBuffer.draw();
+		m_shader.release();
+	}
+
+	// Render vertices as points
 	if( flags & Object::RenderPoints )		
 		if( flags & Object::RenderNames  )
 			m_meshBuffer.drawNamedPoints();
@@ -109,6 +129,33 @@ BoundingBox MeshObject::getBoundingBox() const
 double MeshObject::projectVertexNormal( unsigned idx, float x, float y, float z ) const
 {
 	return m_meshBuffer.projectVertexNormal( idx, x, y, z );
+}
+
+//------------------------------------------------------------------------------
+void MeshObject::selectVertices( const std::vector<unsigned>& idx, bool selected )
+{
+	unsigned numVerts = numVertices();
+
+	// Create new selection attribute buffer, initialized with 0.0
+	if( m_selectionAttribBuffer.size() != numVerts )
+	{
+		m_selectionAttribBuffer.clear();
+		m_selectionAttribBuffer.resize( numVertices(), 0.0 );
+	}
+	// Set selected vertices to 1.0
+	for( unsigned i=0; i < idx.size(); i++ )
+	{	
+		if( idx[i] < numVerts )
+			m_selectionAttribBuffer[idx[i]] = selected ? 1.f : 0.f;
+	}
+}
+
+//------------------------------------------------------------------------------
+void MeshObject::selectVertex( unsigned idx, bool selected )
+{
+	std::vector<unsigned> tmp;
+	tmp.push_back( idx );
+	selectVertices( tmp, selected );
 }
 
 } // namespace scene

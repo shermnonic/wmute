@@ -13,6 +13,8 @@ class MeshShader
 public:
 	MeshShader();
 
+	bool isInitialized() const { return m_initialized; }
+
 	// init() and destroy() require a valid OpenGL context.
 	// The same is true for all other functions below.
 
@@ -27,6 +29,7 @@ public:
 private:
 	GL::GLSLProgram* m_program;
 	TransferFunction m_tf;
+	bool m_initialized;
 };
 
 #endif // MESHSHADER_H
