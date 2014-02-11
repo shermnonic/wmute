@@ -26,6 +26,8 @@ public:
 
 	void setDefaultLighting();
 
+	GL::GLSLProgram* program() { return m_program; }
+
 private:
 	GL::GLSLProgram* m_program;
 	TransferFunction m_tf;
