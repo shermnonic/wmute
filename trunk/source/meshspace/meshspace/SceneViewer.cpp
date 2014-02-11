@@ -45,13 +45,17 @@ SceneViewer::SceneViewer( QWidget* parent )
 	actSelectFrontFaces->setCheckable( true );
 	actSelectFrontFaces->setChecked( m_selectFrontFaces );
 
+	QAction* actComputeDistance = new QAction(tr("Compute closest point distance"),this);	
+
 	connect( actSelectNone, SIGNAL(triggered()), this, SLOT(selectNone()) );
 	connect( actReloadShaders, SIGNAL(triggered()), this, SLOT(reloadShaders()) );
 	connect( actSelectFrontFaces, SIGNAL(toggled(bool)), this, SLOT(selectFrontFaces(bool)) );
+	connect( actComputeDistance, SIGNAL(triggered()), this, SLOT(computeDistance()) );
 
 	m_actions.push_back( actSelectNone );
 	m_actions.push_back( actSelectFrontFaces );
 	m_actions.push_back( actReloadShaders );
+	m_actions.push_back( actComputeDistance );
 }
 
 void SceneViewer::showInspector()
@@ -88,6 +92,7 @@ void SceneViewer::selectModelItem( const QModelIndex& index )
 	qDebug() << "Index row = " << index.row() << ", current index row = " << m_listView->currentIndex().row();
 	m_currentObject = index.row();//m_listView->currentIndex().row(); // was: index.row()
 	m_propertiesWidget->setSceneObject( m_scene.objects().at( m_currentObject ).get() );
+	updateGL();
 }
 
 void SceneViewer::updateModel()
@@ -414,11 +419,12 @@ void SceneViewer::draw()
 
 	glDisable( GL_LIGHTING );
 	glDisable( GL_DEPTH_TEST );
+	glDisable( GL_TEXTURE_1D );
 	glPointSize( 5.f );
 	glColor3f( 1,0,0 );
 
 	// Draw selected vertices of current mesh object
-	if( currentMeshObject() )
+	if( currentMeshObject() && currentMeshObject()->isVisible() )			
 		currentMeshObject()->renderSelectedPoints();
 
 	glColor3f( 1,1,0 );
@@ -426,6 +432,10 @@ void SceneViewer::draw()
 	glBegin( GL_POINTS );
 	glVertex3f( m_selectedPoint.x, m_selectedPoint.y, m_selectedPoint.z );
 	glEnd();
+
+	// FIXME: Text rendering does not work correctly, check GL states!
+	glColor3f( 1,1,1 );
+	drawText( 10,10, tr("current mesh object = %1").arg(m_currentObject) );
 
 	glEnable( GL_DEPTH_TEST );
 	glEnable( GL_LIGHTING );
@@ -658,4 +668,36 @@ void SceneViewer::drawSelectionRectangle() const
 	glDisable(GL_BLEND);
 	glEnable(GL_LIGHTING);
 	stopScreenCoordinatesSystem();
+}
+
+//----------------------------------------------------------------------------
+// Mesh Filters
+//----------------------------------------------------------------------------
+
+#include "filters.h"
+
+void SceneViewer::computeDistance()
+{
+	using meshtools::Mesh;
+	using scene::MeshObject;
+
+	if( m_scene.objects().size() < 2 )
+		return;
+
+	MeshObject* mo_source = dynamic_cast<MeshObject*>( m_scene.objects()[0].get() );
+	MeshObject* mo_target = dynamic_cast<MeshObject*>( m_scene.objects()[1].get() );
+
+	if( !mo_source || !mo_target )
+		return;
+
+	Mesh* source = mo_source->meshBuffer().createMesh();
+	Mesh* target = mo_target->meshBuffer().createMesh();
+
+	std::vector<float> dist;
+	filters::closestPointDistance( *source, *target, dist );
+
+	mo_source->setScalars( dist );
+
+	delete source;
+	delete target;
 }

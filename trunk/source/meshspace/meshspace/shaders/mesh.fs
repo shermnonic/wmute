@@ -2,6 +2,9 @@
 
 uniform sampler1D lookup;
 
+uniform float scalarShift;
+uniform float scalarScale;
+
 varying vec3 vNormal;
 varying vec4 vColor;
 
@@ -35,11 +38,12 @@ void main(void)
 {
 	vec3 diffuse = gl_FrontLightProduct[0].diffuse.rgb;	
 	
-	//diffuse = texture1D( lookup, vNormal.z ).rgb;
+	// Apply transfer function to scalar value
+	diffuse = texture1D( lookup, scalarScale*(vScalar+scalarShift) ).rgb;
 	
 	// Custom selection shading based on vertex color
 	if( vSelection > .5 )
-		diffuse = vec3(1.0,1.0,0.0);	
+		diffuse = vec3(0.0,1.0,0.0);	
 	
 	// Phong shading
 	vec3 shading = 
