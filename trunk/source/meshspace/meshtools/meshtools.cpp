@@ -94,6 +94,67 @@ double computeMeshVolume( Mesh* m )
 	
 	return fabs(vol);
 }
+
+void convertMeshToMatrix( const Mesh& mesh, Eigen::Matrix3Xd& mat )
+{
+	mat.resize( 3, mesh.n_vertices() );
+
+	Mesh::ConstVertexIter v_it = mesh.vertices_begin();
+	unsigned col=0;
+	for( ; v_it != mesh.vertices_end(); ++v_it, col++ )
+	{
+		const Mesh::Point& p = mesh.point( v_it );
+		mat(0,col) = p[0];
+		mat(1,col) = p[1];
+		mat(2,col) = p[2];
+	}
+
+	if( col != mesh.n_vertices() )
+		std::cerr << "Warning: Mismatch in number of vertices!" << std::endl;
+}
+
+void convertMeshNormalsToMatrix( const Mesh& mesh, Eigen::Matrix3Xd& mat )
+{
+	if( !mesh.has_vertex_normals() )
+	{
+		std::cerr << "Mesh requires vertex normals!" << std::endl;
+		return;
+	}
+
+	mat.resize( 3, mesh.n_vertices() );
+
+	Mesh::ConstVertexIter v_it = mesh.vertices_begin();
+	unsigned col=0;
+	for( ; v_it != mesh.vertices_end(); ++v_it, col++ )
+	{	
+		const Mesh::Normal& n = mesh.normal( v_it );
+		mat(0,col) = n[0];
+		mat(1,col) = n[1];
+		mat(2,col) = n[2];
+	}
+
+	if( col != mesh.n_vertices() )
+		std::cerr << "Warning: Mismatch in number of vertices!" << std::endl;
+}
+
+void replaceVerticesFromMatrix( Mesh& mesh, const Eigen::Matrix3Xd& mat )
+{
+	if( mesh.n_vertices() != mat.cols() )
+	{
+		std::cerr <<"Error: Mismatching number of vertices and matrix columns!"
+			<< std::endl;
+		return;
+	}
+
+	Mesh::VertexIter v_it = mesh.vertices_begin();
+	unsigned col=0;
+	for( ; v_it != mesh.vertices_end(); ++v_it, col++ )
+	{
+		mesh.point(v_it)[0] = mat(0,col);
+		mesh.point(v_it)[1] = mat(1,col);
+		mesh.point(v_it)[2] = mat(2,col);
+	}
+}
 	
 } // namespace meshspace
 
