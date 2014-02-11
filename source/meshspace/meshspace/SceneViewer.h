@@ -13,6 +13,7 @@
 #include "MeshShader.h"
 
 #include "scene.h"
+#include "MeshObject.h"
 #include "meshtools.h"
 
 class ObjectPropertiesWidget;

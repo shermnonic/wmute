@@ -280,8 +280,23 @@ void MeshBuffer::downloadGPU()
 }
 
 //------------------------------------------------------------------------------
-void MeshBuffer::setCBufferSelection( const std::vector<unsigned>& idx, bool selected )
-{
+void MeshBuffer::selectVertices( const std::vector<unsigned>& idx, bool selected )
+{	
+#if 0 // SOLUTION VIA SELECTION ATTRIBUTE BUFFER
+
+	// Create new selection attribute buffer, initialized with 0.0
+	if( m_selectionAttribBuffer.size() != m_numVertices )
+	{
+		m_selectionAttribBuffer.clear();
+		m_selectionAttribBuffer.resize( m_numVertices, 0.0 );
+	}
+	// Set selected vertices to 1.0
+	for( unsigned i=0; i < idx.size(); i++ )
+	{		
+		m_selectionAttribBuffer[i] = selected ? 1.0 : 0.0;
+	}
+
+#else // DEPRECATED SOLUTION VIA SPECIAL USE OF COLOR BUFFER
 	size_t start = sizeof(float)*( m_numVertices*3 + m_numNormals*3 );
 	float color_selected[4] = { 1.f, 0.f, 0.f, 1.f };
 	float color_deselected[4] = { 1.f, 1.f, 1.f, 1.f };
@@ -293,13 +308,14 @@ void MeshBuffer::setCBufferSelection( const std::vector<unsigned>& idx, bool sel
 						(void*)(selected ? color_selected : color_deselected));
 	}
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
+#endif
 }
 
-void MeshBuffer::setCBufferSelection( unsigned idx, bool selected )
+void MeshBuffer::selectVertex( unsigned idx, bool selected )
 {
 	std::vector<unsigned> tmp;
 	tmp.push_back( idx );
-	setCBufferSelection( tmp, selected );
+	selectVertices( tmp, selected );
 }
 
 //------------------------------------------------------------------------------

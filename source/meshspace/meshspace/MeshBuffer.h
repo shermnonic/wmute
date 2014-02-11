@@ -58,8 +58,10 @@ public:
 	void setCBufferEnabled( bool b ) { m_cbufferEnabled = b; }
 
 	// Requires valid OpenGL context
-	void setCBufferSelection( const std::vector<unsigned>&, bool selected=true );
-	void setCBufferSelection( unsigned idx, bool selected=true );	
+	void selectVertices( const std::vector<unsigned>&, bool selected=true );
+	void selectVertex( unsigned idx, bool selected=true );	
+	//void setCBufferSelection( const std::vector<unsigned>&, bool selected=true );
+	//void setCBufferSelection( unsigned idx, bool selected=true );	
 
 	std::vector<float>& cbuffer() { return m_cbuffer; }
 	const std::vector<float>& cbuffer() const { return m_cbuffer; }
@@ -80,6 +82,9 @@ private:
 
 	bool m_cbufferEnabled;
 	std::vector<float>    m_cbuffer; ///< color buffer (same for all meshes?!)
+
+	std::vector<float>    m_selectionAttribBuffer;
+	std::vector<float>    m_scalarAttribBuffer;
 };
 
 #endif // MESHBUFFER_H
