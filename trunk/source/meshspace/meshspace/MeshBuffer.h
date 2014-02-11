@@ -10,7 +10,13 @@
 	Simple wrapper around OpenGL VBO draw of triangle mesh (animations).
 	
 	Supports rendering mesh animations where all frames share the same 
-	connectivity.
+	connectivity. It manages vertex, normal, index and color buffer.
+	Additionally support for GL_SELECTION mode is provided via \a
+	drawNamedPoints() e.g. for vertex selection.
+
+	A custom binary format is implemented via \a read() and \a write().
+
+	Vertex colors are not fully supported yet.
 */
 class MeshBuffer
 {
@@ -56,13 +62,6 @@ public:
 	void setupCBuffer();
 
 	void setCBufferEnabled( bool b ) { m_cbufferEnabled = b; }
-
-	// Requires valid OpenGL context
-	void selectVertices( const std::vector<unsigned>&, bool selected=true );
-	void selectVertex( unsigned idx, bool selected=true );	
-	//void setCBufferSelection( const std::vector<unsigned>&, bool selected=true );
-	//void setCBufferSelection( unsigned idx, bool selected=true );	
-
 	std::vector<float>& cbuffer() { return m_cbuffer; }
 	const std::vector<float>& cbuffer() const { return m_cbuffer; }
 
@@ -82,9 +81,6 @@ private:
 
 	bool m_cbufferEnabled;
 	std::vector<float>    m_cbuffer; ///< color buffer (same for all meshes?!)
-
-	std::vector<float>    m_selectionAttribBuffer;
-	std::vector<float>    m_scalarAttribBuffer;
 };
 
 #endif // MESHBUFFER_H

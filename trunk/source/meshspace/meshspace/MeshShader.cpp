@@ -2,7 +2,8 @@
 #include <glutils/GLError.h>
 
 MeshShader::MeshShader()
-: m_program(NULL)
+: m_program(NULL),
+  m_initialized(false)
 {	
 }
 
@@ -28,6 +29,7 @@ bool MeshShader::init()
 		return false;
 	}
 
+	m_initialized = true;
 	return true;
 }
 
@@ -35,6 +37,7 @@ void MeshShader::destroy()
 {
 	m_tf.destroy();
 	delete m_program; m_program = NULL;
+	m_initialized = false;
 }
 
 void MeshShader::bind()

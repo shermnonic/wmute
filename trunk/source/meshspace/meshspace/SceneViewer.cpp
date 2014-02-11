@@ -450,7 +450,7 @@ void SceneViewer::selectNone()
 {
 	// De-select vertices
 	if( currentMeshObject() ) 
-		currentMeshObject()->meshBuffer().selectVertices( m_selection, false );
+		currentMeshObject()->selectVertices( m_selection, false );
 	// Clear selection
 	m_selection.clear();
 	updateGL();
@@ -573,7 +573,7 @@ void SceneViewer::endSelection( const QPoint& point )
 	case SelectAdd    : 
 		m_selection.insert( m_selection.end(), selected.begin(), selected.end() );
 		if( currentMeshObject() ) 
-			currentMeshObject()->meshBuffer().selectVertices( selected );
+			currentMeshObject()->selectVertices( selected );
 		break;
 
 	case SelectRemove : 
@@ -589,7 +589,7 @@ void SceneViewer::endSelection( const QPoint& point )
 			}
 		}
 		if( currentMeshObject() ) 
-			currentMeshObject()->meshBuffer().selectVertices( removed, false );
+			currentMeshObject()->selectVertices( removed, false );
 		break;
 	default: break;
 	}			
