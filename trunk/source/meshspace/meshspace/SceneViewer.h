@@ -61,6 +61,8 @@ public slots:
 
 	/// Write \a MeshBuffer of currently selected scene object to disk.
 	void saveMeshBuffer( QString filename );
+	/// Write current mesh to disk.
+	void saveMesh( QString filename );
 
 protected slots:
 	void updateModel();
@@ -73,6 +75,8 @@ protected slots:
 	void reloadShaders();
 	void selectFrontFaces(bool);
 	void computeDistance();
+	void exportMatrix();
+	void importMatrix();
 	
 protected:
 	///@{ QGLViewer implementation

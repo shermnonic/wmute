@@ -2,6 +2,7 @@
 // Max Hermann, Jan 2014
 #include "SceneViewer.h"
 #include "ObjectPropertiesWidget.h"
+#include "MeshObject.h"
 
 #include <qfileinfo.h>
 #include <QListView>
@@ -11,6 +12,10 @@
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QAction>
+#include <QFileDialog>
+#include <QMessageBox>
+
+#include <fstream>
 
 #include <glutils/GLError.h>
 
@@ -45,17 +50,23 @@ SceneViewer::SceneViewer( QWidget* parent )
 	actSelectFrontFaces->setCheckable( true );
 	actSelectFrontFaces->setChecked( m_selectFrontFaces );
 
-	QAction* actComputeDistance = new QAction(tr("Compute closest point distance"),this);	
+	QAction* actComputeDistance = new QAction(tr("Compute closest point distance"),this);
+	QAction* actExportMatrix = new QAction(tr("Export current mesh vertex matrix as text file"),this);
+	QAction* actImportMatrix = new QAction(tr("Import mesh vertex matrix, replacing vertices of current mesh"),this);
 
 	connect( actSelectNone, SIGNAL(triggered()), this, SLOT(selectNone()) );
 	connect( actReloadShaders, SIGNAL(triggered()), this, SLOT(reloadShaders()) );
 	connect( actSelectFrontFaces, SIGNAL(toggled(bool)), this, SLOT(selectFrontFaces(bool)) );
 	connect( actComputeDistance, SIGNAL(triggered()), this, SLOT(computeDistance()) );
+	connect( actExportMatrix, SIGNAL(triggered()), this, SLOT(exportMatrix()) );
+	connect( actImportMatrix, SIGNAL(triggered()), this, SLOT(importMatrix()) );	
 
 	m_actions.push_back( actSelectNone );
 	m_actions.push_back( actSelectFrontFaces );
 	m_actions.push_back( actReloadShaders );
 	m_actions.push_back( actComputeDistance );
+	m_actions.push_back( actExportMatrix );	
+	m_actions.push_back( actImportMatrix );		
 }
 
 void SceneViewer::showInspector()
@@ -159,23 +170,28 @@ scene::MeshObject* SceneViewer::currentMeshObject()
 
 void SceneViewer::saveMeshBuffer( QString filename )
 {
-	if( m_currentObject < 0 || m_currentObject >= m_scene.objects().size() )		
+	scene::MeshObject* mo = currentMeshObject();
+	if( !mo )
 	{
 		QMessageBox::warning( this, tr("Error"), tr("Invalid selection!") );
 		return;
 	}
 
-	scene::Object* so = m_scene.objects().at( m_currentObject ).get();
-	if( dynamic_cast<scene::MeshObject*>(so) )
+	mo->meshBuffer().write( filename.toStdString().c_str() );
+}
+
+void SceneViewer::saveMesh( QString filename )
+{
+	scene::MeshObject* mo = currentMeshObject();
+	if( !mo )
 	{
-		scene::MeshObject* mo = dynamic_cast<scene::MeshObject*>(so);
-		mo->meshBuffer().write( filename.toStdString().c_str() );
-	}
-	else
-	{
-		QMessageBox::warning( this, tr("Error"), tr("Selected object is not a mesh!") );
+		QMessageBox::warning( this, tr("Error"), tr("Invalid selection!") );
 		return;
 	}
+
+	meshtools::Mesh* mesh = mo->meshBuffer().createMesh( mo->meshBuffer().curFrame() );
+	meshtools::saveMesh( *mesh, filename.toStdString().c_str() );
+	delete mesh;
 }
 
 meshtools::Mesh* SceneViewer::loadMeshInternal( QString filename )
@@ -670,6 +686,89 @@ void SceneViewer::drawSelectionRectangle() const
 	stopScreenCoordinatesSystem();
 }
 
+void SceneViewer::exportMatrix()
+{
+	// Get current mesh object
+	scene::MeshObject* mo = currentMeshObject();
+	if( !mo )
+	{
+		QMessageBox::information(this,tr("meshspace"),tr("Please select a mesh to export first!"));
+		return;
+	}
+
+	// Get filename
+	QString filename = QFileDialog::getSaveFileName( this, tr("Export current mesh as text file"),
+		QString::fromStdString( mo->getName() ), tr("Text file (*.txt)") );
+
+	if( filename.isEmpty() )
+		return;	
+
+	// Create mesh and convert into matrix
+	meshtools::Mesh* mesh = mo->meshBuffer().createMesh();
+	Eigen::Matrix3Xd mat;
+	meshtools::convertMeshToMatrix( *mesh, mat );
+
+	// Write to text file
+	std::ofstream of( filename.toStdString().c_str() );
+	if( !of.is_open() )
+	{
+		delete mesh;
+		QMessageBox::warning(this,tr("meshspace"),tr("Could not open file for writing!"));
+		return;
+	}
+	meshtools::writeMatrix( mat, of );
+	of.close();
+
+	delete mesh;
+}
+
+void SceneViewer::importMatrix()
+{
+	// Get current mesh object
+	scene::MeshObject* mo = currentMeshObject();
+	if( !mo )
+	{
+		QMessageBox::information(this,tr("meshspace"),tr("Please select a mesh to export first!"));
+		return;
+	}
+
+	// Get filename
+	QString filename = QFileDialog::getOpenFileName( this, tr("Export current mesh as text file"),
+		QString::fromStdString( mo->getName() ), tr("Text file (*.txt)") );
+
+	if( filename.isEmpty() )
+		return;	
+
+	// Open file
+	std::ifstream f( filename.toStdString().c_str() );
+	if( !f.is_open() )
+	{
+		QMessageBox::warning(this,tr("meshspace"),tr("Could not open file for reading!"));
+		return;
+	}
+
+	// Read matrix from text file
+	Eigen::Matrix3Xd mat;
+	meshtools::readMatrix( mat, f );
+	f.close();
+
+	// Replace vertices of current mesh by those given in matrix	
+	meshtools::Mesh* mesh = mo->meshBuffer().createMesh();	
+	meshtools::replaceVerticesFromMatrix( *mesh, mat );
+
+	// Name of new scene object
+	QFileInfo info( filename );
+	QString name = tr("%1_replaced-vertices").arg(info.baseName());
+
+	// Add as new scene object
+	scene::MeshObject* nuobj = new scene::MeshObject;
+	nuobj->setMesh( mesh );
+	nuobj->setName( name.toStdString() );
+	addMeshObject( nuobj );	
+
+	updateGL();
+}
+
 //----------------------------------------------------------------------------
 // Mesh Filters
 //----------------------------------------------------------------------------
@@ -701,3 +800,4 @@ void SceneViewer::computeDistance()
 	delete source;
 	delete target;
 }
+
