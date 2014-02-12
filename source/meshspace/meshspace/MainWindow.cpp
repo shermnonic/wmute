@@ -211,7 +211,7 @@ void MainWindow::openAnimation()
 void MainWindow::saveMesh()
 {
 	QString filename = QFileDialog::getSaveFileName( this, tr("Save mesh buffer"),
-		m_baseDir, tr("MeshBuffer (*.mb *.meshbuffer)") );
+		m_baseDir, tr("3D Meshes (*.obj *.ply *.off *.om *.stl);; MeshBuffer (*.mb *.meshbuffer)") );
 
 	if( filename.isEmpty() )
 		return;
@@ -220,5 +220,13 @@ void MainWindow::saveMesh()
 	QFileInfo info( filename );
 	m_baseDir = info.absolutePath();
 
-	m_viewer->saveMeshBuffer( filename );
+	if( info.suffix().compare("mb",Qt::CaseInsensitive)==0 ||
+		info.suffix().compare("meshbuffer",Qt::CaseInsensitive)==0 )
+	{
+		m_viewer->saveMeshBuffer( filename );
+	}
+	else
+	{
+		m_viewer->saveMesh( filename );
+	}
 }

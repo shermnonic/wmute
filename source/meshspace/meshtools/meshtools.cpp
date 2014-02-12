@@ -1,8 +1,13 @@
 #include "meshtools.h"
 #include <cmath>
 #include <string>
+#include <iomanip>
 
 namespace meshtools {
+
+//-----------------------------------------------------------------------------
+//  Mesh functions
+//-----------------------------------------------------------------------------
 
 bool loadMesh( Mesh& mesh, const char* filename )
 {	
@@ -95,6 +100,10 @@ double computeMeshVolume( Mesh* m )
 	return fabs(vol);
 }
 
+//-----------------------------------------------------------------------------
+//  Matrix functions
+//-----------------------------------------------------------------------------
+
 void convertMeshToMatrix( const Mesh& mesh, Eigen::Matrix3Xd& mat )
 {
 	mat.resize( 3, mesh.n_vertices() );
@@ -156,5 +165,48 @@ void replaceVerticesFromMatrix( Mesh& mesh, const Eigen::Matrix3Xd& mat )
 	}
 }
 	
+void writeMatrix( const Eigen::Matrix3Xd& mat, std::ostream& os )
+{
+	os.precision( 7 );
+	os << std::scientific;
+	for( int i=0; i < mat.cols(); i++ )
+	{
+		os << std::setw(15) << mat(0,i) << " "
+		   << std::setw(15) << mat(1,i) << " "
+		   << std::setw(15) << mat(2,i) << std::endl;
+	}
+}
+
+void readMatrix( Eigen::Matrix3Xd& mat, std::istream& is )
+{
+	// Read all lines into buffer
+	std::stringstream buf;
+	std::string s;
+	int lines=0;
+	while( std::getline( is, s ) )
+	{
+		buf << s;
+		lines++;
+	}
+
+	// Parse matrix entries
+	mat.resize( 3, lines );
+	int col=0;
+	while( buf.good() && col<lines )
+	{
+		double x,y,z;
+		buf >> x;
+		buf >> y;
+		buf >> z;
+		mat(0,col) = x;
+		mat(1,col) = y;
+		mat(2,col) = z;
+		col++;
+	}
+
+	if( col != lines )
+		std::cerr << "readMatrix() mismatch in matrix format!" << std::endl;
+}
+
 } // namespace meshspace
 
