@@ -167,8 +167,13 @@ void GLSLProgram::release_all()
 }
 
 GLint GLSLProgram::getUniformLocation( const GLchar* name )
-{	
+{		
 	return glGetUniformLocation( m_program, name );
+}
+
+GLint GLSLProgram::getAttribLocation( const GLchar* name )
+{
+	return glGetAttribLocation( m_program, name );
 }
 
 string GLSLProgram::getShaderLog( GLuint shader )
