@@ -7,6 +7,9 @@
 
 class SceneViewer;
 
+/** @addtogroup meshspaceGUI_grp meshspace GUI
+  * @{ */
+
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT
@@ -32,5 +35,7 @@ protected:
 private:
 	SceneViewer* m_viewer;
 };
+
+/** @} */ // end group
 
 #endif // MAINWINDOW

@@ -3,6 +3,11 @@
 
 #include <glutils/GLTexture.h>
 
+
+/** @addtogroup meshspace meshspace
+  * @{ */
+
+/// Color transfer function implemented as 1D OpenGL texture
 class TransferFunction
 {
 public:
@@ -16,5 +21,7 @@ public:
 private:
 	GL::GLTexture m_tex;
 };
+
+/** @} */ // end group
 
 #endif // TRANSFERFUNCTION_H
