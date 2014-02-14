@@ -6,6 +6,9 @@
 #include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
 #include <Eigen/Dense>
 
+/** @addtogroup meshtools_grp meshtools library
+  * @{ */
+
 namespace meshtools {
 
 ///@{ Mesh definition
@@ -71,5 +74,7 @@ void readMatrix( Eigen::Matrix3Xd& mat, std::istream& is );
 
 
 } // namespace meshtools
+
+/** @} */ // end group meshtools
 
 #endif // MESHTOOLS_H

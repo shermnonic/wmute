@@ -6,8 +6,11 @@
 #include <meshtools.h>
 #include <vector>
 
+/** @addtogroup meshspace meshspace
+  * @{ */
+
 /**
-	Simple wrapper around OpenGL VBO draw of triangle mesh (animations).
+	\brief Simple wrapper around OpenGL VBO draw of triangle mesh (animations).
 	
 	Supports rendering mesh animations where all frames share the same 
 	connectivity. It manages vertex, normal, index and color buffer.
@@ -82,5 +85,7 @@ private:
 	bool m_cbufferEnabled;
 	std::vector<float>    m_cbuffer; ///< color buffer (same for all meshes?!)
 };
+
+/** @} */ // end group
 
 #endif // MESHBUFFER_H

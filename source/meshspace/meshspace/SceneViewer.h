@@ -21,6 +21,9 @@ class QListView;
 class QMouseEvent;
 class QAction;
 
+/** @addtogroup meshspaceGUI_grp meshspace GUI
+  * @{ */
+
 /**
 	QGLViewer widget to render a \a scene::Scene.
 */
@@ -127,5 +130,7 @@ private:
 
 	QList<QAction*> m_actions;
 };
+
+/** @} */ // end group
 
 #endif // SCENEVIEWER_H

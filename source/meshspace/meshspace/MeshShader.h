@@ -6,7 +6,10 @@
 
 #include "TransferFunction.h"
 
-/// Per-pixel Phong shader equivalent to OpenGL fixed function pipeline.
+/** @addtogroup meshspace meshspace
+  * @{ */
+
+/// \brief Per-pixel Phong shader equivalent to OpenGL fixed function pipeline.
 /// Note that only the first OpenGL light is considered for shading yet.
 class MeshShader
 {
@@ -33,5 +36,7 @@ private:
 	TransferFunction m_tf;
 	bool m_initialized;
 };
+
+/** @} */ // end group
 
 #endif // MESHSHADER_H

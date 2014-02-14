@@ -13,6 +13,9 @@ class QSlider;
 class QLineEdit;
 class QTextEdit;
 
+/** @addtogroup meshspaceGUI_grp meshspace GUI
+  * @{ */
+
 /**
 	Inspector to show and edit scene::Object properties for \a SceneViewer
 */
@@ -46,5 +49,7 @@ private:
 
 	scene::Object* m_obj;
 };
+
+/** @} */ // end group
 
 #endif // OBJECTPROPERTIESWIDGET_H

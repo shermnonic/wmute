@@ -16,7 +16,7 @@ namespace scene {
 // 	MeshObject
 //-----------------------------------------------------------------------------
 /**
-	Scene representation of a triangle mesh (\a meshtools::Mesh).
+	\brief Scene representation of a triangle mesh (\a meshtools::Mesh).
 	
 	Internally \a MeshBuffer provides the data structure and rendering 
 	functionality. It does not support materials nor texture yet. Rendering is 

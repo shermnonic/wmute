@@ -8,12 +8,16 @@
 #include <limits>
 #include <iostream>
 
+/** @addtogroup meshspace meshspace
+  * @{ */
+
+/// Scene graph (currently only an array of scene objects w/o hierarchy)
 namespace scene
 {	
 //-----------------------------------------------------------------------------
 // 	BoundingBox
 //-----------------------------------------------------------------------------
-/// Bounding box class used by scenegraph objects
+/// \brief Bounding box class used by scenegraph objects
 struct BoundingBox
 {
 	BoundingBox()
@@ -95,7 +99,7 @@ struct Color
 // 	Object
 //-----------------------------------------------------------------------------
 /**
-	Abstract scenegraph object
+	\brief Abstract scenegraph object
 
 	One has to implement the following interface:
 	- render()
@@ -150,7 +154,7 @@ typedef boost::shared_ptr< Object > ObjectPtr;
 typedef std::vector< ObjectPtr >    ObjectPtrArray;
 
 /**
-	Minimalistic scenegraph (so far not a graph but simply a set of objects)
+	\brief Minimalistic scenegraph (so far not a graph but simply a set of objects)
 
 	Currently objects can only be added and there is no possibility to
 	remove them from the scene yet.
@@ -180,5 +184,7 @@ private:
 };
 
 } // namespace scene
+
+/** @} */ // end group
 
 #endif // SCENE_H
