@@ -8,7 +8,7 @@ meshspace is a loose collection of mesh processing code used for a little projec
 This software is part of the project "Explorative Shape Analysis", see the 
 following project page for further details:
 
-http://cg.cs.uni-bonn.de/en/projects/shape-analysis/semantically-steered-visual-analysis-of-shape-spaces/
+http://cg.cs.uni-bonn.de/en/projects/shape-analysis/
 
 \section authors Authors
 
