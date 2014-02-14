@@ -4,6 +4,7 @@
 #---- Library -----------------------------------------------------------------
 
 add_library( meshtools
+	../include/meshtools.h
 	meshtools.cpp
 )
 

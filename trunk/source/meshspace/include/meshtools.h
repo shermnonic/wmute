@@ -11,7 +11,8 @@
 
 namespace meshtools {
 
-///@{ Mesh definition
+///@name Mesh definition
+///@{ 
 
 /// Definition of mesh attributes
 struct MeshTraits : public OpenMesh::DefaultTraits
@@ -29,7 +30,8 @@ typedef OpenMesh::TriMesh_ArrayKernelT<MeshTraits> Mesh;
 ///@}
 
 
-///@{ Mesh functions
+///@name Mesh functions
+///@{ 
 
 /// Read a mesh from disk via OpenMesh which supports formats like .stl, .obj, .ply, .off
 bool loadMesh( Mesh& mesh, const char* filename );
@@ -47,7 +49,8 @@ double computeMeshVolume( Mesh* m );
 ///@}
 
 
-///@{ Matrix functions
+///@name Matrix functions
+///@{ 
 
 /// Write all vertices from a mesh into columns of a 3xd matrix
 /// \sa replaceVerticesFromMatrix
