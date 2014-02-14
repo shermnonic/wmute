@@ -60,6 +60,7 @@ public:
 	std::string getProgramLog( GLuint program );
 
     GLint getUniformLocation( const GLchar* name );
+	GLint getAttribLocation( const GLchar* name );
 	///@}
 
 	/// Redirect log output
