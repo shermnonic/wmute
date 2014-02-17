@@ -92,8 +92,10 @@ public:
 	void selectNone();
 	///@}
 
+	/// Set scalar field on vertices (e.g. used for color-coding in shader)
 	void setScalars( const std::vector<float>& scalars );
 
+	/// Recompile the used \a MeshShader from source
 	bool reloadShader();
 
 private:
