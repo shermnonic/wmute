@@ -497,8 +497,18 @@ meshtools::Mesh* MeshBuffer::createMesh( int frame ) const
 	std::vector< Mesh::VertexHandle > fvhandle( 3 );
 		
 	Mesh* m = new Mesh;
-		
-	const float* pv = &(m_vbuffer[0]);
+
+	// sanity check
+	if( frame >= m_numFrames || frame < 0 )
+	{
+		std::cout << "MeshBuffer::createMesh() : Requested invalid frame number "
+			<< frame << ", falling back to first frame!" << std::endl;
+		frame = 0;
+	}
+
+	// Mesh vertex data
+	unsigned ofs = (unsigned)frame * m_numVertices * 3;		
+	const float* pv = &(m_vbuffer[ofs]);
 	for( unsigned i=0; i < m_numVertices; ++i )
 	{
 		Mesh::Point p;
@@ -508,6 +518,7 @@ meshtools::Mesh* MeshBuffer::createMesh( int frame ) const
 		vhandle[i] = m->add_vertex( p );
 	}
 
+	// Mesh indexed faces
 	const unsigned* pf = &(m_ibuffer[0]);
 	for( size_t i=0; i < m_ibuffer.size()/3; ++i )
 	{
