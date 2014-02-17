@@ -1,7 +1,7 @@
 // MeshObject, part of scene - minimalistic scene graph library
 // Max Hermann, Jan 2014
-#ifndef MESHOBJECT_H
-#define MESHOBJECT_H
+#ifndef SCENE_MESHOBJECT_H
+#define SCENE_MESHOBJECT_H
 
 #include "scene.h"
 #include <set>
@@ -114,4 +114,4 @@ private:
 
 } // namespace scene 
 
-#endif // MESHOBJECT_H
+#endif // SCENE_MESHOBJECT_H

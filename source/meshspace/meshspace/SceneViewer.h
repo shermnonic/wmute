@@ -78,6 +78,7 @@ protected slots:
 	void reloadShaders();
 	void selectFrontFaces(bool);
 	void computeDistance();
+	void computePCA();
 	void exportMatrix();
 	void importMatrix();
 	
