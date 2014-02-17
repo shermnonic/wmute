@@ -208,5 +208,50 @@ void readMatrix( Eigen::Matrix3Xd& mat, std::istream& is )
 		std::cerr << "readMatrix() mismatch in matrix format!" << std::endl;
 }
 
-} // namespace meshspace
+/*
+void computePCA( const Eigen::MatrixXd& X_, Eigen::MatrixXd& PC, Eigen::VectorXd& eigenvalues, Eigen::MatrixXd& mu )
+{
+	Eigen::MatrixXd X( X_ );
+	
+	// Number of samples (= columns)
+	int n = X.cols();
+	
+	// Center data
+	mu = X.rowwise().sum() / n;
+	#pragma omp parallel for
+	for( int i=0; i < X.cols(); ++i )
+		X.col(i) -= mu;
+	
+	// Scatter matrix
+	Eigen::MatrixXd S;	
+	if( X.rows() >= X.cols() )
+	{
+		// Smaller scatter matrix X'X
+		S = X.transpose() * X;				
+	}
+	else
+	{
+		// Original scatter matrix XX'
+		Eigen::MatrixXd S = X * X.transpose();
+	}
+	
+	// Diagonalization via SVD
+	Eigen::JacobiSVD<Eigen::MatrixXd> svd( S, Eigen::ComputeFullU );
+	
+	// XX' and X'X share eigenvalues
+	eigenvalues = (svd.singularValues() / (n-1.)).cwiseSqrt();
+	
+	if( X.rows() >= X.cols() )
+	{
+		// Reconstruct eigenvectors of XX'		
+		PC = X * svd.matrixU() * svd.singularValues().cwiseSqrt().asDiagonal().inverse();
+	}
+	else
+	{
+		PC = svd.matrixU();
+	}
+}
+*/
 
+
+} // namespace meshspace
