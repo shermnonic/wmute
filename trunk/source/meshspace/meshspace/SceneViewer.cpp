@@ -3,6 +3,7 @@
 #include "SceneViewer.h"
 #include "ObjectPropertiesWidget.h"
 #include "MeshObject.h"
+#include "PCAObject.h"
 
 #include <qfileinfo.h>
 #include <QListView>
@@ -51,6 +52,8 @@ SceneViewer::SceneViewer( QWidget* parent )
 	actSelectFrontFaces->setChecked( m_selectFrontFaces );
 
 	QAction* actComputeDistance = new QAction(tr("Compute closest point distance"),this);
+	QAction* actComputePCA = new QAction(tr("Derive PCA model from current mesh buffer"),this);
+
 	QAction* actExportMatrix = new QAction(tr("Export current mesh vertex matrix as text file"),this);
 	QAction* actImportMatrix = new QAction(tr("Import mesh vertex matrix, replacing vertices of current mesh"),this);
 
@@ -58,6 +61,7 @@ SceneViewer::SceneViewer( QWidget* parent )
 	connect( actReloadShaders, SIGNAL(triggered()), this, SLOT(reloadShaders()) );
 	connect( actSelectFrontFaces, SIGNAL(toggled(bool)), this, SLOT(selectFrontFaces(bool)) );
 	connect( actComputeDistance, SIGNAL(triggered()), this, SLOT(computeDistance()) );
+	connect( actComputePCA, SIGNAL(triggered()), this, SLOT(computePCA()) );
 	connect( actExportMatrix, SIGNAL(triggered()), this, SLOT(exportMatrix()) );
 	connect( actImportMatrix, SIGNAL(triggered()), this, SLOT(importMatrix()) );	
 
@@ -66,7 +70,8 @@ SceneViewer::SceneViewer( QWidget* parent )
 	m_actions.push_back( actReloadShaders );
 	m_actions.push_back( actComputeDistance );
 	m_actions.push_back( actExportMatrix );	
-	m_actions.push_back( actImportMatrix );		
+	m_actions.push_back( actImportMatrix );
+	m_actions.push_back( actComputePCA );	
 }
 
 void SceneViewer::showInspector()
@@ -801,3 +806,17 @@ void SceneViewer::computeDistance()
 	delete target;
 }
 
+void SceneViewer::computePCA()
+{
+	using scene::MeshObject;
+	using scene::PCAObject;
+
+	MeshObject* mo = currentMeshObject();
+	if( !mo )
+		return;
+
+	PCAObject* pco = new PCAObject;
+	pco->derivePCAModelFrom( *mo );
+
+	addMeshObject( (MeshObject*)pco );
+}

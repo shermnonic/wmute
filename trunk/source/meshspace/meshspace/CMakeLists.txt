@@ -108,6 +108,8 @@ add_executable( meshspace
 	MeshObject.cpp
 	filters.h
 	filters.cpp
+	PCAObject.h
+	PCAObject.cpp
 	${meshspace_MOC_SRCS}
 	${meshspace_RCC_SRCS}
 	${GLUTILS_SOURCES}

@@ -150,8 +150,8 @@ void replaceVerticesFromMatrix( Mesh& mesh, const Eigen::Matrix3Xd& mat )
 {
 	if( mesh.n_vertices() != mat.cols() )
 	{
-		std::cerr <<"Error: Mismatching number of vertices and matrix columns!"
-			<< std::endl;
+		std::cerr <<"Error: Mismatching number of vertices and matrix columns!"	<< std::endl
+			<< "Mesh has " << mesh.n_vertices() << " vertices but matrix has " << mat.cols() << " columns" << std::endl;
 		return;
 	}
 
