@@ -36,8 +36,9 @@ public:
 	{}
 
 	void clear();
-	bool addFrame( const meshtools::Mesh* mesh );
-	void downloadGPU();
+	bool addFrame( const meshtools::Mesh* mesh );	
+
+	///@{ Render functions
 	void draw();
 
 	void drawPoints( const std::vector<unsigned>& idx ) const;
@@ -45,15 +46,20 @@ public:
 
 	void drawNamedPoints() const;
 	void drawNamedPoints( const std::vector<unsigned>& idx ) const;
+	///@}
 
 	void setFrame( int f );
 
 	int      curFrame() const { return m_curFrame; }
 	unsigned numFrames() const { return m_numFrames; }
+	unsigned numVertices() const { return m_numVertices; }
 
+	///@{ File IO for custom .meshbuffer/.mb file format
 	void write( const char* filename ) const;
 	bool read( const char* filename );
+	///@}
 
+	/// Create a new OpenMesh mesh for specific frame
 	meshtools::Mesh* createMesh( int frame=0 ) const;
 
 	/// Return scalar product between given direction and vertex normal of vertex idx (No range checking!).
@@ -63,10 +69,21 @@ public:
 	/// Must be called after vbuffer is set, i.e. after a file is loaded, but
 	/// before downloadGPU() called for the first time.
 	void setupCBuffer();
-
 	void setCBufferEnabled( bool b ) { m_cbufferEnabled = b; }
+
+	///@{ Access color buffer raw data
 	std::vector<float>& cbuffer() { return m_cbuffer; }
 	const std::vector<float>& cbuffer() const { return m_cbuffer; }
+	///@}
+
+	///@{ Access vertex buffer raw data
+	std::vector<float>& vbuffer() { return m_vbuffer; }
+	const std::vector<float>& vbuffer() const { return m_vbuffer; }
+	///@}
+
+protected:
+	/// Called internally in \a draw() function
+	void downloadGPU();
 
 private:	
 	int      m_curFrame;
