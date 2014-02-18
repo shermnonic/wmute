@@ -127,10 +127,19 @@ void ObjectPropertiesWidget::setSceneObject( scene::Object* obj )
 		if( pco->numPCs() <= 0 )
 			return;
 
+		// Setup sliders
 		m_pcaSlider->createSliders( pco->numPCs() );
 		m_pcaSlider->setRange( -300, 300 );
 		m_pcaSlider->setValues( 0 );
 		m_pcaSlider->setVisible( true );
+
+		// Set slider values to current PC coefficients
+		std::vector<double> coeffs;
+		QVector<int> values;
+		pco->getCoeffs( coeffs );
+		for( int i=0; i < coeffs.size(); i++ )
+			values.push_back( (int)(coeffs[i]*100.0) );
+		m_pcaSlider->setValues( values );
 
 		connect( m_pcaSlider, SIGNAL(valueChanged(int,int)), this, SLOT(changePCACoeff(int,int)) );
 
