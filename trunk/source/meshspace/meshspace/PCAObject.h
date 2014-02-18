@@ -29,6 +29,8 @@ public:
 		: MeshObject(),
 		  m_curPC(0)
 	{}
+
+	/// Compute PCA model for given mesh sequence
 	void derivePCAModelFrom( const MeshObject& mo );
 
 	///@{ Reimplemented from MeshObject, show i-th eigenmode plus mean shape

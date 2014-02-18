@@ -74,13 +74,6 @@ void writeMatrix( const Eigen::Matrix3Xd& mat, std::ostream& os );
 void readMatrix( Eigen::Matrix3Xd& mat, std::istream& is );
 
 
-/*
-// Principal Component Analysis of an arbitrary data matrix.
-void computePCA( const Eigen::MatrixXd& X_, Eigen::MatrixXd& PC, Eigen::VectorXd& eigenvalues, Eigen::MatrixXd& mu );
-*/
-///@}
-
-
 } // namespace meshtools
 
 /** @} */ // end group meshtools
