@@ -326,6 +326,21 @@ void SceneViewer::addMeshBuffer( const MeshBuffer& mb, QString name )
 
 void SceneViewer::addMeshObject( scene::MeshObject* so )
 {
+	// Assign different colors to scene objects
+	static const double colors[] = {
+		1.0000,    1.0000,    1.0000,
+		0.3137,    0.6784,    0.9020,
+		0.6235,    0.3020,    0.6392,
+		0.8902,    0.0902,    0.3725,
+		0.9608,    0.5294,    0.1333,
+		1.0000,    0.8353,    0.2392,
+		1.0000,    0.9608,    0.8314
+	};
+	static const unsigned numColors = sizeof(colors) / (3*sizeof(double));
+	static int lastColor = 0;
+	int curColor = (lastColor++) % numColors;
+	so->setColor( scene::Color(colors[3*curColor], colors[3*curColor+1], colors[3*curColor+2]) );
+
 	// Add mesh to scene
 	m_scene.addSceneObject( so );
 
@@ -360,23 +375,9 @@ scene::MeshObject* SceneViewer::addMesh( meshtools::Mesh* mesh_, QString name )
 
 scene::MeshObject* SceneViewer::newMeshObject( QString name )
 {
-	static const double colors[] = {
-		1.0000,    1.0000,    1.0000,
-		0.3137,    0.6784,    0.9020,
-		0.6235,    0.3020,    0.6392,
-		0.8902,    0.0902,    0.3725,
-		0.9608,    0.5294,    0.1333,
-		1.0000,    0.8353,    0.2392,
-		1.0000,    0.9608,    0.8314
-	};
-	static const unsigned numColors = sizeof(colors) / (3*sizeof(double));
-	static int lastColor = 0;
-	int curColor = (lastColor++) % numColors;
-
 	// Create scene object
 	scene::MeshObject* so = new scene::MeshObject();
-	so->setName( name.toStdString() );	
-	so->setColor( scene::Color(colors[3*curColor], colors[3*curColor+1], colors[3*curColor+2]) );	
+	so->setName( name.toStdString() );
 
 	return so;
 }
@@ -441,18 +442,22 @@ void SceneViewer::draw()
 	glDisable( GL_LIGHTING );
 	glDisable( GL_DEPTH_TEST );
 	glDisable( GL_TEXTURE_1D );
-	glPointSize( 5.f );
-	glColor3f( 1,0,0 );
 
 	// Draw selected vertices of current mesh object
-	if( currentMeshObject() && currentMeshObject()->isVisible() )			
+	glPointSize( 2.f );
+	glColor3f( 1,0,0 );
+	if( currentMeshObject() && currentMeshObject()->isVisible() )	
 		currentMeshObject()->renderSelectedPoints();
 
-	glColor3f( 1,1,0 );
-	glPointSize( 10.f );
-	glBegin( GL_POINTS );
-	glVertex3f( m_selectedPoint.x, m_selectedPoint.y, m_selectedPoint.z );
-	glEnd();
+	// Draw surface intersection along selection ray
+	if( m_selectionMode!=SelectNone )
+	{
+		glColor3f( 1,1,0 );
+		glPointSize( 10.f );
+		glBegin( GL_POINTS );
+		glVertex3f( m_selectedPoint.x, m_selectedPoint.y, m_selectedPoint.z );
+		glEnd();
+	}
 
 	// FIXME: Text rendering does not work correctly, check GL states!
 	glColor3f( 1,1,1 );

@@ -12,7 +12,7 @@ namespace scene
 {
 
 //-----------------------------------------------------------------------------
-void MeshObject::setMesh( boost::shared_ptr<meshtools::Mesh> mesh )
+void MeshObject::setMesh( boost::shared_ptr<meshtools::Mesh> mesh, bool keepMeshBuffer )
 {
 	using meshtools::Mesh;
 
@@ -22,8 +22,11 @@ void MeshObject::setMesh( boost::shared_ptr<meshtools::Mesh> mesh )
 	meshtools::updateMeshVertexNormals( m_mesh.get() );
 
 	// Setup mesh buffer
-	m_meshBuffer.clear();
-	m_meshBuffer.addFrame( m_mesh.get() );
+	if( !keepMeshBuffer )
+	{
+		m_meshBuffer.clear();
+		m_meshBuffer.addFrame( m_mesh.get() );
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -114,7 +117,7 @@ void MeshObject::render( int flags )
 	}
 
 	// Render vertices as points
-	if( flags & Object::RenderPoints )		
+	if( flags & Object::RenderPoints )
 		if( flags & Object::RenderNames  )
 			m_meshBuffer.drawNamedPoints();
 		else
@@ -122,8 +125,7 @@ void MeshObject::render( int flags )
 
 	glPopAttrib();
 
-	std::stringstream ss; ss << "MeshObject::render(" << flags << ")";
-	GL::CheckGLError( ss.str() );
+	GL::CheckGLError( "MeshObject::render()" );
 }
 
 //-----------------------------------------------------------------------------
