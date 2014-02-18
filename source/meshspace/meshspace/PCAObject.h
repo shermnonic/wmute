@@ -22,6 +22,7 @@ struct PCAModel
 
 namespace scene {
 
+/// PCA shape model as a scene object
 class PCAObject : public MeshObject
 {
 public:
@@ -42,7 +43,13 @@ public:
 	/// Synthesize a shape from PCA model with given PC coefficients
 	void synthesize( const std::vector<double>& coefficients );
 
+	/// Return number of principal components
 	int numPCs() const { return (int)m_pca.PC.cols(); }
+
+	/// Return current PC coefficients
+	Eigen::VectorXd coeffs() const { return m_coeffs; }
+	/// Provided for convenience, see \a coeffs()
+	void getCoeffs( std::vector<double>& coeffs ) const;
 
 protected:
 	///@{ Protect all modify functions of \a MeshObject
@@ -57,6 +64,7 @@ private:
 	PCAModel        m_pca;
 	int             m_curPC;
 	meshtools::Mesh m_mshape;
+	Eigen::VectorXd m_coeffs;
 };
 
 } // namespace scene 

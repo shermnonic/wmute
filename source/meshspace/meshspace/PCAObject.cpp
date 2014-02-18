@@ -79,12 +79,17 @@ void PCAObject::synthesize( const std::vector<double>& coefficients )
 	for( int i=0; i < coefficients.size(); i++ )
 		coeffs(i) = coefficients[i];
 
+	m_coeffs = coeffs;
+
 	// Synthesize shape from PCA model
 	Eigen::VectorXd synth =	m_pca.mu + m_pca.PC * (coeffs.cwiseProduct( m_pca.ev ));
 
 	// Replace vertex buffer
 	std::vector<float>& vbuf = meshBuffer().vbuffer();
-	for( int i=0; i < std::min((int)vbuf.size(),(int)synth.size()); ++i )
+	int n = std::min((int)vbuf.size(),(int)synth.size());
+	
+	#pragma omp parallel for
+	for( int i=0; i < n; ++i )
 		vbuf[i] = (float)synth(i);
 
 	// Trigger update of GPU buffers
@@ -96,6 +101,13 @@ void PCAObject::setFrame( int i )
 	std::vector<double> coeffs( m_pca.PC.cols(), 0. );
 	coeffs[i] = 2.0;
 	synthesize( coeffs );
+}
+
+void PCAObject::getCoeffs( std::vector<double>& coeffs ) const
+{
+	coeffs.resize( m_coeffs.size() );
+	for( int i=0; i < m_coeffs.size(); i++ )
+		coeffs[i] = m_coeffs(i);
 }
 
 } // namespace scene 
