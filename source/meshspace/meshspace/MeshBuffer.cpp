@@ -499,7 +499,7 @@ meshtools::Mesh* MeshBuffer::createMesh( int frame ) const
 	Mesh* m = new Mesh;
 
 	// sanity check
-	if( frame >= m_numFrames || frame < 0 )
+	if( frame >= (int)m_numFrames || frame < 0 )
 	{
 		std::cout << "MeshBuffer::createMesh() : Requested invalid frame number "
 			<< frame << ", falling back to first frame!" << std::endl;

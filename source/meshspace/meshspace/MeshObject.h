@@ -64,19 +64,18 @@ public:
 	bool addFrame( meshtools::Mesh* mesh );
 
 	/// Returns true if mesh buffer contains more than one frame.
-	bool isAnimation() const { return m_meshBuffer.numFrames() > 1; }
+	bool isAnimation() const { return numFrames() > 1; }
 
 	///@{ Wrapper around \a MeshBuffer mesh animation functions
-	unsigned numFrames() const { return m_meshBuffer.numFrames(); }
-	void setFrame( int i ) { m_meshBuffer.setFrame(i); }
+	virtual	unsigned numFrames() const { return m_meshBuffer.numFrames(); }
+	virtual void setFrame( int i ) { m_meshBuffer.setFrame(i); }
+	virtual int curFrame() const { return m_meshBuffer.curFrame(); }
 	///@}
 
 	/// Return number of vertices in (reference) mesh
 	int numVertices() const { return m_mesh ? (int)m_mesh->n_vertices() : 0; }
 	/// Return number of (triangle) faces in (reference) mesh
 	int numFaces()    const { return m_mesh ? (int)m_mesh->n_faces() : 0; }
-	// Return the currently active frame of \a MeshBuffer
-	int curFrame() const { return m_meshBuffer.curFrame(); }
 
 	///@{ Direct access to the underlying \a MeshBuffer instance
 	MeshBuffer& meshBuffer() { return m_meshBuffer; }

@@ -6,7 +6,6 @@
 #include <QWidget>
 #include <QPixmap>
 #include "scene.h"
-#include "MeshObject.h"
 
 class QLabel;
 class QSlider;

@@ -1,6 +1,8 @@
 // ObjectPropertiesWidget - scene::Object properties for SceneViewer
 // Max Hermann, Jan 2014
 #include "ObjectPropertiesWidget.h"
+#include "MeshObject.h"
+#include "PCAObject.h"
 
 #include <QLabel>
 #include <QLineEdit>

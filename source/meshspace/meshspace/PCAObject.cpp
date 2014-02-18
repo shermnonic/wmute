@@ -23,7 +23,7 @@ Eigen::Matrix3Xd reshape( const Eigen::VectorXd& v )
 
 /// Compute PCA of MeshBuffer vertex data
 /// \param[in]  samples  Input MeshBuffer
-/// \param[out] pcmb     Output MeshBuffer with PC modes as frames
+/// \param[out] pcmb     Output MeshBuffer with mean shape
 /// \param[out] model    \a PCAModel with eigenvectors, ~values and mean
 /// \param[out] mshape   Mean shape as \a meshtools::Mesh
 void computePCA( /*const*/ MeshBuffer& samples, MeshBuffer& pcmb, PCAModel& model, meshtools::Mesh& mshape )
@@ -36,19 +36,24 @@ void computePCA( /*const*/ MeshBuffer& samples, MeshBuffer& pcmb, PCAModel& mode
 	
 	// Compute PCA
 	computePCA( X, model.PC, model.ev, model.mu );
-	
-	// Create output meshbuffer with PC meshes
+
+	// Create output meshbuffer
 	pcmb.clear();	
 	meshtools::Mesh* mesh = samples.createMesh(); // reference connectivity
-	for( int i=0; i < model.PC.cols(); ++i )
-	{	
-		meshtools::replaceVerticesFromMatrix( *mesh, reshape( model.PC.col(i) ) );
-		pcmb.addFrame( mesh ); // addFrame() implicitly recomputes normals
-	}
 	
 	// Mean shape mesh
 	meshtools::replaceVerticesFromMatrix( *mesh, reshape(model.mu) );
 	mshape = *mesh; // copy mesh
+
+	pcmb.addFrame( mesh );
+
+
+	/* Add principal modes as single frames (OBSOLETE)
+	for( int i=0; i < model.PC.cols(); ++i )
+	{	
+		meshtools::replaceVerticesFromMatrix( *mesh, reshape( model.PC.col(i) ) );
+		pcmb.addFrame( mesh ); // addFrame() implicitly recomputes normals
+	}*/	
 	
 	// Free temporary memory
 	delete mesh;
@@ -63,6 +68,34 @@ namespace scene {
 void PCAObject::derivePCAModelFrom( const MeshObject& mo )
 {	
 	computePCA( const_cast<MeshObject&>(mo).meshBuffer(), meshBuffer(), m_pca, m_mshape );
+}
+
+void PCAObject::synthesize( const std::vector<double>& coefficients )
+{
+	// Create coefficient vector
+	Eigen::VectorXd coeffs;
+	coeffs = coeffs.Zero( m_pca.PC.cols() );
+
+	for( int i=0; i < coefficients.size(); i++ )
+		coeffs(i) = coefficients[i];
+
+	// Synthesize shape from PCA model
+	Eigen::VectorXd synth =	m_pca.mu + m_pca.PC * (coeffs.cwiseProduct( m_pca.ev ));
+
+	// Replace vertex buffer
+	std::vector<float>& vbuf = meshBuffer().vbuffer();
+	for( int i=0; i < std::min((int)vbuf.size(),(int)synth.size()); ++i )
+		vbuf[i] = (float)synth(i);
+
+	// Trigger update of GPU buffers
+	meshBuffer().setFrameUpdateRequired();
+}
+
+void PCAObject::setFrame( int i )
+{
+	std::vector<double> coeffs( m_pca.PC.cols(), 0. );
+	coeffs[i] = 2.0;
+	synthesize( coeffs );
 }
 
 } // namespace scene 

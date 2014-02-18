@@ -81,6 +81,9 @@ public:
 	const std::vector<float>& vbuffer() const { return m_vbuffer; }
 	///@}
 
+	/// Force download of buffers to GPU (automatically set in \a setFrame())
+	void setFrameUpdateRequired() { m_frameUpdateRequired=true; }
+
 protected:
 	/// Called internally in \a draw() function
 	void downloadGPU();
