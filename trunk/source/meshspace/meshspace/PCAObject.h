@@ -25,7 +25,20 @@ namespace scene {
 class PCAObject : public MeshObject
 {
 public:
+	PCAObject()
+		: MeshObject(),
+		  m_curPC(0)
+	{}
 	void derivePCAModelFrom( const MeshObject& mo );
+
+	///@{ Reimplemented from MeshObject, show i-th eigenmode plus mean shape
+	void setFrame( int i );
+	unsigned numFrames() const { return (int)m_pca.PC.cols(); }
+	int curFrame() const { return m_curPC; }
+	///@}
+
+	/// Synthesize a shape from PCA model with given PC coefficients
+	void synthesize( const std::vector<double>& coefficients );
 
 protected:
 	///@{ Protect all modify functions of \a MeshObject
@@ -38,6 +51,7 @@ protected:
 	
 private:
 	PCAModel        m_pca;
+	int             m_curPC;
 	meshtools::Mesh m_mshape;
 };
 

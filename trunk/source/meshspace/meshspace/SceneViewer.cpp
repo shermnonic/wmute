@@ -818,5 +818,7 @@ void SceneViewer::computePCA()
 	PCAObject* pco = new PCAObject;
 	pco->derivePCAModelFrom( *mo );
 
+	pco->setName( std::string("PCA Model of ") + mo->getName() );
+
 	addMeshObject( (MeshObject*)pco );
 }
