@@ -105,7 +105,6 @@ void SceneViewer::selectModelItem( const QModelIndex& current, const QModelIndex
 
 void SceneViewer::selectModelItem( const QModelIndex& index )
 {
-	qDebug() << "Index row = " << index.row() << ", current index row = " << m_listView->currentIndex().row();
 	m_currentObject = index.row();//m_listView->currentIndex().row(); // was: index.row()
 	m_propertiesWidget->setSceneObject( m_scene.objects().at( m_currentObject ).get() );
 	updateGL();
@@ -335,7 +334,6 @@ void SceneViewer::addMeshObject( scene::MeshObject* so )
 
 	// Update camera to show the whole scene
 	scene::BoundingBox bbox = m_scene.getBoundingBox();
-	bbox.print();
 	setSceneBoundingBox( qglviewer::Vec(bbox.min[0],bbox.min[1],bbox.min[2]),
 	                     qglviewer::Vec(bbox.max[0],bbox.max[1],bbox.max[2]) );
 	camera()->showEntireScene();

@@ -17,7 +17,10 @@ class QTextEdit;
   * @{ */
 
 /**
-	Inspector to show and edit scene::Object properties for \a SceneViewer
+	Inspector to show and edit scene::Object properties for \a SceneViewer.
+	Specialized functionality is provided for the following scene objects:
+	- \a MeshObject
+	- \a PCAObject
 */
 class ObjectPropertiesWidget : public QWidget
 {
