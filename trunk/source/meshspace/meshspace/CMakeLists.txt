@@ -72,6 +72,7 @@ set( meshspace_MOC_HDRS
 	MainWindow.h
 	SceneViewer.h
 	ObjectPropertiesWidget.h
+	MultiSliderWidget.h
 )
 
 # generate rules for building source files from the Qt resources
@@ -100,6 +101,8 @@ add_executable( meshspace
 	SceneViewer.h
 	ObjectPropertiesWidget.h
 	ObjectPropertiesWidget.cpp
+	MultiSliderWidget.h
+	MultiSliderWidget.cpp
 	MeshShader.h
 	MeshShader.cpp
 	TransferFunction.h

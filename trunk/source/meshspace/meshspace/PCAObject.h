@@ -42,6 +42,8 @@ public:
 	/// Synthesize a shape from PCA model with given PC coefficients
 	void synthesize( const std::vector<double>& coefficients );
 
+	int numPCs() const { return (int)m_pca.PC.cols(); }
+
 protected:
 	///@{ Protect all modify functions of \a MeshObject
 	void setMesh( boost::shared_ptr<meshtools::Mesh> mesh ) { MeshObject::setMesh(mesh); }

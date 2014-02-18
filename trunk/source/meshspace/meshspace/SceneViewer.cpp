@@ -34,7 +34,7 @@ SceneViewer::SceneViewer( QWidget* parent )
 	
 	connect( m_listView->selectionModel(), SIGNAL(currentRowChanged(const QModelIndex&, const QModelIndex&)), 
 		     this, SLOT(selectModelItem(const QModelIndex&)) );
-	connect( m_propertiesWidget, SIGNAL(sceneObjectFrameChanged()), this, SLOT(updateScene()) );
+	connect( m_propertiesWidget, SIGNAL(redrawRequired()), this, SLOT(updateScene()) );
 
 	// --- Actions ---
 	// Shortcut description is also added to QGLViewer help.
@@ -258,6 +258,8 @@ int SceneViewer::loadMeshAnimation( QStringList filenames )
 			QFileInfo info( filenames[0] );			
 			addMeshBuffer( mb, info.baseName() + QString(" (meshbuffer)") );;
 		}
+
+		return 1;
 	}
 
 	// Progress dialog
