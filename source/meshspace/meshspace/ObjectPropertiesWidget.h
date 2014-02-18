@@ -5,6 +5,7 @@
 
 #include <QWidget>
 #include <QPixmap>
+#include "MultiSliderWidget.h"
 #include "scene.h"
 
 class QLabel;
@@ -23,9 +24,9 @@ class ObjectPropertiesWidget : public QWidget
 	Q_OBJECT
 
 signals:
-	/// The signal is emitted when the position of the frame slider is changed.
-	void sceneObjectFrameChanged();
-	
+	/// The signal is emitted when a redraw is required.
+	void redrawRequired();
+
 public:
 	ObjectPropertiesWidget( QWidget* parent=0 );
 	
@@ -39,12 +40,16 @@ protected slots:
 	// change.. functions manipulate the selected scene object directly
 	void changeFrame( int frame );
 
+	void changePCACoeff( int mode, int ivalue );
+
 private:
 	QLineEdit* m_leName;
 	QPixmap    m_pixmapColor;
 	QLabel*    m_labelPixmapColor;
 	QSlider*   m_sliderFrame;
 	QTextEdit* m_teInfo;
+
+	MultiSliderWidget* m_pcaSlider;
 
 	scene::Object* m_obj;
 };

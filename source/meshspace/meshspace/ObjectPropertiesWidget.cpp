@@ -12,6 +12,7 @@
 #include <QVBoxLayout>
 #include <QColor>
 #include <QPixmap>
+#include <QScrollArea>
 
 //------------------------------------------------------------------------------
 ObjectPropertiesWidget::ObjectPropertiesWidget( QWidget* parent )
@@ -38,6 +39,11 @@ ObjectPropertiesWidget::ObjectPropertiesWidget( QWidget* parent )
 	m_teInfo = new	QTextEdit();	
 	labelInfo->setBuddy( m_teInfo );
 
+	m_pcaSlider = new MultiSliderWidget;
+	QScrollArea* pcaSliderArea = new QScrollArea;
+	pcaSliderArea->setWidget( m_pcaSlider );
+	pcaSliderArea->setWidgetResizable( true );
+
 	// -- Layout
 
 	QGridLayout* l1 = new QGridLayout();
@@ -53,12 +59,13 @@ ObjectPropertiesWidget::ObjectPropertiesWidget( QWidget* parent )
 	
 	QVBoxLayout* l3 = new QVBoxLayout();
 	l3->addWidget( labelInfo );
-	l3->addWidget( m_teInfo );
+	l3->addWidget( m_teInfo );	
 	
 	QVBoxLayout* layout = new QVBoxLayout();
 	layout->addLayout( l1 );
 	layout->addLayout( l2 );
 	layout->addLayout( l3 );
+	layout->addWidget( pcaSliderArea ); //m_pcaSlider ); // pcaSliderArea
 	
 	setLayout( layout );
 	
@@ -83,6 +90,9 @@ void ObjectPropertiesWidget::reset()
 	m_sliderFrame->setRange(1,1);
 	m_sliderFrame->setEnabled( false );
 	m_teInfo->setText( tr("") );
+	m_pcaSlider->setVisible(false);
+
+	disconnect( m_pcaSlider );
 }
 
 //------------------------------------------------------------------------------
@@ -108,6 +118,33 @@ void ObjectPropertiesWidget::setSceneObject( scene::Object* obj )
 	m_leName->setText( QString::fromStdString( obj->getName() ) );	
 	setColor( obj->getColor() );
 	
+	// PCAObject specific controls
+	if( dynamic_cast<scene::PCAObject*>(obj) )
+	{
+		scene::PCAObject* pco = dynamic_cast<scene::PCAObject*>(obj);
+		
+		// Sanity
+		if( pco->numPCs() <= 0 )
+			return;
+
+		m_pcaSlider->createSliders( pco->numPCs() );
+		m_pcaSlider->setRange( -300, 300 );
+		m_pcaSlider->setValues( 0 );
+		m_pcaSlider->setVisible( true );
+
+		connect( m_pcaSlider, SIGNAL(valueChanged(int,int)), this, SLOT(changePCACoeff(int,int)) );
+
+		m_teInfo->setText(
+			tr("PCA object\n"
+		       "#Vertices = %1\n"
+			   "#Faces = %2\n"
+			   "#Modes = %3\n")
+			.arg( pco->numVertices() )
+			.arg( pco->numFaces() ) 
+			.arg( pco->numPCs() )
+		);
+	}
+	else
 	// Mesh specific properties	
 	if( dynamic_cast<scene::MeshObject*>(obj) )
 	{
@@ -130,6 +167,8 @@ void ObjectPropertiesWidget::setSceneObject( scene::Object* obj )
 		);
 	}
 
+	update();
+
 	// Store pointer to currently selected object (e.g. for emitting signals)
 	m_obj = obj;
 }
@@ -145,6 +184,21 @@ void ObjectPropertiesWidget::changeFrame( int frame )
 	if( meshobj )
 	{
 		meshobj->setFrame( frame-1 ); // 0-based index
-		emit sceneObjectFrameChanged();
+		emit redrawRequired();
 	}	
+}
+
+//------------------------------------------------------------------------------
+void ObjectPropertiesWidget::changePCACoeff( int /*mode*/, int /*ivalue*/ )
+{
+	if( dynamic_cast<scene::PCAObject*>(m_obj) )
+	{
+		scene::PCAObject* pco = dynamic_cast<scene::PCAObject*>(m_obj);
+
+		std::vector<double> coeffs;
+		m_pcaSlider->getValuesAsDouble( coeffs, 0., 1./100. );
+
+		pco->synthesize( coeffs );
+		emit redrawRequired();
+	}
 }
