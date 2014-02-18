@@ -90,9 +90,8 @@ void ObjectPropertiesWidget::reset()
 	m_sliderFrame->setRange(1,1);
 	m_sliderFrame->setEnabled( false );
 	m_teInfo->setText( tr("") );
-	m_pcaSlider->setVisible(false);
 
-	disconnect( m_pcaSlider );
+	disconnect( m_pcaSlider, SIGNAL(valueChanged(int,int)), this, SLOT(changePCACoeff(int,int)) );
 }
 
 //------------------------------------------------------------------------------
@@ -128,10 +127,9 @@ void ObjectPropertiesWidget::setSceneObject( scene::Object* obj )
 			return;
 
 		// Setup sliders
-		m_pcaSlider->createSliders( pco->numPCs() );
+		m_pcaSlider->setNumberOfSliders( pco->numPCs() );
 		m_pcaSlider->setRange( -300, 300 );
 		m_pcaSlider->setValues( 0 );
-		m_pcaSlider->setVisible( true );
 
 		// Set slider values to current PC coefficients
 		std::vector<double> coeffs;

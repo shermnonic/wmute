@@ -10,15 +10,32 @@ MultiSliderWidget::MultiSliderWidget( QWidget* parent)
 
 	m_layout = new QVBoxLayout();
 	setLayout( m_layout );
+
+	createSliders( 100 );
+	setNumberOfSliders( 0 );
+}
+
+void MultiSliderWidget::setNumberOfSliders( int num )
+{
+	m_numActiveSliders = std::min( num, m_sliders.size() );
+
+	for( int i=0; i < m_sliders.size(); i++ )
+	{
+		bool active = i < m_numActiveSliders;
+		m_sliders.at(i)->setVisible( active );
+		m_sliders.at(i)->setEnabled( active );
+	}
 }
 
 void MultiSliderWidget::createSliders( int num )
 {
-	// Remove previous sliders from layout
+	// Remove previous sliders from layout and signal map
 	for( int i=0; i < m_sliders.size(); i++ )
 	{
-		m_layout->removeWidget( m_sliders.at(i) );
-		delete m_sliders.at(i);
+		QSlider* slider = m_sliders.at(i);
+		m_layout->removeWidget( slider );
+		m_sigmap->removeMappings( slider );
+		delete slider;
 	}
 
 	// Destroy previous sliders
