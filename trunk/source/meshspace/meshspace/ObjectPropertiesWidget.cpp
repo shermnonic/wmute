@@ -40,9 +40,9 @@ ObjectPropertiesWidget::ObjectPropertiesWidget( QWidget* parent )
 	labelInfo->setBuddy( m_teInfo );
 
 	m_pcaSlider = new MultiSliderWidget;
-	QScrollArea* pcaSliderArea = new QScrollArea;
-	pcaSliderArea->setWidget( m_pcaSlider );
-	pcaSliderArea->setWidgetResizable( true );
+	m_pcaSliderArea = new QScrollArea;
+	m_pcaSliderArea->setWidget( m_pcaSlider );
+	m_pcaSliderArea->setWidgetResizable( true );
 
 	// -- Layout
 
@@ -65,7 +65,7 @@ ObjectPropertiesWidget::ObjectPropertiesWidget( QWidget* parent )
 	layout->addLayout( l1 );
 	layout->addLayout( l2 );
 	layout->addLayout( l3 );
-	layout->addWidget( pcaSliderArea ); //m_pcaSlider ); // pcaSliderArea
+	layout->addWidget( m_pcaSliderArea );
 	
 	setLayout( layout );
 	
@@ -90,6 +90,7 @@ void ObjectPropertiesWidget::reset()
 	m_sliderFrame->setRange(1,1);
 	m_sliderFrame->setEnabled( false );
 	m_teInfo->setText( tr("") );
+	m_pcaSliderArea->setVisible( false );
 
 	disconnect( m_pcaSlider, SIGNAL(valueChanged(int,int)), this, SLOT(changePCACoeff(int,int)) );
 }
@@ -138,6 +139,9 @@ void ObjectPropertiesWidget::setSceneObject( scene::Object* obj )
 		for( int i=0; i < coeffs.size(); i++ )
 			values.push_back( (int)(coeffs[i]*100.0) );
 		m_pcaSlider->setValues( values );
+
+		// Show sliders
+		m_pcaSliderArea->setVisible( true );
 
 		connect( m_pcaSlider, SIGNAL(valueChanged(int,int)), this, SLOT(changePCACoeff(int,int)) );
 

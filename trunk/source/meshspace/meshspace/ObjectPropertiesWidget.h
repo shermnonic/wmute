@@ -12,6 +12,7 @@ class QLabel;
 class QSlider;
 class QLineEdit;
 class QTextEdit;
+class QScrollArea;
 
 /** @addtogroup meshspaceGUI_grp meshspace GUI
   * @{ */
@@ -53,6 +54,7 @@ private:
 	QTextEdit* m_teInfo;
 
 	MultiSliderWidget* m_pcaSlider;
+	QScrollArea* m_pcaSliderArea;
 
 	scene::Object* m_obj;
 };
