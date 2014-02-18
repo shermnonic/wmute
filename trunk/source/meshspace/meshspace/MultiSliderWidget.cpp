@@ -101,8 +101,8 @@ void MultiSliderWidget::setRange( int min_range, int max_range )
 void MultiSliderWidget::getValuesAsDouble( std::vector<double>& values, double shift, double scale ) const
 {
 	values.clear();
-	values.resize( m_sliders.size() );
-	for( int i=0; i < m_sliders.size(); i++ )
+	values.resize( m_numActiveSliders );
+	for( int i=0; i < m_numActiveSliders; i++ )
 	{
 		int value = m_sliders.at(i)->value();
 		values[i] = (value + shift) * scale;

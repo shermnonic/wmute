@@ -68,6 +68,8 @@ namespace scene {
 void PCAObject::derivePCAModelFrom( const MeshObject& mo )
 {	
 	computePCA( const_cast<MeshObject&>(mo).meshBuffer(), meshBuffer(), m_pca, m_mshape );
+
+	MeshObject::setMesh( &m_mshape, true );
 }
 
 void PCAObject::synthesize( const std::vector<double>& coefficients )
@@ -76,7 +78,8 @@ void PCAObject::synthesize( const std::vector<double>& coefficients )
 	Eigen::VectorXd coeffs;
 	coeffs = coeffs.Zero( m_pca.PC.cols() );
 
-	for( int i=0; i < coefficients.size(); i++ )
+	int numCoeffs = std::min((int)coefficients.size(),(int)m_pca.PC.cols());
+	for( int i=0; i < numCoeffs; i++ )
 		coeffs(i) = coefficients[i];
 
 	m_coeffs = coeffs;

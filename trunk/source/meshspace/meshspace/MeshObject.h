@@ -47,12 +47,12 @@ public:
 
 	/// Set reference mesh, overwrites any existing mesh or mesh animation.
 	/// Equivalent to calling \a addFrame() on an empty animation sequence.
-	void setMesh( boost::shared_ptr<meshtools::Mesh> mesh );
+	void setMesh( boost::shared_ptr<meshtools::Mesh> mesh, bool keepMeshBuffer=false );
 	/// Set reference mesh, overwrites any existing mesh or mesh animation.
 	/// (Overloaded variant provided for convenience.)
-	void setMesh( meshtools::Mesh* mesh ) 
+	void setMesh( meshtools::Mesh* mesh, bool keepMeshBuffer=false ) 
 	{ 
-		setMesh( boost::shared_ptr<meshtools::Mesh>(mesh) );
+		setMesh( boost::shared_ptr<meshtools::Mesh>(mesh), keepMeshBuffer );
 	}
 	/// Directly set mesh buffer. If it contains more than one frame the
 	/// reference mesh is defined by the first frame.
