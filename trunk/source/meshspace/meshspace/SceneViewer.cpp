@@ -31,6 +31,7 @@ SceneViewer::SceneViewer( QWidget* parent )
 	m_listView->setModel( &m_model );
 	m_listView->setSelectionMode( QAbstractItemView::SingleSelection );
 	m_propertiesWidget = new ObjectPropertiesWidget();
+	m_propertiesWidget->setWindowTitle(tr("Inspector"));
 	
 	connect( m_listView->selectionModel(), SIGNAL(currentRowChanged(const QModelIndex&, const QModelIndex&)), 
 		     this, SLOT(selectModelItem(const QModelIndex&)) );
@@ -74,15 +75,14 @@ SceneViewer::SceneViewer( QWidget* parent )
 	m_actions.push_back( actComputePCA );	
 }
 
-void SceneViewer::showInspector()
+QWidget* SceneViewer::getInspector()
 {
-	m_propertiesWidget->setWindowTitle(tr("Inspector"));
-	m_propertiesWidget->show();
+	return m_propertiesWidget;
 }
 
-void SceneViewer::showBrowser()
-{		
-	m_listView->show();	
+QWidget* SceneViewer::getBrowser()
+{
+	return m_listView;
 }
 
 QString SceneViewer::helpString() const

@@ -6,6 +6,7 @@
 #include <QtGui>
 #include <QStringList>
 #include <QProgressDialog>
+#include <QDockWidget>
 
 const QString APP_NAME        ( "meshspace" );
 const QString APP_ORGANIZATION( "University Bonn Computer Graphics" );
@@ -19,6 +20,16 @@ MainWindow::MainWindow()
 	// --- widgets ---
 
 	m_viewer = new SceneViewer;
+
+	// --- dock widgets ---
+
+	QDockWidget* dockBrowser = new QDockWidget(tr("Browser"),this);
+	dockBrowser->setWidget( m_viewer->getBrowser() );
+	QDockWidget* dockInspector = new QDockWidget(tr("Inspector"),this);
+	dockInspector->setWidget( m_viewer->getInspector() );
+
+	addDockWidget( Qt::RightDockWidgetArea, dockBrowser );
+	addDockWidget( Qt::RightDockWidgetArea, dockInspector );
 	
 	// --- actions ---
 
@@ -46,11 +57,8 @@ MainWindow::MainWindow()
 	actQuit->setStatusTip( tr("Quit application.") );
 	actQuit->setShortcut( tr("Ctrl+Q") );
 
-	actShowSceneBrowser = new QAction( tr("Show scene &browser"), this );
-	actShowSceneBrowser->setShortcut( tr("Ctrl+B") );
-
-	actShowSceneInspector = new QAction( tr("Show scene &inspector"), this );
-	actShowSceneInspector->setShortcut( tr("Ctrl+I") );
+	actShowSceneBrowser = dockBrowser->toggleViewAction(); 
+	actShowSceneInspector = dockInspector->toggleViewAction(); 
 
 	// --- build menu ---
 
@@ -81,7 +89,7 @@ MainWindow::MainWindow()
 	connect( actQuit,          SIGNAL(triggered()), this, SLOT(close()) );
 	connect( actShowSceneBrowser,   SIGNAL(triggered()), m_viewer, SLOT(showBrowser()) );
 	connect( actShowSceneInspector, SIGNAL(triggered()), m_viewer, SLOT(showInspector()) );
-	
+
 	// --- layout ---
 
 	QVBoxLayout* l = new QVBoxLayout;

@@ -53,14 +53,13 @@ public slots:
 
 	/// Add a mesh from memory to the scene, takes ownership of Mesh pointer.
 	scene::MeshObject* addMesh( meshtools::Mesh* mesh, QString name );
-	
-	/// Show a list widget of the current scene objects, allowing to toggle
-	/// visibility.
-	void showBrowser();
 
-	/// Show \a ObjectPropertiesWidget holding information about currently
+	/// Returns a list widget of the current scene objects, allowing to toggle
+	/// visibility.
+	QWidget* getBrowser();
+	/// Returns \a ObjectPropertiesWidget holding information about currently
 	/// selected scene object.
-	void showInspector();
+	QWidget* getInspector();	
 
 	/// Write \a MeshBuffer of currently selected scene object to disk.
 	void saveMeshBuffer( QString filename );
