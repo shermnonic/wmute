@@ -1,3 +1,4 @@
+// Max Hermann, Feb 2014
 #ifndef PCA_H
 #define PCA_H
 
@@ -8,6 +9,7 @@
 /// @param [out] PC Principal components (= eigenvectors of sample covariance)
 /// @param [out] ev Eigenvalues vector (= standard deviations)
 /// @param [out] mu Sample mean column vector
+/// @author Max Hermann (hermann@cs.uni-bonn.de)
 template <typename Derived1, typename Derived2, typename Derived3, typename Derived4>
 void computePCA( const Eigen::MatrixBase<Derived1>& X_, Eigen::MatrixBase<Derived2>& PC, 
 	Eigen::MatrixBase<Derived3>& ev, Eigen::MatrixBase<Derived4>& mu )
