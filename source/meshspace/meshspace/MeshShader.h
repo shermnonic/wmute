@@ -27,7 +27,7 @@ public:
 	void bind();
 	void release();
 
-	void setDefaultLighting();
+	static void setDefaultLighting();
 
 	GL::GLSLProgram* program() { return m_program; }
 

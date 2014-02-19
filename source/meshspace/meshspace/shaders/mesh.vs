@@ -1,7 +1,5 @@
 #version 120
 
-//uniform sampler1D lookup;
-
 attribute float scalar;
 attribute float selection;
 
