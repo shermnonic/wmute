@@ -3,6 +3,7 @@
 
 #include <Eigen/Dense>
 
+/// Principal Component Analysis (PCA) of an arbitrary data matrix
 /// @param [in]  X_ Input dataset with one sample per column
 /// @param [out] PC Principal components (= eigenvectors of sample covariance)
 /// @param [out] ev Eigenvalues vector (= standard deviations)
