@@ -32,7 +32,7 @@ public:
 	  m_initialized(false),
 	  m_dirty(true),
 	  m_frameUpdateRequired(true),
-	  m_cbufferEnabled(true)
+	  m_cbufferEnabled(false)
 	{}
 
 	void clear();

@@ -107,6 +107,11 @@ void MeshObject::render( int flags )
 			// Uniforms
 			glUniform1f( m_shader.program()->getUniformLocation("scalarShift"), m_scalarShift );
 			glUniform1f( m_shader.program()->getUniformLocation("scalarScale"), m_scalarScale );
+			glUniform1i( m_shader.program()->getUniformLocation("mapScalars"), 1 );
+		}
+		else
+		{
+			glUniform1i( m_shader.program()->getUniformLocation("mapScalars"), 0 );
 		}
 		
 		m_meshBuffer.draw();

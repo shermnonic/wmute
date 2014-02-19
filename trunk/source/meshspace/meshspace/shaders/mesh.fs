@@ -1,6 +1,7 @@
 #version 120
 
 uniform sampler1D lookup;
+uniform bool mapScalars;
 
 uniform float scalarShift;
 uniform float scalarScale;
@@ -24,9 +25,16 @@ vec3 phong( vec3 N, vec3 E, vec3 L,
 	vec3 R = normalize(-reflect(L,N));
 	
 	// Phong model
-	vec3 Iamb  = ambient.rgb;
+	vec3 Iamb  = ambient.rgb;	
+#if 1	
+	// Two-sided shading:
+	vec3 Idiff = diffuse.rgb * max(abs(dot(N,L)), 0.0);
+	vec3 Ispec = specular.rgb * pow( max(abs(dot(R,E)),0.0), shininess );
+#else
+	// One-sided shading:
 	vec3 Idiff = diffuse.rgb * max(dot(N,L), 0.0);
-	vec3 Ispec = specular.rgb * pow( max(dot(R,E),0.0), shininess );
+	vec3 Ispec = specular.rgb * pow( max(dot(R,E),0.0), shininess );	
+#endif
 	
 	Idiff = clamp(Idiff, 0.0, 1.0);		
 	Ispec = clamp(Ispec, 0.0, 1.0);
@@ -36,10 +44,11 @@ vec3 phong( vec3 N, vec3 E, vec3 L,
 
 void main(void)
 {
-	vec3 diffuse = gl_FrontLightProduct[0].diffuse.rgb;	
+	vec3 diffuse = vColor.rgb; //gl_FrontLightProduct[0].diffuse.rgb;	
 	
 	// Apply transfer function to scalar value
-	diffuse = texture1D( lookup, scalarScale*(vScalar+scalarShift) ).rgb;
+	if( mapScalars )
+		diffuse = texture1D( lookup, scalarScale*(vScalar+scalarShift) ).rgb;
 	
 	// Custom selection shading based on vertex color
 	if( vSelection > .5 )

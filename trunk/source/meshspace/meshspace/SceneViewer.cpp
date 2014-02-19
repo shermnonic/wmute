@@ -415,6 +415,9 @@ void SceneViewer::init()
 	glDisable( GL_CULL_FACE );
 	glLightModeli( GL_LIGHT_MODEL_TWO_SIDE, 1 );
 
+	// Setup nice material & lighting
+	MeshShader::setDefaultLighting();
+
 	// Selection related 
 	//setMouseTracking(true);
 	this->setSelectRegionWidth( 21 );
