@@ -87,8 +87,6 @@ MainWindow::MainWindow()
 	connect( actOpenAnimation, SIGNAL(triggered()), this, SLOT(openAnimation()) );
 	connect( actSaveMesh,      SIGNAL(triggered()), this, SLOT(saveMesh()) );
 	connect( actQuit,          SIGNAL(triggered()), this, SLOT(close()) );
-	connect( actShowSceneBrowser,   SIGNAL(triggered()), m_viewer, SLOT(showBrowser()) );
-	connect( actShowSceneInspector, SIGNAL(triggered()), m_viewer, SLOT(showInspector()) );
 
 	// --- layout ---
 
