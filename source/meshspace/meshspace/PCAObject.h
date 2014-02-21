@@ -14,6 +14,8 @@ struct PCAModel
 	Eigen::MatrixXd PC; /// Eigenvectors of sample covariance matrix
 	Eigen::VectorXd ev; /// Eigenvalues of sample covariance matrix
 	Eigen::VectorXd mu;	/// Sample mean (column vector)
+
+	Eigen::MatrixXd X;  /// Zero mean data matrix (useful for further analysis)
 };	
 
 //-----------------------------------------------------------------------------
