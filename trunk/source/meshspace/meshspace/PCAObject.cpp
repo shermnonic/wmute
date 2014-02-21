@@ -37,6 +37,10 @@ void computePCA( /*const*/ MeshBuffer& samples, MeshBuffer& pcmb, PCAModel& mode
 	// Compute PCA
 	computePCA( X, model.PC, model.ev, model.mu );
 
+	// Also store zero-mean data matrix for further analyis
+	model.X = X;
+	centerMatrix( model.X );
+
 	// Create output meshbuffer
 	pcmb.clear();	
 	meshtools::Mesh* mesh = samples.createMesh(); // reference connectivity
