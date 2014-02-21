@@ -5,7 +5,13 @@
 
 add_library( meshtools
 	../include/meshtools.h
+	../include/MeshBuffer.h
+	../include/ShapePCA.h
+	../include/ShapeCovariance.h
 	meshtools.cpp
+	MeshBuffer.cpp
+	ShapePCA.cpp
+	ShapeCovariance.cpp
 )
 
 meshtoolsExportLibrary( meshtools )
