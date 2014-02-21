@@ -2,21 +2,8 @@
 #define SCENE_PCAOBJECT_H
 
 #include <meshtools.h>
+#include <ShapePCA.h>
 #include "MeshObject.h"
-
-//-----------------------------------------------------------------------------
-// 	PCA utilities
-//-----------------------------------------------------------------------------
-
-/// PCA model, result data structure for \a computePCA() functions.
-struct PCAModel
-{
-	Eigen::MatrixXd PC; /// Eigenvectors of sample covariance matrix
-	Eigen::VectorXd ev; /// Eigenvalues of sample covariance matrix
-	Eigen::VectorXd mu;	/// Sample mean (column vector)
-
-	Eigen::MatrixXd X;  /// Zero mean data matrix (useful for further analysis)
-};	
 
 //-----------------------------------------------------------------------------
 // 	scene::PCAObject

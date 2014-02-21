@@ -6,7 +6,7 @@
 #include <meshtools.h>
 #include <vector>
 
-/** @addtogroup meshspace meshspace
+/** @addtogroup meshtools
   * @{ */
 
 /**

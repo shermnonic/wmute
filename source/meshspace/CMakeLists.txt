@@ -8,6 +8,28 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/meshtoolsCommon.cmake)
 
 #---- Dependencies ------------------------------------------------------------
 
+#-------------------
+# Custom dependencies
+#-------------------
+set(WINTERMUTE_3RDPARTY_LIBS_PATH "${CMAKE_CURRENT_LIST_DIR}/../../3rdparty")
+set(WINTERMUTE_GLUTILS_PATH       "${CMAKE_CURRENT_LIST_DIR}/../..") # /glutils
+
+set(GLM_INCLUDE_DIR  "${WINTERMUTE_3RDPARTY_LIBS_PATH}/glm"    CACHE PATH "glm include path")
+set(GLUTILS_PATH     "${WINTERMUTE_GLUTILS_PATH}"              CACHE PATH "path to authors custom glutils")
+
+file(GLOB_RECURSE GLUTILS_SOURCES ${GLUTILS_PATH}/glutils/*.cpp)
+
+include_directories( ${GLUTILS_PATH} )
+include_directories( ${GLM_INCLUDE_DIR} )
+
+#-------------------
+# OpenGL, GLEW
+#-------------------
+find_package(OpenGL REQUIRED)
+find_package(GLEW   REQUIRED)
+include_directories( ${GLEW_INCLUDE_DIR} )
+message(STATUS "GLEW_INCLUDE_DIR = ${GLEW_INCLUDE_DIR}")
+
 #---------------------
 # OpenMP (optional)
 #---------------------
