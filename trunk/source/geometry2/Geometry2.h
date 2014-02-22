@@ -162,5 +162,51 @@ private:
 	SimpleGeometry m_generator;
 };
 
+//==============================================================================
+//	Superquadric
+//==============================================================================
+
+class Superquadric : public SimpleGeometry
+{
+public:	
+	Superquadric() {};
+
+	enum Mode { Quadric, TensorGlyph };
+
+	void create( int res=16 );
+
+	void setQuadric( double alpha, double beta )
+	{
+		m_mode = Quadric;
+		m_alpha = alpha;
+		m_beta = beta;
+	}
+
+	void setTensorGlyph( double cl, double cp )
+	{
+		m_mode = TensorGlyph;
+		m_cl = cl;
+		m_cp = cp;
+	}
+
+	void setTensorGlyphSharpness( double gamma )
+	{
+		m_gamma = gamma;
+	}
+
+private:
+	int m_mode;
+	double m_alpha, m_beta;     ///< Quadric parameters
+	double m_cl, m_cp, m_gamma; ///< Tensor glyph parameters
+
+public:
+	void setPlatonicConstants( double X, double Z ) {}
+	double getPlatonicConstantsX() const { return 0; }
+	double getPlatonicConstantsZ() const { return 0; }
+
+	void setLevels( int levels ) {}
+	int getLevels() const { return 0; }
+};
+
 #endif
 
