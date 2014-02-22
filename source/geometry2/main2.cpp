@@ -45,7 +45,8 @@ Keys:\n\
 // globals
 #define TEST_PENROSE
 #ifdef TEST_PENROSE
-Penrose g_ico;
+//Penrose g_ico;
+Superquadric g_ico;
 #else
 Icosahedron g_ico;
 #endif
