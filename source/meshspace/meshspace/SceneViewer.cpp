@@ -356,6 +356,10 @@ void SceneViewer::addMeshObject( scene::MeshObject* so )
 	setSceneBoundingBox( qglviewer::Vec(bbox.min[0],bbox.min[1],bbox.min[2]),
 	                     qglviewer::Vec(bbox.max[0],bbox.max[1],bbox.max[2]) );
 	camera()->showEntireScene();
+	
+	// Debug info
+	std::cout << "Bounding box of " << so->getName() << std::endl;
+	bbox.print();
 
 	// Force redraw
 	updateGL();
