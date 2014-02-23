@@ -78,6 +78,7 @@ protected slots:
 	void selectFrontFaces(bool);
 	void computeDistance();
 	void computePCA();
+	void computeCovariance();
 	void exportMatrix();
 	void importMatrix();
 	

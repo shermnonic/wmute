@@ -28,7 +28,8 @@ namespace Intersect
 						 x*other.y - y*other.x );
 		}
 
-		double scalar_prod( const Vec3& other )
+		/// Scalar product
+		double dot( const Vec3& other )
 		{
 			return x*other.x + y*other.y + z*other.z;
 		}
@@ -81,12 +82,12 @@ namespace Intersect
 		     P  = D.cross(E2),
 			 Q  = T.cross(E1);
 
-		double scale = 1./P.scalar_prod(E1);
+		double scale = 1./P.dot(E1);
 
 		RayTriangleIntersection rti;		
-		rti.t    = scale*(Q.scalar_prod(E2));
-		rti.bc.u = scale*(P.scalar_prod(T));
-		rti.bc.v = scale*(Q.scalar_prod(D));
+		rti.t    = scale*(Q.dot(E2));
+		rti.bc.u = scale*(P.dot(T));
+		rti.bc.v = scale*(Q.dot(D));
 		return rti;
 	}
 };

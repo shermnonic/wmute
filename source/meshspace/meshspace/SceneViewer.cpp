@@ -4,6 +4,7 @@
 #include "ObjectPropertiesWidget.h"
 #include "MeshObject.h"
 #include "PCAObject.h"
+#include "TensorfieldObject.h"
 
 #include <qfileinfo.h>
 #include <QListView>
@@ -54,6 +55,7 @@ SceneViewer::SceneViewer( QWidget* parent )
 
 	QAction* actComputeDistance = new QAction(tr("Compute closest point distance"),this);
 	QAction* actComputePCA = new QAction(tr("Derive PCA model from current mesh buffer"),this);
+	QAction* actComputeCovariance = new QAction(tr("Derive covariance tensor field from current PCA model"),this);
 
 	QAction* actExportMatrix = new QAction(tr("Export current mesh vertex matrix as text file"),this);
 	QAction* actImportMatrix = new QAction(tr("Import mesh vertex matrix, replacing vertices of current mesh"),this);
@@ -63,6 +65,7 @@ SceneViewer::SceneViewer( QWidget* parent )
 	connect( actSelectFrontFaces, SIGNAL(toggled(bool)), this, SLOT(selectFrontFaces(bool)) );
 	connect( actComputeDistance, SIGNAL(triggered()), this, SLOT(computeDistance()) );
 	connect( actComputePCA, SIGNAL(triggered()), this, SLOT(computePCA()) );
+	connect( actComputeCovariance, SIGNAL(triggered()), this, SLOT(computeCovariance()) );
 	connect( actExportMatrix, SIGNAL(triggered()), this, SLOT(exportMatrix()) );
 	connect( actImportMatrix, SIGNAL(triggered()), this, SLOT(importMatrix()) );	
 
@@ -72,7 +75,8 @@ SceneViewer::SceneViewer( QWidget* parent )
 	m_actions.push_back( actComputeDistance );
 	m_actions.push_back( actExportMatrix );	
 	m_actions.push_back( actImportMatrix );
-	m_actions.push_back( actComputePCA );	
+	m_actions.push_back( actComputePCA );
+	m_actions.push_back( actComputeCovariance );
 }
 
 QWidget* SceneViewer::getInspector()
@@ -830,3 +834,22 @@ void SceneViewer::computePCA()
 
 	addMeshObject( (MeshObject*)pco );
 }
+
+void SceneViewer::computeCovariance()
+{
+	using scene::MeshObject;
+	using scene::PCAObject;
+	using scene::TensorfieldObject;
+
+	PCAObject* pco = dynamic_cast<PCAObject*>( currentMeshObject() );
+	if( !pco )
+		return;
+
+	TensorfieldObject* tfo = new TensorfieldObject;
+	tfo->deriveTensorsFromPCAModel( pco->getPCAModel() );
+	
+	tfo->setName( std::string("Covariance tensors of ") + pco->getName() );
+
+	addMeshObject( (MeshObject*)tfo );
+}
+

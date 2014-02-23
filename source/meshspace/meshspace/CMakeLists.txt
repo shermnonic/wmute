@@ -79,6 +79,8 @@ set( scene_SRCS
 	MeshObject.cpp
 	PCAObject.h
 	PCAObject.cpp
+	TensorfieldObject.h
+	TensorfieldObject.cpp
 	MeshShader.h
 	MeshShader.cpp
 	TransferFunction.h

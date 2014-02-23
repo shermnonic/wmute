@@ -36,7 +36,9 @@ public:
 	{}
 
 	void clear();
-	bool addFrame( const meshtools::Mesh* mesh );	
+	bool addFrame( const meshtools::Mesh* mesh );
+
+	void initSingleFrameFromRawBuffers();
 
 	///@{ Render functions
 	void draw();
@@ -48,11 +50,14 @@ public:
 	void drawNamedPoints( const std::vector<unsigned>& idx ) const;
 	///@}
 
+	/// Change current frame
 	void setFrame( int f );
 
+	///@{ Properties
 	int      curFrame() const { return m_curFrame; }
 	unsigned numFrames() const { return m_numFrames; }
 	unsigned numVertices() const { return m_numVertices; }
+	///@}
 
 	///@{ File IO for custom .meshbuffer/.mb file format
 	void write( const char* filename ) const;
@@ -71,14 +76,15 @@ public:
 	void setupCBuffer();
 	void setCBufferEnabled( bool b ) { m_cbufferEnabled = b; }
 
-	///@{ Access color buffer raw data
+	///@{ Access to raw buffers (you better know what you are doing, \sa initSingleFrameFromRawBuffers)
 	std::vector<float>& cbuffer() { return m_cbuffer; }
-	const std::vector<float>& cbuffer() const { return m_cbuffer; }
-	///@}
-
-	///@{ Access vertex buffer raw data
 	std::vector<float>& vbuffer() { return m_vbuffer; }
+	std::vector<float>& nbuffer() { return m_nbuffer; }
+	std::vector<unsigned>& ibuffer() { return m_ibuffer; }
+	const std::vector<float>& cbuffer() const { return m_cbuffer; }
 	const std::vector<float>& vbuffer() const { return m_vbuffer; }
+	const std::vector<float>& nbuffer() const { return m_nbuffer; }
+	const std::vector<unsigned>& ibuffer() const { return m_ibuffer; }
 	///@}
 
 	/// Force download of buffers to GPU (automatically set in \a setFrame())
@@ -93,8 +99,8 @@ private:
 	unsigned m_numFrames;
 	unsigned m_numVertices;
 	unsigned m_numNormals;
-	bool     m_initialized;
-	bool     m_dirty;
+	bool     m_initialized; ///< True if GL buffer objects are created
+	bool     m_dirty;       ///< True if GL buffers require resize / reallocation
 	bool     m_frameUpdateRequired;
 	unsigned m_vbo;     ///< GL vertex buffer object id (should be a GLuint)
 	unsigned m_ibo;     ///< GL index buffer object id (should be a GLuint)
