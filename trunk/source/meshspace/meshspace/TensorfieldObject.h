@@ -21,6 +21,12 @@ public:
 	int numGlyphVertices() const { return m_glyphRes*(m_glyphRes+1); }
 	int numGlyphFaces()    const { return 2*numGlyphVertices(); }
 
+	void setGlyphScale( double scale ) { m_glyphScale = scale; }
+	double getGlyphScale() const { return m_glyphScale; }
+
+	void setGlyphSharpness( double s ) { m_glyphSharpness = s; }
+	double getGlyphSharpness() const { return m_glyphSharpness; }
+
 protected:
 	void deriveTensorsFromCovariance( const Eigen::MatrixXd& S );	
 	
@@ -48,6 +54,7 @@ protected:
 private:
 	int m_glyphRes;
 	double m_glyphSharpness;   ///< Sharpness of superquadric tensor glyph (gamma)
+	double m_glyphScale;       ///< Glyph scale factor
 	Eigen::MatrixXd m_R;       ///< Eigenvectors (3x3 V vectorized in 9x1 column)
 	Eigen::Matrix3Xd m_Lambda; ///< Eigenvalues  (3x1 vectors in columns)
 	Eigen::Matrix3Xd m_pos;    ///< Glyph centers
