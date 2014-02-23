@@ -56,7 +56,8 @@ vec3 superquadric_tensor( double cp, double cl, double gamma, double theta, doub
 namespace scene {
 
 TensorfieldObject::TensorfieldObject()
-	: m_glyphSharpness( 3. )
+	: m_glyphSharpness( 3. ),  // 3. is Kindlman default
+	  m_glyphScale( .1 )
 {}
 
 void TensorfieldObject::setGlyphPositions( meshtools::Mesh* mesh )
@@ -230,7 +231,7 @@ void TensorfieldObject::updateVertices( int glyphId )
 			
 		  #if 1
 			// Rotate and scale according to spectrum
-			v = 0.1 * (R * lambda.asDiagonal() * v);
+			v = m_glyphScale * (R * lambda.asDiagonal() * v);
 		  #endif
 
 		  #if 1
