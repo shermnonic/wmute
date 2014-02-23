@@ -40,6 +40,9 @@ public:
 	/// Provided for convenience, see \a coeffs()
 	void getCoeffs( std::vector<double>& coeffs ) const;
 
+	/// Access raw PCA model (read-only)
+	const PCAModel& getPCAModel() const { return m_pca; }
+
 protected:
 	///@{ Protect all modify functions of \a MeshObject
 	void setMesh( boost::shared_ptr<meshtools::Mesh> mesh ) { MeshObject::setMesh(mesh); }

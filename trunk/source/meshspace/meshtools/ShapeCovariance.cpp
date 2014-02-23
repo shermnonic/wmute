@@ -24,11 +24,11 @@ void computeSampleCovariance( const Eigen::MatrixXd& X, Eigen::MatrixXd& S  )
 	
 	S.resize( 6, p );
 	
-	#pragma omp parallel for
+	// #pragma omp parallel for
 	for( int i=0; i < p; ++i )
 	{
 		Eigen::Matrix3d Sigma;
-		sampleCovariance( X.block( 3*p, 0, 3, X.cols() ), Sigma );
+		sampleCovariance( X.block( 3*i, 0, 3, X.cols() ), Sigma );
 		vectorizeCovariance( Sigma, S.col(i) );
 	}	
 }

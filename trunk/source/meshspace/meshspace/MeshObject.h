@@ -92,7 +92,11 @@ public:
 	///@}
 
 	/// Set scalar field on vertices (e.g. used for color-coding in shader)
+	/// Automatically adjust value shift scale to min/max scalar range.
 	void setScalars( const std::vector<float>& scalars );
+
+	std::vector<float> scalars() { return m_scalarAttribBuffer; }
+	void setScalarShiftScale( float shift, float scale ) { m_scalarShift = shift; m_scalarScale=scale; }	
 
 	/// Recompile the used \a MeshShader from source
 	bool reloadShader();

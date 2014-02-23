@@ -174,6 +174,19 @@ bool MeshBuffer::addFrame( const meshtools::Mesh* mesh )
 }
 
 //------------------------------------------------------------------------------
+void MeshBuffer::initSingleFrameFromRawBuffers()
+{
+	// Set some defaults
+	m_curFrame = 0;
+	m_dirty = true;
+	m_frameUpdateRequired = true;	
+	
+	m_numFrames   = 1;
+	m_numVertices = (unsigned)m_vbuffer.size() / 3;
+	m_numNormals  = (unsigned)m_nbuffer.size() / 3;
+}
+
+//------------------------------------------------------------------------------
 void MeshBuffer::setupCBuffer()
 {
 	m_cbuffer.clear();
