@@ -40,7 +40,7 @@ void sampleCovariance( const Eigen::MatrixBase<Derived1>& D, Eigen::MatrixBase<D
 //-----------------------------------------------------------------------------
 
 ///@{ Write a symmetric 3x3 matrix as 6D column vector and vice versa
-void vectorizeCovariance( const Eigen::Matrix3d& Sigma, Eigen::VectorXd v );
+void vectorizeCovariance( const Eigen::Matrix3d& Sigma, Eigen::VectorXd& v );
 void devectorizeCovariance( const Eigen::VectorXd v, Eigen::Matrix3d& Sigma );
 ///@}
 

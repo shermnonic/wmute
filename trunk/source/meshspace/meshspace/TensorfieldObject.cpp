@@ -55,11 +55,27 @@ vec3 superquadric_tensor( double cp, double cl, double gamma, double theta, doub
 
 namespace scene {
 
+TensorfieldObject::TensorfieldObject()
+	: m_glyphSharpness( 3. )
+{}
+
+void TensorfieldObject::setGlyphPositions( meshtools::Mesh* mesh )
+{
+	// NOT IMPLEMENTED YET!
+	assert( false );
+}
+
+void TensorfieldObject::setGlyphPositions( Eigen::Matrix3Xd pos )
+{
+	m_pos = pos;
+}
+
 void TensorfieldObject::deriveTensorsFromPCAModel( const PCAModel& pca )
 {
 	Eigen::MatrixXd S; 
 	computeSampleCovariance( pca.X, S );
-	deriveTensorsFromCovariance( S );	
+	setGlyphPositions( reshape(pca.mu) );
+	deriveTensorsFromCovariance( S );
 }
 
 void TensorfieldObject::deriveTensorsFromCovariance( const Eigen::MatrixXd& S )
@@ -108,7 +124,7 @@ void TensorfieldObject::createGeometry( int res )
 	ibuf().resize( numGlyphs() * numGlyphFaces() * 3 );
 	vbuf().resize( numGlyphs() * numGlyphVertices() * 3 );
 	nbuf().resize( numGlyphs() * numGlyphVertices() * 3 );
-	scalars().resize( numGlyphs() * numGlyphVertices() );
+	scalars().resize( numGlyphs() * numGlyphVertices() ); // see updateColor()
 	
 	// Add geometry and scalar attribute for coloring
 	int n = numGlyphs();
@@ -116,7 +132,7 @@ void TensorfieldObject::createGeometry( int res )
 	{
 		updateFaces( i );
 		updateVertices( i );
-		//updateColor( i );
+		updateColor( i );
 	}
 	
 	// Update MeshBuffer
@@ -143,7 +159,7 @@ void TensorfieldObject::add_vertex_and_normal( int glyphId, int vhandle,
 void TensorfieldObject::add_face( int glyphId, int fhandle, int v0, int v1, int v2 )
 {
 	int ofs = glyphId * numGlyphFaces() * 3 + fhandle * 3;
-	int vofs = glyphId * numGlyphVertices() * 3;
+	int vofs = glyphId * numGlyphVertices();
 	
 	ibuf()[ofs  ] = vofs + v0;
 	ibuf()[ofs+1] = vofs + v1;
@@ -212,8 +228,16 @@ void TensorfieldObject::updateVertices( int glyphId )
 			// Superquadric geometry
 			Eigen::Vector3d v = superquadric_tensor( cp, cl, gamma, theta, phi );
 			
+		  #if 1
 			// Rotate and scale according to spectrum
-			v = R * lambda.asDiagonal() * v;
+			v = 0.1 * (R * lambda.asDiagonal() * v);
+		  #endif
+
+		  #if 1
+			// Center at corresponding vertex in mean shape
+			if( m_pos.cols() == m_R.cols() ) // sanity check
+				v = v + m_pos.col(glyphId);
+		  #endif
 			
 			// Store transformed geometry
 			add_vertex_and_normal( glyphId, vh, v, v/v.norm() );
