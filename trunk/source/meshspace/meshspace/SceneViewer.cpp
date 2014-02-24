@@ -847,7 +847,15 @@ void SceneViewer::computeCovariance()
 
 	PCAObject* pco = dynamic_cast<PCAObject*>( currentMeshObject() );
 	if( !pco )
+	{
+#if 1
+		TensorfieldObject* tfo = new TensorfieldObject;
+		tfo->createTestScene();
+		tfo->setName( "Covariance tensor Westin triangle" );
+		addMeshObject( (MeshObject*)tfo );
+#endif
 		return;
+	}
 
 	TensorfieldObject* tfo = new TensorfieldObject;
 	tfo->deriveTensorsFromPCAModel( pco->getPCAModel() );
