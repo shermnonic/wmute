@@ -49,6 +49,15 @@ vec3 superquadric_tensor( double cp, double cl, double gamma, double theta, doub
 	return qz( theta, phi, pow(1.-cl,gamma), pow(1.-cp,gamma) );
 }
 
+vec3 superquadric_tensor_normal( double cp, double cl, double gamma, double theta, double phi )
+{
+	if( cl >= cp )
+		return qx( theta, phi, 2.-pow(1.-cp,gamma), 2.-pow(1.-cl,gamma) );	
+	// cl < cp
+	return qz( theta, phi, 2.-pow(1.-cl,gamma), 2.-pow(1.-cp,gamma) );
+}
+
+
 //-----------------------------------------------------------------------------
 // 	scene::TensorfieldObject implementation
 //-----------------------------------------------------------------------------
@@ -139,10 +148,7 @@ void TensorfieldObject::updateTensorfield()
 			updateFaces( i );
 
 		if( m_dirtyFlag & ResolutionChange || m_dirtyFlag & GeometryChange )
-		{
 			updateVertices( i );
-			updateNormals( i );
-		}
 
 		if( m_dirtyFlag & ResolutionChange || m_dirtyFlag & ColorChange )
 			updateColor( i );
@@ -267,11 +273,15 @@ void TensorfieldObject::updateVertices( int glyphId )
 			double phi = (double)j*phi_step;
 			
 			// Superquadric geometry
-			Eigen::Vector3d v = superquadric_tensor( cp, cl, gamma, theta, phi );
+			Eigen::Vector3d 
+				v = superquadric_tensor( cp, cl, gamma, theta, phi ),
+				n = superquadric_tensor_normal( cp, cl, gamma, theta, phi );
+			n.normalize();
 			
 		  #if 1
 			// Rotate and scale according to spectrum
 			v = m_glyphScale * (R * lambda.asDiagonal() * v);
+			n = R.transpose() * lambda.cwiseInverse().asDiagonal() * n;
 		  #endif
 
 		  #if 1
@@ -282,7 +292,7 @@ void TensorfieldObject::updateVertices( int glyphId )
 			
 			// Store transformed geometry
 			add_vertex( glyphId, vh, v );
-			add_normal( glyphId, vh, v/v.norm() ); // FIXME: Compute real normal
+			add_normal( glyphId, vh, n );
 			vh++;
 		}
 	}
@@ -291,58 +301,6 @@ void TensorfieldObject::updateVertices( int glyphId )
 int imod( int a, int b )
 {
 	return (a >= 0) ? a%b : (b-a)%b;
-}
-
-void TensorfieldObject::updateNormals( int glyphId )
-{
-	// Sample resolution in phi and theta
-	int n = m_glyphRes,
-	    m = m_glyphRes+1;
-
-	// Sample vertices
-	int vh=0;  // Vertex handle
-	for( int i=0; i < n; i++ )
-	{
-		for( int j=0; j < m; j++ )
-		{
-			// Compute discrete normal by averaging face normals of 1-diamond
-			// around sample vertex p:
-			//     v2
-			// n2 / | \ n1
-			//   /  |  \
-			// v3 - p - v1
-			//  \   |  /
-			// n3\  | / n0
-			//     v0 
-
-			// Compute vertex handles
-			int h1 = i*m + imod(j + 1, m),
-				h3 = i*m + imod(j - 1, m),
-				h2 = imod(i + 1, n)*m + j,
-				h0 = imod(i - 1, n)*m + j;
-
-			// Get vertices
-			Eigen::Vector3d 
-				p  = get_vertex( glyphId, vh ),
-				v0 = get_vertex( glyphId, h0 ),
-				v1 = get_vertex( glyphId, h1 ),
-				v2 = get_vertex( glyphId, h2 ),
-				v3 = get_vertex( glyphId, h3 );
-
-			// Estimate normals via cross-product
-			Eigen::Vector3d
-				n0 = ((v0-p).cross(v1-p)).normalized(),
-				n1 = ((v1-p).cross(v2-p)).normalized(),
-				n2 = ((v2-p).cross(v3-p)).normalized(),
-				n3 = ((v3-p).cross(v0-p)).normalized();
-
-			// Average vertex normal
-			Eigen::Vector3d
-				navg = (n0 + n1 + n2 + n3) / 4.;
-
-			add_normal( glyphId, vh, navg ); vh++;
-		}
-	}	
 }
 
 void TensorfieldObject::updateColor( int glyphId )
