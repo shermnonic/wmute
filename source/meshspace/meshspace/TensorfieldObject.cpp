@@ -56,8 +56,10 @@ vec3 superquadric_tensor( double cp, double cl, double gamma, double theta, doub
 namespace scene {
 
 TensorfieldObject::TensorfieldObject()
-	: m_glyphSharpness( 3. ),  // 3. is Kindlman default
-	  m_glyphScale( .1 )
+	: m_dirtyFlag     ( CompleteChange ),
+	  m_glyphRes      ( 8  ),  // 16 = high quality
+	  m_glyphSharpness( 3. ),  // 3. is Kindlman default
+	  m_glyphScale    ( .1 )
 {}
 
 void TensorfieldObject::setGlyphPositions( meshtools::Mesh* mesh )
@@ -69,6 +71,7 @@ void TensorfieldObject::setGlyphPositions( meshtools::Mesh* mesh )
 void TensorfieldObject::setGlyphPositions( Eigen::Matrix3Xd pos )
 {
 	m_pos = pos;
+	m_dirtyFlag |= GeometryChange;
 }
 
 void TensorfieldObject::deriveTensorsFromPCAModel( const PCAModel& pca )
@@ -107,40 +110,58 @@ void TensorfieldObject::deriveTensorsFromCovariance( const Eigen::MatrixXd& S )
 	}
 	
 	// Create tensor glyphs
-	createGeometry( 16 );
+	m_dirtyFlag = CompleteChange;
+	updateTensorfield();
 }
 
-void TensorfieldObject::createGeometry( int res )
-{
-	// Glyph resolution can only be changed here in createGeometry()
-	m_glyphRes = res;
-	
+void TensorfieldObject::updateTensorfield()
+{	
 	// Generate geometry
 	// We use a single VBO to fit into the MeshBuffer framework. A slight 
 	// drawback is that color has to be encoded as per-vertex attribute.
 	// For now we are relying on MeshObject::m_scalarAttribBuffer for this which
 	// is accessible via MeshObject::scalars().
 	
-	// Allocate buffers
-	ibuf().resize( numGlyphs() * numGlyphFaces() * 3 );
-	vbuf().resize( numGlyphs() * numGlyphVertices() * 3 );
-	nbuf().resize( numGlyphs() * numGlyphVertices() * 3 );
-	scalars().resize( numGlyphs() * numGlyphVertices() ); // see updateColor()
+	if( m_dirtyFlag & ResolutionChange )
+	{
+		// Allocate buffers
+		ibuf().resize( numGlyphs() * numGlyphFaces() * 3 );
+		vbuf().resize( numGlyphs() * numGlyphVertices() * 3 );
+		nbuf().resize( numGlyphs() * numGlyphVertices() * 3 );
+		scalars().resize( numGlyphs() * numGlyphVertices() ); // see updateColor()
+	}
 	
 	// Add geometry and scalar attribute for coloring
 	int n = numGlyphs();
 	for( int i=0; i < n; ++i )
 	{
-		updateFaces( i );
-		updateVertices( i );
-		updateColor( i );
+		if( m_dirtyFlag & ResolutionChange )
+			updateFaces( i );
+
+		if( m_dirtyFlag & ResolutionChange || m_dirtyFlag & GeometryChange )
+			updateVertices( i );
+
+		if( m_dirtyFlag & ResolutionChange || m_dirtyFlag & ColorChange )
+			updateColor( i );
 	}
 	
 	// Update MeshBuffer
-	meshBuffer().initSingleFrameFromRawBuffers();
+	if( m_dirtyFlag & ResolutionChange )
+	{
+		// (Re)allocate buffers
+		meshBuffer().initSingleFrameFromRawBuffers();
 
-	// We have to provide a valid mesh as well!
-	MeshObject::setMesh( meshBuffer().createMesh(), true /* keep buffers! */ );
+		// We have to provide a valid mesh as well!
+		MeshObject::setMesh( meshBuffer().createMesh(), true /* keep buffers! */ );
+	}
+	else
+	{
+		// Force update of GPU buffers
+		meshBuffer().setFrameUpdateRequired();
+		// FIXME: We could also do selective buffer update based on flags.
+	}
+
+	m_dirtyFlag = NoChange;
 }
 
 void TensorfieldObject::add_vertex_and_normal( int glyphId, int vhandle, 
