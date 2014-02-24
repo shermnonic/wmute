@@ -27,6 +27,8 @@ public:
 	// Internally calls deriveTensorsFromPCAModel() and setGlyphPositions()
 	void deriveTensorsFromPCAModel( const PCAModel& pca );
 
+	void createTestScene();
+
 	///@{ Glyph geometry
 	int numGlyphs()        const { return (int)m_R.cols(); }
 	int numGlyphVertices() const { return m_glyphRes*(m_glyphRes+1); }

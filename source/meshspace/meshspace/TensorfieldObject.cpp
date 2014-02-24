@@ -83,6 +83,46 @@ void TensorfieldObject::setGlyphPositions( Eigen::Matrix3Xd pos )
 	m_dirtyFlag |= GeometryChange;
 }
 
+void TensorfieldObject::createTestScene()
+{
+	int n = 21;
+
+	m_R     .resize( 9, n );
+	m_Lambda.resize( 3, n );
+
+	Eigen::Matrix3Xd pos( 3, n );
+
+	// Sample Westin triangle
+	for( int i=0, count=0; i < 6; ++i  )
+	{
+		for( int j=0; j <= i; ++j, ++count )
+		{
+			Eigen::Vector3d lambda;
+			lambda(0) = 1.;
+			lambda(1) = 1. - (j / 5.);
+			lambda(2) = 1. - (i / 5.);
+
+			m_Lambda.col(count) = lambda;
+
+			pos.col(count) = Eigen::Vector3d( lambda(1), lambda(2), 0 );
+		}
+	}
+	setGlyphPositions( pos );
+	setGlyphScale( 0.03 );
+
+	// No rotation (for now)
+	for( int i=0; i < n; ++i )
+	{
+		Eigen::Matrix3d I = Eigen::Matrix3d::Identity();
+		for( int j=0; j < 9; j++ )
+			m_R(j,i) = I.data()[j];
+	}
+
+	// Create tensor glyphs
+	m_dirtyFlag = CompleteChange;
+	updateTensorfield();
+}
+
 void TensorfieldObject::deriveTensorsFromPCAModel( const PCAModel& pca )
 {
 	Eigen::MatrixXd S; 
@@ -189,18 +229,18 @@ void TensorfieldObject::add_vertex( int glyphId, int vhandle, const Eigen::Vecto
 {
 	int ofs = glyphId * numGlyphVertices() * 3 + vhandle * 3;
 	
-	vbuf()[ofs  ] = v(0);
-	vbuf()[ofs+1] = v(1);
-	vbuf()[ofs+2] = v(2);
+	vbuf()[ofs  ] = (float)v(0);
+	vbuf()[ofs+1] = (float)v(1);
+	vbuf()[ofs+2] = (float)v(2);
 }
 
 void TensorfieldObject::add_normal( int glyphId, int vhandle, const Eigen::Vector3d& n )
 {
 	int ofs = glyphId * numGlyphVertices() * 3 + vhandle * 3;
 	
-	nbuf()[ofs  ] = n(0);
-	nbuf()[ofs+1] = n(1);
-	nbuf()[ofs+2] = n(2);
+	nbuf()[ofs  ] = (float)n(0);
+	nbuf()[ofs+1] = (float)n(1);
+	nbuf()[ofs+2] = (float)n(2);
 }
 
 void TensorfieldObject::add_face( int glyphId, int fhandle, int v0, int v1, int v2 )
@@ -208,9 +248,9 @@ void TensorfieldObject::add_face( int glyphId, int fhandle, int v0, int v1, int 
 	int ofs = glyphId * numGlyphFaces() * 3 + fhandle * 3;
 	int vofs = glyphId * numGlyphVertices();
 	
-	ibuf()[ofs  ] = vofs + v0;
-	ibuf()[ofs+1] = vofs + v1;
-	ibuf()[ofs+2] = vofs + v2;
+	ibuf()[ofs  ] = (unsigned)(vofs + v0);
+	ibuf()[ofs+1] = (unsigned)(vofs + v1);
+	ibuf()[ofs+2] = (unsigned)(vofs + v2);
 }
 
 void TensorfieldObject::updateFaces( int glyphId )
@@ -278,17 +318,16 @@ void TensorfieldObject::updateVertices( int glyphId )
 				n = superquadric_tensor_normal( cp, cl, gamma, theta, phi );
 			n.normalize();
 			
-		  #if 1
+			// Workaround to consistently outward orient normals
+			if( (v+n).norm() < (v-n).norm() )
+				v = -v;
 			// Rotate and scale according to spectrum
 			v = m_glyphScale * (R * lambda.asDiagonal() * v);
 			n = R.transpose() * lambda.cwiseInverse().asDiagonal() * n;
-		  #endif
 
-		  #if 1
 			// Center at corresponding vertex in mean shape
 			if( m_pos.cols() == m_R.cols() ) // sanity check
 				v = v + m_pos.col(glyphId);
-		  #endif
 			
 			// Store transformed geometry
 			add_vertex( glyphId, vh, v );
@@ -319,7 +358,7 @@ void TensorfieldObject::updateColor( int glyphId )
 	int ofs = glyphId*numGlyphVertices(); // Index of first vertex in scalar buffer 
 	for( int i=0; i < numGlyphVertices(); ++i )
 	{
-		scalars()[ ofs + i ] = FA;
+		scalars()[ ofs + i ] = (float)FA;
 	}
 	
 	// FA is normalized in [0,1]
