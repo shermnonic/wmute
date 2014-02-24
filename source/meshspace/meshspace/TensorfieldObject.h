@@ -59,11 +59,14 @@ protected:
 protected:
 	void updateFaces   ( int glyphId );
 	void updateVertices( int glyphId );
+	void updateNormals ( int glyphId );
 	void updateColor   ( int glyphId );
 
-	void add_vertex_and_normal( int glyphId, int vhandle, 
-	                const Eigen::Vector3d& v, const Eigen::Vector3d& n );
+	void add_vertex( int glyphId, int vhandle, const Eigen::Vector3d& v );
+	void add_normal( int glyphId, int vhandle, const Eigen::Vector3d& n );
 	void add_face( int glyphId, int fhandle, int v0, int v1, int v2 );
+
+	Eigen::Vector3d get_vertex( int glyphId, int vhandle );
 
 	///@{ Raw buffer access, pass through from MeshBuffer
 	std::vector<unsigned>& ibuf() { return meshBuffer().ibuffer(); }

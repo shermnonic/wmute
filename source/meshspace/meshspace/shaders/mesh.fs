@@ -26,7 +26,7 @@ vec3 phong( vec3 N, vec3 E, vec3 L,
 	
 	// Phong model
 	vec3 Iamb  = ambient.rgb;	
-#if 1	
+#if 1
 	// Two-sided shading:
 	vec3 Idiff = diffuse.rgb * max(abs(dot(N,L)), 0.0);
 	vec3 Ispec = specular.rgb * pow( max(abs(dot(R,E)),0.0), shininess );
