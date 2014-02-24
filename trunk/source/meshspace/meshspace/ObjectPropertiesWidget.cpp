@@ -3,6 +3,9 @@
 #include "ObjectPropertiesWidget.h"
 #include "MeshObject.h"
 #include "PCAObject.h"
+#include "TensorfieldObject.h"
+#include "TensorfieldObjectWidget.h"
+#include "MultiSliderWidget.h"
 
 #include <QLabel>
 #include <QLineEdit>
@@ -44,6 +47,9 @@ ObjectPropertiesWidget::ObjectPropertiesWidget( QWidget* parent )
 	m_pcaSliderArea->setWidget( m_pcaSlider );
 	m_pcaSliderArea->setWidgetResizable( true );
 
+	m_tensorfieldObjectWidget = new TensorfieldObjectWidget;	
+	m_tensorfieldObjectWidget->setVisible( false );
+
 	// -- Layout
 
 	QGridLayout* l1 = new QGridLayout();
@@ -65,6 +71,7 @@ ObjectPropertiesWidget::ObjectPropertiesWidget( QWidget* parent )
 	layout->addLayout( l1 );
 	layout->addLayout( l2 );
 	layout->addLayout( l3 );
+	layout->addWidget( m_tensorfieldObjectWidget );
 	layout->addWidget( m_pcaSliderArea );
 	
 	setLayout( layout );
@@ -91,6 +98,8 @@ void ObjectPropertiesWidget::reset()
 	m_sliderFrame->setEnabled( false );
 	m_teInfo->setText( tr("") );
 	m_pcaSliderArea->setVisible( false );
+	m_tensorfieldObjectWidget->setVisible( false );
+	m_tensorfieldObjectWidget->setMaster( NULL );
 
 	disconnect( m_pcaSlider, SIGNAL(valueChanged(int,int)), this, SLOT(changePCACoeff(int,int)) );
 }
@@ -118,7 +127,30 @@ void ObjectPropertiesWidget::setSceneObject( scene::Object* obj )
 	m_leName->setText( QString::fromStdString( obj->getName() ) );	
 	setColor( obj->getColor() );
 	
+	//-----------------------------
+	// TensorfieldObject specific controls
+	//-----------------------------
+	if( dynamic_cast<scene::TensorfieldObject*>(obj) )
+	{
+		scene::TensorfieldObject* tfo = dynamic_cast<scene::TensorfieldObject*>(obj);
+
+		m_tensorfieldObjectWidget->setVisible( true );
+		m_tensorfieldObjectWidget->setMaster( tfo );
+
+		m_teInfo->setText(
+			tr("Tensorfield object\n"
+		       "#Glyphs = %1\n"
+			   "#Glyph vertices = %2\n"
+			   "#Glyph faces = %3\n")
+			.arg( tfo->numGlyphs() )
+			.arg( tfo->numGlyphVertices() ) 
+			.arg( tfo->numGlyphFaces() )
+		);
+	}
+	else
+	//-----------------------------
 	// PCAObject specific controls
+	//-----------------------------
 	if( dynamic_cast<scene::PCAObject*>(obj) )
 	{
 		scene::PCAObject* pco = dynamic_cast<scene::PCAObject*>(obj);
@@ -156,7 +188,9 @@ void ObjectPropertiesWidget::setSceneObject( scene::Object* obj )
 		);
 	}
 	else
+	//-----------------------------
 	// Mesh specific properties	
+	//-----------------------------
 	if( dynamic_cast<scene::MeshObject*>(obj) )
 	{
 		scene::MeshObject* meshobj = dynamic_cast<scene::MeshObject*>(obj);

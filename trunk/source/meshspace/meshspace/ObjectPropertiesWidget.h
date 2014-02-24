@@ -5,7 +5,6 @@
 
 #include <QWidget>
 #include <QPixmap>
-#include "MultiSliderWidget.h"
 #include "scene.h"
 
 class QLabel;
@@ -13,6 +12,9 @@ class QSlider;
 class QLineEdit;
 class QTextEdit;
 class QScrollArea;
+
+class TensorfieldObjectWidget;
+class MultiSliderWidget;
 
 /** @addtogroup meshspaceGUI_grp meshspace GUI
   * @{ */
@@ -53,6 +55,7 @@ private:
 	QSlider*   m_sliderFrame;
 	QTextEdit* m_teInfo;
 
+	TensorfieldObjectWidget* m_tensorfieldObjectWidget;
 	MultiSliderWidget* m_pcaSlider;
 	QScrollArea* m_pcaSliderArea;
 

@@ -50,6 +50,7 @@ set( meshspace_MOC_HDRS
 	SceneViewer.h
 	ObjectPropertiesWidget.h
 	MultiSliderWidget.h
+	TensorfieldObjectWidget.h
 )
 
 # generate rules for building source files from the Qt resources
@@ -98,6 +99,8 @@ set( gui_SRCS
 	ObjectPropertiesWidget.cpp
 	MultiSliderWidget.h
 	MultiSliderWidget.cpp
+	TensorfieldObjectWidget.h
+	TensorfieldObjectWidget.cpp
 )
 source_group("gui" FILES ${gui_SRCS})
 
