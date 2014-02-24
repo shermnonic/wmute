@@ -59,7 +59,6 @@ protected:
 protected:
 	void updateFaces   ( int glyphId );
 	void updateVertices( int glyphId );
-	void updateNormals ( int glyphId );
 	void updateColor   ( int glyphId );
 
 	void add_vertex( int glyphId, int vhandle, const Eigen::Vector3d& v );
