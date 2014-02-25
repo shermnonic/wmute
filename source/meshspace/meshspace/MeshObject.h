@@ -32,7 +32,10 @@ namespace scene {
 class MeshObject : public Object
 {
 public:
+	enum Shaders { NoShader, DefaultShader };
+
 	MeshObject()
+	: m_shaderMode( DefaultShader )
 	{}
 
 	///@{ Implementation of \a scene::Object
@@ -105,6 +108,7 @@ private:
 	boost::shared_ptr<meshtools::Mesh> m_mesh;  ///< Reference mesh (1st frame of an animation sequence)
 	MeshBuffer m_meshBuffer; ///< Buffer objects and rendering functionality
 
+	int m_shaderMode; ///< See enum \a Shaders
 	MeshShader m_shader; ///< GLSL shader with support for selection and scalar vertex attributes
 
 	std::vector<float> m_selectionAttribBuffer; ///< Selection vertex attribute, 1.0 for selected vertex, 0.0 else

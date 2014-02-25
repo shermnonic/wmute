@@ -82,6 +82,7 @@ ObjectPropertiesWidget::ObjectPropertiesWidget( QWidget* parent )
 	// -- Connections
 
 	connect( m_sliderFrame, SIGNAL(valueChanged(int)), this, SLOT(changeFrame(int)) );
+	connect( m_tensorfieldObjectWidget, SIGNAL(redrawRequired()), this, SIGNAL(redrawRequired()) );
 }
 
 //------------------------------------------------------------------------------

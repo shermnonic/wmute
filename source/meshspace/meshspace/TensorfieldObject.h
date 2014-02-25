@@ -32,7 +32,7 @@ public:
 	///@{ Glyph geometry
 	int numGlyphs()        const { return (int)m_R.cols(); }
 	int numGlyphVertices() const { return m_glyphRes*(m_glyphRes+1); }
-	int numGlyphFaces()    const { return 2*numGlyphVertices(); }
+	int numGlyphFaces()    const { return 2*m_glyphRes*m_glyphRes; }
 	///@}
 
 	///@{ Glyph properties. Changes will take effect on next call to updateTensorfield().
@@ -68,6 +68,8 @@ protected:
 	void add_face( int glyphId, int fhandle, int v0, int v1, int v2 );
 
 	Eigen::Vector3d get_vertex( int glyphId, int vhandle );
+
+	void get_res( int& n, int&m );
 
 	///@{ Raw buffer access, pass through from MeshBuffer
 	std::vector<unsigned>& ibuf() { return meshBuffer().ibuffer(); }

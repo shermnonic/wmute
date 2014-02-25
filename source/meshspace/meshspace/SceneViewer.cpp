@@ -445,7 +445,11 @@ void SceneViewer::draw()
 
 	GL::CheckGLError("SceneViewer::draw() - berfore rendering the scene");
 
-	// Draw scene objects	
+	//if( m_mode == ModeWireframe )
+		//glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+		//glDisable( GL_CULL_FACE );
+
+	// Draw scene objects
 	m_scene.render();
 
 	GL::CheckGLError("SceneViewer::draw() - after rendering the scene");
