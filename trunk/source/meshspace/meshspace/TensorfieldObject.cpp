@@ -40,6 +40,26 @@ vec3 qx( double theta, double phi, double alpha, double beta )
 	             spow(cos(theta),alpha) * sphi );
 }
 
+vec3 qref( double theta, double phi, double alpha, double beta )
+{
+	theta -= M_PI;
+	phi   -= .5*M_PI;
+
+	return vec3( spow(cos(phi),beta) * spow(cos(theta),alpha),
+		         spow(cos(phi),beta) * spow(sin(theta),alpha),
+				 spow(sin(phi),beta) );
+}
+
+#if 0
+vec3 superquadric_tensor( double cp, double cl, double gamma, double theta, double phi )
+{
+	return qref( theta, phi, pow(1.-cp,gamma), pow(1.-cl,gamma) );
+}
+vec3 superquadric_tensor_normal( double cp, double cl, double gamma, double theta, double phi )
+{
+	return qref( theta, phi, 2.-pow(1.-cp,gamma), 2.-pow(1.-cl,gamma) );	
+}
+#else
 /// Superquadric tensor function parameterized over planarity (cp) and linearity (cl)
 vec3 superquadric_tensor( double cp, double cl, double gamma, double theta, double phi )
 {
@@ -56,6 +76,7 @@ vec3 superquadric_tensor_normal( double cp, double cl, double gamma, double thet
 	// cl < cp
 	return qz( theta, phi, 2.-pow(1.-cl,gamma), 2.-pow(1.-cp,gamma) );
 }
+#endif
 
 
 //-----------------------------------------------------------------------------
@@ -104,7 +125,7 @@ void TensorfieldObject::createTestScene()
 
 			m_Lambda.col(count) = lambda;
 
-			pos.col(count) = Eigen::Vector3d( lambda(1), lambda(2), 0 );
+			pos.col(count) = Eigen::Vector3d( lambda(1)+.5*(i/5.), lambda(2), 0 );
 		}
 	}
 	setGlyphPositions( pos );
@@ -253,16 +274,21 @@ void TensorfieldObject::add_face( int glyphId, int fhandle, int v0, int v1, int 
 	ibuf()[ofs+2] = (unsigned)(vofs + v2);
 }
 
+void TensorfieldObject::get_res( int& n, int&m )
+{
+	n = m_glyphRes,
+	m = m_glyphRes+1;	
+}
+
 void TensorfieldObject::updateFaces( int glyphId )
 {	
 	// Sample resolution in phi and theta
-	int n = m_glyphRes,
-	    m = m_glyphRes+1;
+	int n,m; get_res(n,m);
 	
 	// Establish triangle connectivity
 	int fh=0;  // Face handle
 	for( int i=0; i < n; i++ )
-		for( int j=0; j < m; j++ )
+		for( int j=0; j < m-1; j++ )
 		{
 			// v3___v2
 			//  |   |
@@ -284,10 +310,16 @@ void TensorfieldObject::updateVertices( int glyphId )
 	// Tensor glyph parameters
 	double gamma = m_glyphSharpness;
 	
-	// Westin'97 barycentric coordinates of eigenvalues
 	Eigen::Vector3d lambda = m_Lambda.col( glyphId );
+
+	// Clamp scaling
+	lambda(0) = std::max( lambda(0), 0.01 );
+	lambda(1) = std::max( lambda(1), 0.01 );
+	lambda(2) = std::max( lambda(2), 0.01 );
+
+	// Westin'97 barycentric coordinates of eigenvalues
 	double evsum = lambda(0)+lambda(1)+lambda(2),
-	       cl = lambda(0) - lambda(1) / evsum,
+	       cl = (lambda(0) - lambda(1)) / evsum,
 	       cp = 2.*(lambda(1)-lambda(2)) / evsum;
 
 	// Eigenvectors
@@ -296,12 +328,11 @@ void TensorfieldObject::updateVertices( int glyphId )
 		R.data()[i] = m_R(i,glyphId);
 
 	// Sample resolution in phi and theta
-	int n = m_glyphRes,
-	    m = m_glyphRes+1;
-	
+	int n,m; get_res(n,m);
+
 	// Step sizes in phi and theta
 	double theta_step = (2.*M_PI)/(double)m_glyphRes,
-	       phi_step = M_PI/(double)m_glyphRes;	
+	       phi_step = M_PI/(double)(m_glyphRes-1);	
 	
 	// Sample vertices
 	int vh=0;  // Vertex handle
@@ -316,7 +347,6 @@ void TensorfieldObject::updateVertices( int glyphId )
 			Eigen::Vector3d 
 				v = superquadric_tensor( cp, cl, gamma, theta, phi ),
 				n = superquadric_tensor_normal( cp, cl, gamma, theta, phi );
-			n.normalize();
 			
 			// Workaround to consistently outward orient normals
 			if( (v+n).norm() < (v-n).norm() )
@@ -324,6 +354,7 @@ void TensorfieldObject::updateVertices( int glyphId )
 			// Rotate and scale according to spectrum
 			v = m_glyphScale * (R * lambda.asDiagonal() * v);
 			n = R.transpose() * lambda.cwiseInverse().asDiagonal() * n;
+			n.normalize();
 
 			// Center at corresponding vertex in mean shape
 			if( m_pos.cols() == m_R.cols() ) // sanity check

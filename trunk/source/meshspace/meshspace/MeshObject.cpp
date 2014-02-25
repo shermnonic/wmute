@@ -74,51 +74,61 @@ bool MeshObject::reloadShader()
 //-----------------------------------------------------------------------------
 void MeshObject::render( int flags )
 {
+	bool useShader = (m_shaderMode != NoShader);
+
 	glPushAttrib( GL_CURRENT_BIT );
-	glColor3f( (GLfloat)getColor().r, (GLfloat)getColor().g, (GLfloat)getColor().b );	
+	glColor3f( (GLfloat)getColor().r, (GLfloat)getColor().g, (GLfloat)getColor().b );
 
 	// Render shaded scene
 	if( flags & Object::RenderSurface )
 	{
-		// Initialize shader (if required)
-		if( !m_shader.isInitialized() )
-			reloadShader();
+		int selectionLoc, scalarLoc;
 
-		m_shader.bind();
-
-		// Selection attribute
-		int selectionLoc = m_shader.program()->getAttribLocation("selection");
-		if( !m_selectionAttribBuffer.empty() && selectionLoc >= 0 ) 
+		if( useShader )
 		{
-			glVertexAttribPointer( selectionLoc, 1, GL_FLOAT, GL_FALSE, 0, 
-				(GLvoid*)(&m_selectionAttribBuffer[0]) );
-			glEnableVertexAttribArray( selectionLoc );
-		}
+			// Initialize shader (if required)
+			if( !m_shader.isInitialized() )
+				reloadShader();
 
-		// Scalar attribute
-		int scalarLoc = m_shader.program()->getAttribLocation("scalar");
-		if( !m_scalarAttribBuffer.empty() && scalarLoc >= 0 )
-		{
-			// Attribute buffer
-			glVertexAttribPointer( scalarLoc, 1, GL_FLOAT, GL_FALSE, 0, 
-				(GLvoid*)(&m_scalarAttribBuffer[0]) );
-			glEnableVertexAttribArray( scalarLoc );
+			m_shader.bind();
 
-			// Uniforms
-			glUniform1f( m_shader.program()->getUniformLocation("scalarShift"), m_scalarShift );
-			glUniform1f( m_shader.program()->getUniformLocation("scalarScale"), m_scalarScale );
-			glUniform1i( m_shader.program()->getUniformLocation("mapScalars"), 1 );
-		}
-		else
-		{
-			glUniform1i( m_shader.program()->getUniformLocation("mapScalars"), 0 );
+			// Selection attribute
+			selectionLoc = m_shader.program()->getAttribLocation("selection");
+			if( !m_selectionAttribBuffer.empty() && selectionLoc >= 0 ) 
+			{
+				glVertexAttribPointer( selectionLoc, 1, GL_FLOAT, GL_FALSE, 0, 
+					(GLvoid*)(&m_selectionAttribBuffer[0]) );
+				glEnableVertexAttribArray( selectionLoc );
+			}
+
+			// Scalar attribute
+			scalarLoc = m_shader.program()->getAttribLocation("scalar");
+			if( !m_scalarAttribBuffer.empty() && scalarLoc >= 0 )
+			{
+				// Attribute buffer
+				glVertexAttribPointer( scalarLoc, 1, GL_FLOAT, GL_FALSE, 0, 
+					(GLvoid*)(&m_scalarAttribBuffer[0]) );
+				glEnableVertexAttribArray( scalarLoc );
+
+				// Uniforms
+				glUniform1f( m_shader.program()->getUniformLocation("scalarShift"), m_scalarShift );
+				glUniform1f( m_shader.program()->getUniformLocation("scalarScale"), m_scalarScale );
+				glUniform1i( m_shader.program()->getUniformLocation("mapScalars"), 1 );
+			}
+			else
+			{
+				glUniform1i( m_shader.program()->getUniformLocation("mapScalars"), 0 );
+			}
 		}
 		
 		m_meshBuffer.draw();
 
-		if( selectionLoc>=0 ) glDisableVertexAttribArray( selectionLoc );
-		if( scalarLoc>=0 )    glDisableVertexAttribArray( scalarLoc );
-		m_shader.release();
+		if( useShader )
+		{
+			if( selectionLoc>=0 ) glDisableVertexAttribArray( selectionLoc );
+			if( scalarLoc>=0 )    glDisableVertexAttribArray( scalarLoc );
+			m_shader.release();
+		}
 	}
 
 	// Render vertices as points

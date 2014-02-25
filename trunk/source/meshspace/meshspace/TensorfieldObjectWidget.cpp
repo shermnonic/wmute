@@ -13,16 +13,19 @@ TensorfieldObjectWidget::TensorfieldObjectWidget( QWidget* parent )
 {
 	m_dsbGlyphScale = new QDoubleSpinBox;
 	m_dsbGlyphScale->setRange( 0.01, 10. );
+	m_dsbGlyphScale->setSingleStep( 0.01 );
 	QLabel* lblGlyphScale = new QLabel(tr("Glyph scale"));
 	lblGlyphScale->setBuddy( m_dsbGlyphScale );
 	
 	m_dsbGlyphSharpness = new QDoubleSpinBox;
 	m_dsbGlyphSharpness->setRange( 0.1, 6.0 );
+	m_dsbGlyphSharpness->setSingleStep( .5 );
 	QLabel* lblGlyphSharpness = new QLabel(tr("Glyph sharpness"));
 	lblGlyphSharpness->setBuddy( m_dsbGlyphSharpness );
 
 	m_spbGlyphResolution = new QSpinBox;
-	m_spbGlyphResolution->setRange( 6, 42 );
+	m_spbGlyphResolution->setRange( 8, 42 );
+	m_spbGlyphResolution->setSingleStep( 8 );
 	QLabel* lblGlyphResolution = new QLabel(tr("Glyph resolution"));
 	lblGlyphResolution->setBuddy( m_spbGlyphResolution );
 	
@@ -73,4 +76,6 @@ void TensorfieldObjectWidget::updateMaster()
 	m_master->setGlyphSharpness ( m_dsbGlyphSharpness ->value() );
 	m_master->setGlyphResolution( m_spbGlyphResolution->value() );
 	m_master->updateTensorfield();
+
+	emit redrawRequired();
 }

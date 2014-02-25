@@ -18,6 +18,9 @@ class QSpinBox;
 class TensorfieldObjectWidget : public QWidget
 {
 	Q_OBJECT
+
+signals:
+	void redrawRequired();
 	
 public:
 	TensorfieldObjectWidget( QWidget* parent=0 );
