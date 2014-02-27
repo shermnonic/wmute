@@ -25,8 +25,8 @@ vec3 phong( vec3 N, vec3 E, vec3 L,
 	vec3 R = normalize(-reflect(L,N));
 	
 	// Phong model
-	vec3 Iamb  = ambient.rgb;	
-#if 1
+	vec3 Iamb  = vec3(0.,0.,0.); // ambient.rgb;	
+#if 0
 	// Two-sided shading:
 	vec3 Idiff = diffuse.rgb * max(abs(dot(N,L)), 0.0);
 	vec3 Ispec = specular.rgb * pow( max(abs(dot(R,E)),0.0), shininess );
@@ -44,6 +44,8 @@ vec3 phong( vec3 N, vec3 E, vec3 L,
 
 void main(void)
 {
+	vec3 lightDir = vec3(0.,-2.,1.); // = vLightDir
+	
 	vec3 diffuse = vColor.rgb; //gl_FrontLightProduct[0].diffuse.rgb;	
 	
 	// Apply transfer function to scalar value
@@ -56,7 +58,7 @@ void main(void)
 	
 	// Phong shading
 	vec3 shading = 
-		phong( vNormal, normalize( vViewDir ), normalize( vLightDir ),
+		phong( vNormal, normalize( vViewDir ), normalize( lightDir ),
 				// Compatibilitiy fixe pipeline material
 				gl_FrontLightProduct[0].ambient.rgb + gl_FrontLightModelProduct.sceneColor.rgb,
 				diffuse,
