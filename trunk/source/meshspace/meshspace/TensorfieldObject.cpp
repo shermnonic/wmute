@@ -118,25 +118,33 @@ void TensorfieldObject::createTestScene()
 	{
 		for( int j=0; j <= i; ++j, ++count )
 		{
+			double l0 = 1.,
+			       l1 = 1. - (j / 5.),
+			       l2 = 1. - (i / 5.);
+
+			// Sorted eigenvalues
 			Eigen::Vector3d lambda;
-			lambda(0) = 1.;
-			lambda(1) = 1. - (j / 5.);
-			lambda(2) = 1. - (i / 5.);
+			if( l1 >= l2 )
+				lambda = Eigen::Vector3d( l0, l1, l2 );
+			else
+				lambda = Eigen::Vector3d( l0, l2, l1 );
 
 			m_Lambda.col(count) = lambda;
 
-			pos.col(count) = Eigen::Vector3d( lambda(1)+.5*(i/5.), lambda(2), 0 );
+			pos.col(count) = Eigen::Vector3d( l1+.5*(i/5.), l2, 0 );
 		}
 	}
 	setGlyphPositions( pos );
-	setGlyphScale( 0.03 );
+	setGlyphScale( 0.07 );
 
-	// No rotation (for now)
+	// Constant rotation
+	Eigen::Matrix3d R;
+	R = Eigen::AngleAxisd( (double)M_PI/4., Eigen::Vector3d(-1.,0.,0.) );
+	//Eigen::Matrix3d I = Eigen::Matrix3d::Identity();
 	for( int i=0; i < n; ++i )
-	{
-		Eigen::Matrix3d I = Eigen::Matrix3d::Identity();
+	{		
 		for( int j=0; j < 9; j++ )
-			m_R(j,i) = I.data()[j];
+			m_R(j,i) = R.data()[j];
 	}
 
 	// Create tensor glyphs

@@ -37,7 +37,7 @@ void main(void)
 	vNormal = normalize(normal_matrix * normal);
 	
 	vLightPos = vec3(modelview * gl_LightSource[0].position); 
-	vLightDir = vLightPos - viewpos;	
+	vLightDir = viewpos - vLightPos;	
 	
 	vColor = color;
 	
