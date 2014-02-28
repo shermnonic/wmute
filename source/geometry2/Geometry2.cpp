@@ -522,6 +522,7 @@ void Superquadric::create( int res )
 	       cl = .33,
 	       gamma = 3.0;
 
+	m_mode = TensorGlyph;
 	res = 16;
 
 	double theta_step = (2.*M_PI)/(double)res;
