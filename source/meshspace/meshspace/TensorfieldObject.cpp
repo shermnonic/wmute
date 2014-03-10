@@ -177,13 +177,18 @@ void TensorfieldObject::deriveTensorsFromCovariance( const Eigen::MatrixXd& S )
 		devectorizeCovariance( S.col(i), Sigma );
 		Eigen::JacobiSVD< Eigen::Matrix3d > svd( Sigma, Eigen::ComputeFullU );
 
-		// Store rotation and scaling
+		// Store rotation
 	  #if 0
 		m_R.col(i) = Eigen::Map<Eigen::VectorXd>( svd.matrixU().data(), 9 );
 	  #else
 		for( int j=0; j < 9; j++ )
 			m_R(j,i) = svd.matrixU().data()[j];
 	  #endif
+		// Turn reflection into rotation
+		if( m_R.determinant() < 0. )
+			m_R.col(2) *= -1.;
+
+		// Store scaling
 		m_Lambda.col(i) = svd.singularValues().cwiseSqrt();
 	}
 	
@@ -361,7 +366,7 @@ void TensorfieldObject::updateVertices( int glyphId )
 				v = -v;
 			// Rotate and scale according to spectrum
 			v = m_glyphScale * (R * lambda.asDiagonal() * v);
-			n = R.transpose() * lambda.cwiseInverse().asDiagonal() * n;
+			n = R * lambda.cwiseInverse().asDiagonal() * n;
 			n.normalize();
 
 			// Center at corresponding vertex in mean shape

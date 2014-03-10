@@ -6,8 +6,8 @@ attribute float selection;
 varying vec3 vNormal;
 varying vec4 vColor;
 
-varying vec3 vViewDir;
-varying vec3 vLightDir;
+varying vec3 vViewPos;
+//varying vec3 vLightDir;
 varying vec3 vLightPos;
 
 varying float vScalar;
@@ -33,11 +33,12 @@ void main(void)
 	
 	// Interpolated variables
 	
-	vViewDir = -1.0 * viewpos;
+	vViewPos = viewpos;
+	//vViewDir = -normalize(viewpos);
 	vNormal = normalize(normal_matrix * normal);
 	
-	vLightPos = vec3(modelview * gl_LightSource[0].position); 
-	vLightDir = viewpos - vLightPos;	
+	vLightPos = vec3(modelview * gl_LightSource[0].position);
+	//~ vLightDir = normalize(viewpos - vLightPos);
 	
 	vColor = color;
 	
