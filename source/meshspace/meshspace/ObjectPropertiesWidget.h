@@ -8,6 +8,7 @@
 #include "scene.h"
 
 class QLabel;
+class QPushButton;
 class QSlider;
 class QLineEdit;
 class QTextEdit;
@@ -44,14 +45,14 @@ protected slots:
 	// set.. functions set the ui state (w/o changing the scene object)
 	void setColor( scene::Color color );
 	// change.. functions manipulate the selected scene object directly
+	void changeColor();
 	void changeFrame( int frame );
-
 	void changePCACoeff( int mode, int ivalue );
-
+	
 private:
 	QLineEdit* m_leName;
 	QPixmap    m_pixmapColor;
-	QLabel*    m_labelPixmapColor;
+	QPushButton* m_butColor;
 	QSlider*   m_sliderFrame;
 	QTextEdit* m_teInfo;
 

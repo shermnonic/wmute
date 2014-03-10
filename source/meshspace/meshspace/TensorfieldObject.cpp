@@ -169,6 +169,8 @@ void TensorfieldObject::deriveTensorsFromCovariance( const Eigen::MatrixXd& S )
 	m_R     .resize( 9, n );
 	m_Lambda.resize( 3, n );
 
+	int countFixedRotations = 0;
+	
 	// Compute spectrum
 	for( int i=0; i < n; ++i )
 	{
@@ -186,11 +188,16 @@ void TensorfieldObject::deriveTensorsFromCovariance( const Eigen::MatrixXd& S )
 	  #endif
 		// Turn reflection into rotation
 		if( m_R.determinant() < 0. )
+		{
 			m_R.col(2) *= -1.;
+			countFixedRotations++;
+		}
 
 		// Store scaling
 		m_Lambda.col(i) = svd.singularValues().cwiseSqrt();
 	}
+
+	std::cout << "Fixed " << countFixedRotations << " rotation matrices" << std::endl;
 	
 	// Create tensor glyphs
 	m_dirtyFlag = CompleteChange;

@@ -8,6 +8,8 @@
 #include "MultiSliderWidget.h"
 
 #include <QLabel>
+#include <QIcon>
+#include <QPushButton>
 #include <QLineEdit>
 #include <QSlider>
 #include <QTextEdit>
@@ -16,6 +18,7 @@
 #include <QColor>
 #include <QPixmap>
 #include <QScrollArea>
+#include <QColorDialog>
 
 //------------------------------------------------------------------------------
 ObjectPropertiesWidget::ObjectPropertiesWidget( QWidget* parent )
@@ -29,9 +32,8 @@ ObjectPropertiesWidget::ObjectPropertiesWidget( QWidget* parent )
 	
 	QLabel* labelColor = new QLabel(tr("Color"));
 	m_pixmapColor = QPixmap(16,16);
-	m_labelPixmapColor = new QLabel;
-	m_labelPixmapColor->setPixmap( m_pixmapColor );
-	labelColor->setBuddy( m_labelPixmapColor );
+	m_butColor = new QPushButton( QIcon(m_pixmapColor), tr("") );
+	labelColor->setBuddy( m_butColor );
 	
 	QLabel* labelFrame = new QLabel(tr("Frame"));
 	m_sliderFrame = new QSlider( Qt::Horizontal );
@@ -57,7 +59,7 @@ ObjectPropertiesWidget::ObjectPropertiesWidget( QWidget* parent )
 	l1->addWidget( labelName,  row,0 );
 	l1->addWidget( m_leName,   row,1 ); row++;
 	l1->addWidget( labelColor, row,0 );
-	l1->addWidget( m_labelPixmapColor,  row,1 ); row++;
+	l1->addWidget( m_butColor, row,1 ); row++;
 	
 	QVBoxLayout* l2 = new QVBoxLayout();
 	l2->addWidget( labelFrame );
@@ -83,6 +85,7 @@ ObjectPropertiesWidget::ObjectPropertiesWidget( QWidget* parent )
 
 	connect( m_sliderFrame, SIGNAL(valueChanged(int)), this, SLOT(changeFrame(int)) );
 	connect( m_tensorfieldObjectWidget, SIGNAL(redrawRequired()), this, SIGNAL(redrawRequired()) );
+	connect( m_butColor, SIGNAL(clicked()), this, SLOT(changeColor()) );
 }
 
 //------------------------------------------------------------------------------
@@ -109,7 +112,7 @@ void ObjectPropertiesWidget::reset()
 void ObjectPropertiesWidget::setColor( scene::Color c )
 {
 	m_pixmapColor.fill( QColor((int)255.*c.r, (int)255.*c.g, (int)255.*c.b) );
-	m_labelPixmapColor->setPixmap( m_pixmapColor );
+	m_butColor->setIcon( QIcon(m_pixmapColor) );
 }
 
 //------------------------------------------------------------------------------
@@ -246,5 +249,20 @@ void ObjectPropertiesWidget::changePCACoeff( int /*mode*/, int /*ivalue*/ )
 
 		pco->synthesize( coeffs );
 		emit redrawRequired();
+	}
+}
+
+//------------------------------------------------------------------------------
+void ObjectPropertiesWidget::changeColor()
+{
+	QColor color = QColorDialog::getColor();
+
+	if( color.isValid() && m_obj )
+	{
+		scene::Color c( color.red()/255., color.green()/255., color.blue()/255. );
+		// Update scene object
+		m_obj->setColor( c );
+		// Update UI
+		setColor( c );
 	}
 }
