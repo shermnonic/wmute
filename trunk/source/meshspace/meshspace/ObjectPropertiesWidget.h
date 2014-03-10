@@ -33,6 +33,7 @@ class ObjectPropertiesWidget : public QWidget
 signals:
 	/// The signal is emitted when a redraw is required.
 	void redrawRequired();
+	void modelChanged();
 
 public:
 	ObjectPropertiesWidget( QWidget* parent=0 );
@@ -45,6 +46,7 @@ protected slots:
 	// set.. functions set the ui state (w/o changing the scene object)
 	void setColor( scene::Color color );
 	// change.. functions manipulate the selected scene object directly
+	void changeName( QString name );
 	void changeColor();
 	void changeFrame( int frame );
 	void changePCACoeff( int mode, int ivalue );
