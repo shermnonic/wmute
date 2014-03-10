@@ -23,7 +23,6 @@
 
 SceneViewer::SceneViewer( QWidget* parent )
   : QGLViewer(parent),
-    m_currentObject(-1),
 	m_selectionMode(SelectNone),
 	m_selectFrontFaces(true)
 {
@@ -34,9 +33,10 @@ SceneViewer::SceneViewer( QWidget* parent )
 	m_propertiesWidget = new ObjectPropertiesWidget();
 	m_propertiesWidget->setWindowTitle(tr("Inspector"));
 	
-	connect( m_listView->selectionModel(), SIGNAL(currentRowChanged(const QModelIndex&, const QModelIndex&)), 
-		     this, SLOT(selectModelItem(const QModelIndex&)) );
+	connect( m_listView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)),
+			 this, SLOT(selectModelItems(const QItemSelection&, const QItemSelection&)) );
 	connect( m_propertiesWidget, SIGNAL(redrawRequired()), this, SLOT(updateScene()) );
+	connect( m_propertiesWidget, SIGNAL(modelChanged()), this, SLOT(updateModel()) );
 
 	// --- Actions ---
 	// Shortcut description is also added to QGLViewer help.
@@ -102,6 +102,15 @@ QString SceneViewer::helpString() const
 // Scene Model
 //----------------------------------------------------------------------------
 
+int SceneViewer::selectedObject() const
+{	
+	if( !m_listView->selectionModel() )
+		return -1;
+	if( m_listView->selectionModel()->selectedIndexes().empty() )
+		return -1;
+	return m_listView->selectionModel()->selectedIndexes().front().row();
+}
+
 void SceneViewer::selectModelItem( const QModelIndex& current, const QModelIndex& previous )
 {
 	selectModelItem( current );
@@ -109,9 +118,19 @@ void SceneViewer::selectModelItem( const QModelIndex& current, const QModelIndex
 
 void SceneViewer::selectModelItem( const QModelIndex& index )
 {
-	m_currentObject = index.row();//m_listView->currentIndex().row(); // was: index.row()
-	m_propertiesWidget->setSceneObject( m_scene.objects().at( m_currentObject ).get() );
+	m_propertiesWidget->setSceneObject( m_scene.objects().at( selectedObject() ).get() );
 	updateGL();
+}
+
+void SceneViewer::selectModelItems( const QItemSelection& selected , const QItemSelection& deselected )
+{
+	if( selected.empty() )
+		m_propertiesWidget->setSceneObject( NULL );
+	else
+	{
+		int idx = selected.indexes().front().row();
+		m_propertiesWidget->setSceneObject( m_scene.objects().at( idx ).get() );
+	}
 }
 
 void SceneViewer::updateModel()
@@ -135,13 +154,6 @@ void SceneViewer::updateModel()
 
 		m_model.setItem( i, item );
 	}
-
-	// Auto-select the last added object
-	QModelIndex selection = m_model.item( m_model.rowCount()-1 )->index();
-	// Highlight selection
-	m_listView->selectionModel()->select( selection, QItemSelectionModel::Select );
-	// Set as current scene object
-	selectModelItem( selection );
 
 	connect( &m_model, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(onModelItemChanged(QStandardItem*)) );
 }
@@ -168,8 +180,11 @@ void SceneViewer::onModelItemChanged( QStandardItem* )
 
 scene::MeshObject* SceneViewer::currentMeshObject()
 {
-	if( m_currentObject < 0 ) return NULL;
-	return dynamic_cast<scene::MeshObject*>( m_scene.objects().at(m_currentObject).get() );
+	// Sanity
+	int sel = selectedObject();
+	if( sel < 0 || sel > m_scene.objects().size() || m_scene.objects().empty() ) 
+		return NULL;
+	return dynamic_cast<scene::MeshObject*>( m_scene.objects().at(sel).get() );
 }
 
 //----------------------------------------------------------------------------
@@ -361,6 +376,13 @@ void SceneViewer::addMeshObject( scene::MeshObject* so )
 	std::cout << "Bounding box of " << so->getName() << std::endl;
 	bbox.print();
 
+	// Auto-select the last added object
+	QModelIndex selection = m_model.item( m_model.rowCount()-1 )->index();
+	// Highlight selection
+	m_listView->selectionModel()->select( selection, QItemSelectionModel::Select );
+	// Set as current scene object
+	selectModelItem( selection );
+
 	// Force redraw
 	updateGL();
 }
@@ -477,7 +499,7 @@ void SceneViewer::draw()
 
 	// FIXME: Text rendering does not work correctly, check GL states!
 	glColor3f( 1,1,1 );
-	drawText( 10,10, tr("current mesh object = %1").arg(m_currentObject) );
+	drawText( 10,10, tr("current mesh object = %1").arg(selectedObject()) );
 
 	glEnable( GL_DEPTH_TEST );
 	glEnable( GL_LIGHTING );

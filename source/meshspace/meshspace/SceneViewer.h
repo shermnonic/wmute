@@ -6,6 +6,7 @@
 #include <GL/glew.h> // must be included before GL.h (and thus before qglviewer.h)
 #include <QGLViewer/qglviewer.h>
 #include <QStandardItemModel>
+#include <QItemSelection>
 #include <QRect>
 #include <QList>
 
@@ -72,6 +73,8 @@ protected slots:
 	void onModelItemChanged( QStandardItem* );
 	void selectModelItem( const QModelIndex& );
 	void selectModelItem( const QModelIndex& current, const QModelIndex& /*previous*/ );
+	void selectModelItems(const QItemSelection& selected , const QItemSelection& deselected );
+	int  selectedObject() const; // Returns index of currently selected row in list view
 
 	void selectNone();
 	void reloadShaders();
@@ -121,7 +124,6 @@ private:
 	QStandardItemModel m_model; ///< A model for manipulating the scenegraph
 	ObjectPropertiesWidget* m_propertiesWidget;
 	QListView* m_listView;
-	int m_currentObject; ///< Currently selected scene object (row) in list view
 
 	// Vertex selection	
 	int            m_selectionMode;

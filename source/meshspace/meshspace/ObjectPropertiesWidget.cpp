@@ -86,6 +86,7 @@ ObjectPropertiesWidget::ObjectPropertiesWidget( QWidget* parent )
 	connect( m_sliderFrame, SIGNAL(valueChanged(int)), this, SLOT(changeFrame(int)) );
 	connect( m_tensorfieldObjectWidget, SIGNAL(redrawRequired()), this, SIGNAL(redrawRequired()) );
 	connect( m_butColor, SIGNAL(clicked()), this, SLOT(changeColor()) );
+	connect( m_leName, SIGNAL(textEdited(QString)), this, SLOT(changeName(QString)) );
 }
 
 //------------------------------------------------------------------------------
@@ -264,5 +265,18 @@ void ObjectPropertiesWidget::changeColor()
 		m_obj->setColor( c );
 		// Update UI
 		setColor( c );
+		
+		emit modelChanged();
+	}
+}
+
+//------------------------------------------------------------------------------
+void ObjectPropertiesWidget::changeName( QString name )
+{
+	if( m_obj )
+	{
+		m_obj->setName( name.toStdString() );
+
+		emit modelChanged();
 	}
 }

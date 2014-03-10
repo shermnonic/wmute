@@ -186,18 +186,22 @@ void TensorfieldObject::deriveTensorsFromCovariance( const Eigen::MatrixXd& S )
 		for( int j=0; j < 9; j++ )
 			m_R(j,i) = svd.matrixU().data()[j];
 	  #endif
+
+	  #if 0
 		// Turn reflection into rotation
 		if( m_R.determinant() < 0. )
 		{
 			m_R.col(2) *= -1.;
 			countFixedRotations++;
 		}
+	  #endif
 
 		// Store scaling
 		m_Lambda.col(i) = svd.singularValues().cwiseSqrt();
 	}
 
-	std::cout << "Fixed " << countFixedRotations << " rotation matrices" << std::endl;
+	if( countFixedRotations > 0 )
+		std::cout << "Fixed " << countFixedRotations << " rotation matrices" << std::endl;
 	
 	// Create tensor glyphs
 	m_dirtyFlag = CompleteChange;
