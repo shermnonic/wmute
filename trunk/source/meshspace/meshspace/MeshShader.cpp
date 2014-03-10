@@ -100,7 +100,7 @@ void MeshShader::setDefaultLighting()
 	GLfloat light_ambient[]  = {  .0,  .0,  .0, 1.0 };
 	GLfloat light_diffuse[]  = { 1.0, 1.0, 1.0, 1.0 };
 	GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
-	GLfloat light_position[] = {  .0,  .0, -1.0 };  
+	GLfloat light_position[] = {  .0,  -2., 1. };  
 	
 	glLightfv( light, GL_AMBIENT,  light_ambient  );
 	glLightfv( light, GL_DIFFUSE,  light_diffuse  );

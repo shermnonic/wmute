@@ -420,8 +420,9 @@ void SceneViewer::init()
 	// Set OpenGL states
 
 	// Two-sided rendering and lighting (front- and backfaces)
+	glEnable( GL_NORMALIZE );
 	glDisable( GL_CULL_FACE );
-	glLightModeli( GL_LIGHT_MODEL_TWO_SIDE, 1 );
+	glLightModeli( GL_LIGHT_MODEL_TWO_SIDE, 0 );
 
 	// Setup nice material & lighting
 	MeshShader::setDefaultLighting();
