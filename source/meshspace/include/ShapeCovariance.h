@@ -37,7 +37,7 @@ void sampleCovariance( const Eigen::MatrixBase<Derived1>& D, Eigen::MatrixBase<D
 
 //-----------------------------------------------------------------------------
 // Specialized sample covariance functions
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------- 
 
 ///@{ Write a symmetric 3x3 matrix as 6D column vector and vice versa
 void vectorizeCovariance( const Eigen::Matrix3d& Sigma, Eigen::VectorXd& v );
@@ -53,6 +53,27 @@ void computeSampleCovariance( const Eigen::MatrixXd& X, Eigen::MatrixXd& S  );
 void computeSampleCovariance( const Eigen::MatrixXd& X, std::vector<Eigen::Matrix3d> S );
 ///@}
 
+//-----------------------------------------------------------------------------
+// Inter point covariance functions
+//-----------------------------------------------------------------------------
+
+/// Compute inter point covariance tensor (aka overview tensor).
+/// @param[in]  B      Shape basis, i.e. eigenvectors scaled by eigenvalues
+/// @param[in]  gamma  Tikhonov regularization parameter
+/// @param[out] G      Inter point covariance tensor (vectorized in columns, 6xn)
+void computeInterPointCovariance( const Eigen::MatrixXd& B, double gamma, Eigen::MatrixXd& G );
+
+/// Precompute part of interaction tensor depending solely on p.
+/// @param[in]  B      Shape basis, i.e. eigenvectors scaled by eigenvalues
+/// @param[in]  gamma  Tikhonov regularization parameter
+/// @param[out] Z      Part of interaction tensor depending solely on p (concatenated horizontally, mx3n)
+void computeInterPointZ( const Eigen::MatrixXd& B, double gamma, Eigen::MatrixXd& Z );
+
+/// Compute part of interaction tensor depending solely on p.
+/// @param[in]  Bp     Selected rows of shape basis corresponding to point p (3xn)
+/// @param[in]  gamma  Tikhonov regularization parameter
+/// @param[out] Zp     Part of interaction tensor depending solely on p (3x3)
+void computeInterPointZp( const Eigen::MatrixXd& Bp, double gamma, Eigen::MatrixXd& Zp );
 
 }; // namespace ShapeCovariance
 

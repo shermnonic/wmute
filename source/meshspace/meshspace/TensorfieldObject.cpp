@@ -2,8 +2,6 @@
 #include <ShapeCovariance.h>
 #include <cmath>
 
-using ShapeCovariance::computeSampleCovariance;
-
 //-----------------------------------------------------------------------------
 // 	Superquadric helper functions
 //-----------------------------------------------------------------------------
@@ -89,7 +87,8 @@ TensorfieldObject::TensorfieldObject()
 	: m_dirtyFlag     ( CompleteChange ),
 	  m_glyphRes      ( 8  ),  // 16 = high quality
 	  m_glyphSharpness( 3. ),  // 3. is Kindlman default
-	  m_glyphScale    ( .1 )
+	  m_glyphScale    ( .1 ),
+	  m_glyphSqrtEV   ( false )
 {}
 
 void TensorfieldObject::setGlyphPositions( meshtools::Mesh* mesh )
@@ -155,7 +154,8 @@ void TensorfieldObject::createTestScene()
 void TensorfieldObject::deriveTensorsFromPCAModel( const PCAModel& pca )
 {
 	Eigen::MatrixXd S; 
-	computeSampleCovariance( pca.X, S );
+	//ShapeCovariance::computeSampleCovariance( pca.X, S );
+	ShapeCovariance::computeInterPointCovariance( pca.PC * pca.ev.asDiagonal(), 500.0, S );
 	setGlyphPositions( reshape(pca.mu) );
 	deriveTensorsFromCovariance( S );
 }
@@ -336,10 +336,18 @@ void TensorfieldObject::updateVertices( int glyphId )
 	
 	Eigen::Vector3d lambda = m_Lambda.col( glyphId );
 
+	// Sqrt
+	if( m_glyphSqrtEV )
+	{
+		lambda(0) = sqrt(lambda(0));
+		lambda(1) = sqrt(lambda(1));
+		lambda(2) = sqrt(lambda(2));
+	}
+
 	// Clamp scaling
-	lambda(0) = std::max( lambda(0), 0.01 );
-	lambda(1) = std::max( lambda(1), 0.01 );
-	lambda(2) = std::max( lambda(2), 0.01 );
+	lambda(0) = std::max( lambda(0), 0.020 );
+	lambda(1) = std::max( lambda(1), 0.015 );
+	lambda(2) = std::max( lambda(2), 0.010 );
 
 	// Westin'97 barycentric coordinates of eigenvalues
 	double evsum = lambda(0)+lambda(1)+lambda(2),
@@ -376,7 +384,7 @@ void TensorfieldObject::updateVertices( int glyphId )
 			if( (v+n).norm() < (v-n).norm() )
 				v = -v;
 			// Rotate and scale according to spectrum
-			v = m_glyphScale * (R * lambda.asDiagonal() * v);
+			v = 1000.0 * m_glyphScale * (R * lambda.asDiagonal() * v);
 			n = R * lambda.cwiseInverse().asDiagonal() * n;
 			n.normalize();
 

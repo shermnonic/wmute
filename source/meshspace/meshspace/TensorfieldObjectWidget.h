@@ -10,6 +10,7 @@ namespace scene
 }
 class QDoubleSpinBox;
 class QSpinBox;
+class QCheckBox;
 
 /** @addtogroup meshspaceGUI_grp meshspace GUI
   * @{ */
@@ -36,6 +37,7 @@ private:
 	QDoubleSpinBox* m_dsbGlyphScale;
 	QDoubleSpinBox* m_dsbGlyphSharpness;
 	QSpinBox*       m_spbGlyphResolution;
+	QCheckBox*      m_chkGlyphSqrtEV;
 };
 
 /** @} */ // end group

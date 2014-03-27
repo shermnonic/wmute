@@ -44,6 +44,9 @@ public:
 
 	int getGlyphResolution() const { return m_glyphRes; }
 	void setGlyphResolution( int res ) { if( m_glyphRes != res ) m_dirtyFlag |= ResolutionChange; m_glyphRes = res; }
+
+	bool getGlyphSqrtEV() const { return m_glyphSqrtEV; }
+	void setGlyphSqrtEV( bool b ) { if( m_glyphSqrtEV != b ) m_dirtyFlag |= GeometryChange; m_glyphSqrtEV = b; }
 	///@}
 
 	/// Performs required updates on tensor field geometry and coloring.
@@ -82,6 +85,7 @@ private:
 	int m_glyphRes;            ///< Resolution of glyph, i.e. sampling in phi/theta
 	double m_glyphSharpness;   ///< Sharpness of superquadric tensor glyph (gamma)
 	double m_glyphScale;       ///< Glyph scale factor
+	bool   m_glyphSqrtEV;      ///< Scale glyphs by sqrt of eigenvalues
 	Eigen::MatrixXd m_R;       ///< Eigenvectors (3x3 V vectorized in 9x1 column)
 	Eigen::Matrix3Xd m_Lambda; ///< Eigenvalues  (3x1 vectors in columns)
 	Eigen::Matrix3Xd m_pos;    ///< Glyph centers
