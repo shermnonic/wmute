@@ -1,4 +1,7 @@
 #include "ShapeCovariance.h"
+#ifdef USE_OPENMP
+#include <omp.h>
+#endif
 
 namespace ShapeCovariance {
 
@@ -28,15 +31,31 @@ void computeSampleCovariance( const MatrixXd& X, MatrixXd& S  )
 	
 	S.resize( 6, p );
 	
-	// #pragma omp parallel for
+	unsigned counter=0;
+	const int n_update = p / 200;
+	#pragma omp parallel for
 	for( int i=0; i < p; ++i )
 	{
+		#pragma omp atomic
+		counter++;
+
+		// Progress indicator
+	  #ifdef USE_OPENMP
+		const int id = omp_get_thread_num();
+	  #else
+		const int id = 0;
+	  #endif
+		if( id==0 )
+			if( counter%n_update==0 )
+				printf("Computing anatomic covariance %d%% (point %d / %d)\r",(100*counter)/p,counter,p);
+
 		Matrix3d Sigma;
 		sampleCovariance( X.block( 3*i, 0, 3, X.cols() ), Sigma );
 		VectorXd v;
 		vectorizeCovariance( Sigma, v );
 		S.col(i) = v;
-	}	
+	}
+	printf("\n");
 }
 
 void computeSampleCovariance( const MatrixXd& X, std::vector<Matrix3d> S )
@@ -46,12 +65,28 @@ void computeSampleCovariance( const MatrixXd& X, std::vector<Matrix3d> S )
 	int p = (int)X.rows() / 3;
 	
 	S.resize( p );	
-	
+
+	unsigned counter=0;
+	const int n_update = p / 200;
 	#pragma omp parallel for
 	for( int i=0; i < p; ++i )
 	{
+		#pragma omp atomic
+		counter++;
+		
+		// Progress indicator
+	  #ifdef USE_OPENMP
+		const int id = omp_get_thread_num();
+	  #else
+		const int id = 0;
+	  #endif
+		if( id==0 )
+			if( counter%n_update==0 )
+				printf("Computing anatomic covariance %d%% (point %d / %d)\r",(100*counter)/p,counter,p);
+
 		sampleCovariance( X.block( 3*p, 0, 3, X.cols() ), S[i] );
 	}	
+	printf("\n");
 }
 
 void computeInterPointZp( const MatrixXd& Bp, double gamma, MatrixXd& Zp )
@@ -81,10 +116,6 @@ void computeInterPointZ( const MatrixXd& B, double gamma, MatrixXd& Z )
 	}
 }
 
-#ifdef USE_OPENMP
-#include <omp.h>
-#endif
-
 void computeInterPointCovariance( const MatrixXd& B, double gamma, MatrixXd& G )
 {
 	int n = (int)B.rows() / 3;  // Number of 3D vectors	
@@ -100,7 +131,8 @@ void computeInterPointCovariance( const MatrixXd& B, double gamma, MatrixXd& G )
 	{	
 		#pragma omp atomic
 		counter++;
-
+		
+		// Progress indicator
 	  #ifdef USE_OPENMP
 		const int id = omp_get_thread_num();
 	  #else
