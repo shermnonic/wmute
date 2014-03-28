@@ -104,9 +104,16 @@ set( gui_SRCS
 )
 source_group("gui" FILES ${gui_SRCS})
 
+set( other_SRCS
+	Crossvalidate.h
+	Crossvalidate.cpp
+)
+source_group("other" FILES ${other_SRCS})
+
 add_executable( meshspace
 	${scene_SRCS}
 	${gui_SRCS}
+	${other_SRCS}
 	${meshspace_MOC_SRCS}
 	${meshspace_RCC_SRCS}
 	${GLUTILS_SOURCES}

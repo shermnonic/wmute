@@ -5,6 +5,7 @@
 #include "MeshObject.h"
 #include "PCAObject.h"
 #include "TensorfieldObject.h"
+#include "Crossvalidate.h"
 
 #include <qfileinfo.h>
 #include <QListView>
@@ -16,6 +17,7 @@
 #include <QAction>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QInputDialog>
 
 #include <fstream>
 
@@ -56,6 +58,7 @@ SceneViewer::SceneViewer( QWidget* parent )
 	QAction* actComputeDistance = new QAction(tr("Compute closest point distance"),this);
 	QAction* actComputePCA = new QAction(tr("Derive PCA model from current mesh buffer"),this);
 	QAction* actComputeCovariance = new QAction(tr("Derive covariance tensor field from current PCA model"),this);
+	QAction* actCrossvalidate = new QAction(tr("Cross-validate gamma on current PCA model"),this);
 
 	QAction* actExportMatrix = new QAction(tr("Export current mesh vertex matrix as text file"),this);
 	QAction* actImportMatrix = new QAction(tr("Import mesh vertex matrix, replacing vertices of current mesh"),this);
@@ -66,6 +69,7 @@ SceneViewer::SceneViewer( QWidget* parent )
 	connect( actComputeDistance, SIGNAL(triggered()), this, SLOT(computeDistance()) );
 	connect( actComputePCA, SIGNAL(triggered()), this, SLOT(computePCA()) );
 	connect( actComputeCovariance, SIGNAL(triggered()), this, SLOT(computeCovariance()) );
+	connect( actCrossvalidate, SIGNAL(triggered()), this, SLOT(computeCrossValidation()) );
 	connect( actExportMatrix, SIGNAL(triggered()), this, SLOT(exportMatrix()) );
 	connect( actImportMatrix, SIGNAL(triggered()), this, SLOT(importMatrix()) );	
 
@@ -77,6 +81,7 @@ SceneViewer::SceneViewer( QWidget* parent )
 	m_actions.push_back( actImportMatrix );
 	m_actions.push_back( actComputePCA );
 	m_actions.push_back( actComputeCovariance );
+	m_actions.push_back( actCrossvalidate );
 }
 
 QWidget* SceneViewer::getInspector()
@@ -872,23 +877,110 @@ void SceneViewer::computeCovariance()
 	using scene::PCAObject;
 	using scene::TensorfieldObject;
 
+	// Get PCA object, if not available create demo scene
 	PCAObject* pco = dynamic_cast<PCAObject*>( currentMeshObject() );
 	if( !pco )
 	{
-#if 1
+		// Create demo scene (Westin triangle)
 		TensorfieldObject* tfo = new TensorfieldObject;
 		tfo->createTestScene();
 		tfo->setName( "Covariance tensor Westin triangle" );
 		addMeshObject( (MeshObject*)tfo );
-#endif
 		return;
 	}
 
+	// Ask for tensor mode
+	QStringList modes;
+	modes << "Anatomic covariance" 
+		  << "Inter-point covariance"
+	      << "Inter-point covariance (unweighted)";
+	bool ok;
+	QString mode_s = QInputDialog::getItem( this, tr("Tensor field options"),
+		tr("Choose type of tensor field"), modes, 0, false, &ok );
+	if( !ok ) // User cancelled?
+		return;
+
+	int mode;
+	if( mode_s == modes.at(0) ) mode = TensorfieldObject::AnatomicCovariance; else
+	if( mode_s == modes.at(1) ) mode = TensorfieldObject::InterPointCovariance; else
+	if( mode_s == modes.at(2) ) mode = TensorfieldObject::InterPointCovarianceUnweighted;
+	else
+	{
+		// Should never happen
+		qDebug() << "SceneViewer::computeCovariance() : mismatching tensor mode?!";
+		return;
+	}
+
+	// Ask inter-point covariance specific parameters
+	double gamma=0.0;
+	double scale=1.0;
+	if( mode>0 )	
+	{
+		gamma = QInputDialog::getDouble( this, tr("Tensor field options"),
+		tr("Specify regularization parameter gamma"), 100.0, 0.001, 2147483647.0, 1, &ok );
+		if( !ok ) // User cancelled?
+			return;
+
+		scale = QInputDialog::getDouble( this, tr("Tensor field options"),
+		tr("Specify scale factor for inter-point tensor"), 1.0, 0.0000001, 2147483647.0, 7, &ok );
+		if( !ok ) // User cancelled?
+			return;
+	}
+
+	// Create tensorfield object
 	TensorfieldObject* tfo = new TensorfieldObject;
-	tfo->deriveTensorsFromPCAModel( pco->getPCAModel() );
-	
-	tfo->setName( std::string("Covariance tensors of ") + pco->getName() );
+	tfo->deriveTensorsFromPCAModel( pco->getPCAModel(), mode, gamma );	
+	tfo->setName( modes.at(mode).toStdString() + std::string(" of ") + pco->getName() );
 
 	addMeshObject( (MeshObject*)tfo );
 }
 
+void SceneViewer::computeCrossValidation()
+{
+	using scene::MeshObject;
+	using scene::PCAObject;
+
+	PCAObject* pco = dynamic_cast<PCAObject*>( currentMeshObject() );
+	if( !pco )
+		return;
+
+	// FIXME: Hard-coded test
+	unsigned numSamples = 17;
+	std::vector<double> gamma( numSamples ), 
+		                error,
+						baseline;
+	gamma[ 0] = 10000000;
+	gamma[ 1] =  5000000;
+	gamma[ 2] =  2000000;
+	gamma[ 3] =  1500000;
+	gamma[ 4] =  1200000;
+	gamma[ 5] =  1000000;
+	gamma[ 6] =   800000;
+	gamma[ 7] =   500000;
+	gamma[ 8] =   200000;
+	gamma[ 9] =    50000;
+	gamma[10] =    10000;
+	gamma[11] =     2000;
+	gamma[12] =      500;
+	gamma[13] =       50;
+	gamma[14] =       10;
+	gamma[15] =        1;
+	gamma[16] =        0.1;
+
+	// HACK: Assemble data matrix from PCA model
+	Eigen::MatrixXd X = pco->getPCAModel().X;
+	for( unsigned col=0; col < X.cols(); col++ )
+		X.col(col) += pco->getPCAModel().mu;
+
+	// Perform cross validation (expensive!)
+	crossvalidate( X, gamma, error, baseline );
+
+	// Print results
+	using namespace std;
+	cout << "Cross-validation result:" << endl;
+	for( unsigned i=0; i < error.size(); i++ )
+		cout << gamma[i] << ", " << error[i] << endl;	
+	cout << "Baseline error:" << endl;
+	for( unsigned i=0; i < baseline.size(); i++ )
+		cout << baseline[i] << endl;
+}

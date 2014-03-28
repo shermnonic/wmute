@@ -81,6 +81,10 @@ void computeInterPointZ( const MatrixXd& B, double gamma, MatrixXd& Z )
 	}
 }
 
+#ifdef USE_OPENMP
+#include <omp.h>
+#endif
+
 void computeInterPointCovariance( const MatrixXd& B, double gamma, MatrixXd& G )
 {
 	int n = (int)B.rows() / 3;  // Number of 3D vectors	
@@ -89,9 +93,23 @@ void computeInterPointCovariance( const MatrixXd& B, double gamma, MatrixXd& G )
 	G.resize( 6, n );
 	
 	// Compute overview tensor
+	unsigned counter=0;
+	const int n_update = n / 200;
 	#pragma omp parallel for
 	for( int p=0; p < n; ++p )
 	{	
+		#pragma omp atomic
+		counter++;
+
+	  #ifdef USE_OPENMP
+		const int id = omp_get_thread_num();
+	  #else
+		const int id = 0;
+	  #endif
+		if( id==0 )
+			if( counter%n_update==0 )
+				printf("Computing inter-point covariance %d%% (point %d / %d)\r",(100*counter)/n,counter,n);
+
 		// Precompute part of interaction tensor depending solely on p
 		MatrixXd Zp;
 		computeInterPointZp( B.block( 3*p, 0, 3, B.cols() ), gamma, Zp );
@@ -113,6 +131,7 @@ void computeInterPointCovariance( const MatrixXd& B, double gamma, MatrixXd& G )
 		vectorizeCovariance( Gp, v );
 		G.col(p) = v;
 	}
+	printf("\n");
 }
 
 }; // namespace ShapeCovariance

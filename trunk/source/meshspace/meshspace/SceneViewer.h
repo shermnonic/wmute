@@ -79,9 +79,12 @@ protected slots:
 	void selectNone();
 	void reloadShaders();
 	void selectFrontFaces(bool);
+
 	void computeDistance();
 	void computePCA();
 	void computeCovariance();
+	void computeCrossValidation();
+
 	void exportMatrix();
 	void importMatrix();
 	
