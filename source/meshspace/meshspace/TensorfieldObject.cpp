@@ -151,13 +151,71 @@ void TensorfieldObject::createTestScene()
 	updateTensorfield();
 }
 
-void TensorfieldObject::deriveTensorsFromPCAModel( const PCAModel& pca )
+void TensorfieldObject::deriveTensorsFromPCAModel( const PCAModel& pca,  int mode, double gamma, double scale )
 {
-	Eigen::MatrixXd S; 
-	//ShapeCovariance::computeSampleCovariance( pca.X, S );
-	ShapeCovariance::computeInterPointCovariance( pca.PC * pca.ev.asDiagonal(), 500.0, S );
+	using ShapeCovariance::computeInterPointCovariance;
+	using ShapeCovariance::computeSampleCovariance;
+	using ShapeCovariance::devectorizeCovariance;
+	using ShapeCovariance::vectorizeCovariance;
+
+	// Sanity check
+	if( mode == InterPointCovarianceUnweighted ||
+		mode == InterPointCovariance )
+	{
+		if( gamma <= 0.0 )	
+			std::cerr << "TensorfieldObject::deriveTensorsFromPCAModel(): "
+			  "For inter-point covariance a gamma value > 0.0 has to be "
+			  "specified!" << std::endl;
+	}
+
+	// For all modes we place glyph at vertex positions of mean shape
 	setGlyphPositions( reshape(pca.mu) );
-	deriveTensorsFromCovariance( S );
+
+	if( mode == AnatomicCovariance )
+	{
+		Eigen::MatrixXd S;
+		computeSampleCovariance( pca.X, S );
+		m_glyphSqrtEV = false;
+		deriveTensorsFromCovariance( S );
+	}
+	else
+	if( mode == InterPointCovarianceUnweighted )
+	{
+		Eigen::MatrixXd G;
+		computeInterPointCovariance( pca.PC * pca.ev.asDiagonal(), gamma, G );
+		G *= scale;
+		m_glyphSqrtEV = false;
+		deriveTensorsFromCovariance( G );
+	}
+	else
+	if( mode == InterPointCovariance )
+	{
+		Eigen::MatrixXd S, G;
+		computeSampleCovariance( pca.X, S );
+		computeInterPointCovariance( pca.PC * pca.ev.asDiagonal(), gamma, G );
+		G *= scale;
+
+		// Weight inter-point with global covariance tensors
+		for( unsigned p=0; p < G.cols(); p++ )
+		{
+			// Extract tensors at point p
+			Eigen::Matrix3d Sp, Gp;
+			devectorizeCovariance( S.col(p), Sp );
+			devectorizeCovariance( G.col(p), Gp );
+
+			// Weight inter-point G with global S tensor
+			Eigen::Matrix3d W;
+			W = Sp.transpose() * Gp * Sp;
+
+			// Write result to G
+			Eigen::VectorXd w;
+			vectorizeCovariance( W, w );
+			G.col(p) = w;
+		}
+
+		m_glyphSqrtEV = true;
+		deriveTensorsFromCovariance( G );
+	}
 }
 
 void TensorfieldObject::deriveTensorsFromCovariance( const Eigen::MatrixXd& S )
@@ -384,7 +442,7 @@ void TensorfieldObject::updateVertices( int glyphId )
 			if( (v+n).norm() < (v-n).norm() )
 				v = -v;
 			// Rotate and scale according to spectrum
-			v = 1000.0 * m_glyphScale * (R * lambda.asDiagonal() * v);
+			v = m_glyphScale * (R * lambda.asDiagonal() * v);
 			n = R * lambda.cwiseInverse().asDiagonal() * n;
 			n.normalize();
 

@@ -22,10 +22,16 @@ class TensorfieldObject : public MeshObject
 	};
 
 public:
+	enum TensorMode {
+		AnatomicCovariance,
+		InterPointCovariance,
+		InterPointCovarianceUnweighted
+	};
+
 	TensorfieldObject();
 
-	// Internally calls deriveTensorsFromPCAModel() and setGlyphPositions()
-	void deriveTensorsFromPCAModel( const PCAModel& pca );
+	// Internally calls deriveTensorsFromCovariance() and setGlyphPositions()
+	void deriveTensorsFromPCAModel( const PCAModel& pca, int mode=AnatomicCovariance, double gamma=0.0, double scale=1.0 );
 
 	void createTestScene();
 
