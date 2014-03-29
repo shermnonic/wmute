@@ -70,6 +70,7 @@ public slots:
 protected slots:
 	void updateModel();
 	void updateScene();
+	void updateBoundingBox();
 	void onModelItemChanged( QStandardItem* );
 	void selectModelItem( const QModelIndex& );
 	void selectModelItem( const QModelIndex& current, const QModelIndex& /*previous*/ );
@@ -84,6 +85,8 @@ protected slots:
 	void computePCA();
 	void computeCovariance();
 	void computeCrossValidation();
+
+	void loadCovariance();
 
 	void exportMatrix();
 	void importMatrix();

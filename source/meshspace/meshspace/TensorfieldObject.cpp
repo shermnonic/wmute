@@ -1,6 +1,7 @@
 #include "TensorfieldObject.h"
 #include <ShapeCovariance.h>
 #include <cmath>
+#include <fstream>
 
 //-----------------------------------------------------------------------------
 // 	Superquadric helper functions
@@ -149,6 +150,102 @@ void TensorfieldObject::createTestScene()
 	// Create tensor glyphs
 	m_dirtyFlag = CompleteChange;
 	updateTensorfield();
+
+	// Create tensor field data (e.g. for debugging IO code)
+	m_tensorField.resize( 6, n );
+	for( int i=0; i < n; i++ )
+	{
+		// Make use of constant rotation R
+		// Generate a symmetric matrix with decomposition R*Lambda*R'
+		Eigen::MatrixXd T = R * m_Lambda.col(i).asDiagonal() * R.transpose();
+		Eigen::VectorXd v;
+		ShapeCovariance::vectorizeCovariance( T, v );
+		m_tensorField.col(i) = v;
+	}
+}
+
+void TensorfieldObject::saveTensorfield( std::string filename )
+{
+	using namespace std;
+	ofstream of( filename, ios_base::binary );
+	if( !of.is_open() )
+	{
+		cerr << "TensorfieldObject::saveTensorfield() : Could not open " 
+			 << filename << endl;
+		return;
+	}
+
+	// FOR DEBUGGING
+	double* ptr_pos = (double*)m_pos.data();
+	double* ptr_S   = (double*)m_tensorField.data();
+
+	const char magic[] = "TENSORFIELD";	
+	unsigned nrows = (unsigned)m_tensorField.rows(),
+		     ncols = (unsigned)m_tensorField.cols(),
+			 npts  = (unsigned)m_pos.cols();
+
+	of.write( magic, sizeof(magic) );
+	of.write( (char*)&nrows, sizeof(unsigned) );
+	of.write( (char*)&ncols, sizeof(unsigned) );
+	of.write( (char*)&npts, sizeof(unsigned) );
+	of.write( (char*)m_tensorField.data(), sizeof(double)*nrows*ncols );
+	of.write( (char*)m_pos.data(), sizeof(double)*3*npts );
+	of.close();
+}
+
+bool TensorfieldObject::loadTensorfield( std::string filename )
+{
+	using namespace std;
+	ifstream f( filename, ios_base::binary );
+	if( !f.is_open() )
+	{
+		cerr << "TensorfieldObject::loadTensorfield() : Could not open " 
+			 << filename << endl;
+		return false;
+	}
+
+	// Read header
+	char magic[] = "TENSORFIELD";
+	unsigned nrows,
+		     ncols,
+			 npts;
+
+	f.read( magic, sizeof(magic) );
+	if( string(magic) != string("TENSORFIELD") )
+	{
+		cerr << "TensorfieldObject::loadTensorfield() : " << filename 
+			 << "is not a valid TENSORFIELD file!" << endl;
+		return false;
+	}
+
+	f.read( (char*)&nrows, sizeof(unsigned) );
+	f.read( (char*)&ncols, sizeof(unsigned) );
+	f.read( (char*)&npts,  sizeof(unsigned) );
+
+	// Read tensor matrix
+#if 1 // DIRECT READ
+	Eigen::MatrixXd S; S.resize( nrows, ncols );
+	f.read( (char*)S.data(), sizeof(double)*nrows*ncols );	
+#else // BUFFERED READ
+	double* Sd = new double[nrows*ncols];
+	f.read( (char*)Sd, sizeof(double)*nrows*ncols );
+	Eigen::MatrixXd S = Eigen::Map<Eigen::MatrixXd>( Sd, nrows, ncols );
+#endif
+
+	// Read glyph positions (if included)
+	Eigen::Matrix3Xd pos; pos.resize(3,npts);
+	f.read( (char*)pos.data(), sizeof(double)*3*npts );	
+	f.close();
+
+	// FOR DEBUGGING
+	double* ptr_pos = (double*)pos.data();
+	double* ptr_S   = (double*)S.data();
+
+	// Update visualization
+	setGlyphPositions( pos );
+	deriveTensorsFromCovariance( S );
+
+	return true;
 }
 
 void TensorfieldObject::deriveTensorsFromPCAModel( const PCAModel& pca,  int mode, double gamma, double scale )
@@ -221,7 +318,11 @@ void TensorfieldObject::deriveTensorsFromPCAModel( const PCAModel& pca,  int mod
 void TensorfieldObject::deriveTensorsFromCovariance( const Eigen::MatrixXd& S )
 {
 	using ShapeCovariance::devectorizeCovariance;
+
+	// Store input tensor field
+	m_tensorField = S;
 	
+	// Variables
 	int n = (int)S.cols();
 	
 	m_R     .resize( 9, n );
@@ -230,8 +331,14 @@ void TensorfieldObject::deriveTensorsFromCovariance( const Eigen::MatrixXd& S )
 	int countFixedRotations = 0;
 	
 	// Compute spectrum
+	int n_update = n / 200;
 	for( int i=0; i < n; ++i )
 	{
+		// Progress info
+		if( n_update>0 && (i%n_update == 0 || i==n-1) )
+			std::cout << "Computing tensor spectrum " << (100*i/(n-1)) << "% "
+				"(point " << i+1 << " / " << n << ") \r";
+
 		// SVD
 		Eigen::Matrix3d Sigma;
 		devectorizeCovariance( S.col(i), Sigma );
@@ -257,6 +364,7 @@ void TensorfieldObject::deriveTensorsFromCovariance( const Eigen::MatrixXd& S )
 		// Store scaling
 		m_Lambda.col(i) = svd.singularValues().cwiseSqrt();
 	}
+	std::cout << std::endl;
 
 	if( countFixedRotations > 0 )
 		std::cout << "Fixed " << countFixedRotations << " rotation matrices" << std::endl;

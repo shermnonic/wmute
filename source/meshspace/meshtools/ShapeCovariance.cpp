@@ -47,7 +47,7 @@ void computeSampleCovariance( const MatrixXd& X, MatrixXd& S  )
 	  #endif
 		if( id==0 )
 			if( counter%n_update==0 )
-				printf("Computing anatomic covariance %d%% (point %d / %d)\r",(100*counter)/p,counter,p);
+				printf("Computing anatomic covariance %d%% (point %d / %d)\r",(100*counter)/(p-1),counter+1,p);
 
 		Matrix3d Sigma;
 		sampleCovariance( X.block( 3*i, 0, 3, X.cols() ), Sigma );
@@ -82,7 +82,7 @@ void computeSampleCovariance( const MatrixXd& X, std::vector<Matrix3d> S )
 	  #endif
 		if( id==0 )
 			if( counter%n_update==0 )
-				printf("Computing anatomic covariance %d%% (point %d / %d)\r",(100*counter)/p,counter,p);
+				printf("Computing anatomic covariance %d%% (point %d / %d)\r",(100*counter)/(p-1),counter+1,p);
 
 		sampleCovariance( X.block( 3*p, 0, 3, X.cols() ), S[i] );
 	}	
@@ -140,7 +140,7 @@ void computeInterPointCovariance( const MatrixXd& B, double gamma, MatrixXd& G )
 	  #endif
 		if( id==0 )
 			if( counter%n_update==0 )
-				printf("Computing inter-point covariance %d%% (point %d / %d)\r",(100*counter)/n,counter,n);
+				printf("Computing inter-point covariance %d%% (point %d / %d)\r",(100*counter)/(n-1),counter+1,n);
 
 		// Precompute part of interaction tensor depending solely on p
 		MatrixXd Zp;

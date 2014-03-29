@@ -18,6 +18,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QInputDialog>
+#include <QFileInfo>
 
 #include <fstream>
 
@@ -58,6 +59,7 @@ SceneViewer::SceneViewer( QWidget* parent )
 	QAction* actComputeDistance = new QAction(tr("Compute closest point distance"),this);
 	QAction* actComputePCA = new QAction(tr("Derive PCA model from current mesh buffer"),this);
 	QAction* actComputeCovariance = new QAction(tr("Derive covariance tensor field from current PCA model"),this);
+	QAction* actLoadCovariance = new QAction(tr("Load covariance tensor field from disk"),this);
 	QAction* actCrossvalidate = new QAction(tr("Cross-validate gamma on current PCA model"),this);
 
 	QAction* actExportMatrix = new QAction(tr("Export current mesh vertex matrix as text file"),this);
@@ -69,6 +71,7 @@ SceneViewer::SceneViewer( QWidget* parent )
 	connect( actComputeDistance, SIGNAL(triggered()), this, SLOT(computeDistance()) );
 	connect( actComputePCA, SIGNAL(triggered()), this, SLOT(computePCA()) );
 	connect( actComputeCovariance, SIGNAL(triggered()), this, SLOT(computeCovariance()) );
+	connect( actLoadCovariance, SIGNAL(triggered()), this, SLOT(loadCovariance()) );
 	connect( actCrossvalidate, SIGNAL(triggered()), this, SLOT(computeCrossValidation()) );
 	connect( actExportMatrix, SIGNAL(triggered()), this, SLOT(exportMatrix()) );
 	connect( actImportMatrix, SIGNAL(triggered()), this, SLOT(importMatrix()) );	
@@ -81,6 +84,7 @@ SceneViewer::SceneViewer( QWidget* parent )
 	m_actions.push_back( actImportMatrix );
 	m_actions.push_back( actComputePCA );
 	m_actions.push_back( actComputeCovariance );
+	m_actions.push_back( actLoadCovariance );	
 	m_actions.push_back( actCrossvalidate );
 }
 
@@ -372,14 +376,8 @@ void SceneViewer::addMeshObject( scene::MeshObject* so )
 	updateModel();
 
 	// Update camera to show the whole scene
-	scene::BoundingBox bbox = m_scene.getBoundingBox();
-	setSceneBoundingBox( qglviewer::Vec(bbox.min[0],bbox.min[1],bbox.min[2]),
-	                     qglviewer::Vec(bbox.max[0],bbox.max[1],bbox.max[2]) );
+	updateBoundingBox();
 	camera()->showEntireScene();
-	
-	// Debug info
-	std::cout << "Bounding box of " << so->getName() << std::endl;
-	bbox.print();
 
 	// Auto-select the last added object
 	QModelIndex selection = m_model.item( m_model.rowCount()-1 )->index();
@@ -390,6 +388,16 @@ void SceneViewer::addMeshObject( scene::MeshObject* so )
 
 	// Force redraw
 	updateGL();
+}
+
+void SceneViewer::updateBoundingBox()
+{
+	scene::BoundingBox bbox = m_scene.getBoundingBox();
+	setSceneBoundingBox( qglviewer::Vec(bbox.min[0],bbox.min[1],bbox.min[2]),
+	                     qglviewer::Vec(bbox.max[0],bbox.max[1],bbox.max[2]) );	
+	
+	// Debug info
+	std::cout << "Scene bounding box : "; bbox.print();
 }
 
 scene::MeshObject* SceneViewer::addMesh( meshtools::Mesh* mesh_, QString name )
@@ -931,6 +939,36 @@ void SceneViewer::computeCovariance()
 	TensorfieldObject* tfo = new TensorfieldObject;
 	tfo->deriveTensorsFromPCAModel( pco->getPCAModel(), mode, gamma );	
 	tfo->setName( modes.at(mode).toStdString() + std::string(" of ") + pco->getName() );
+
+	addMeshObject( (MeshObject*)tfo );
+}
+
+void SceneViewer::loadCovariance()
+{
+	using scene::TensorfieldObject;
+	using scene::MeshObject;
+
+	// Duplicate code from TensorfieldObjectWidget::loadTensors()!
+
+	// Ask for filename
+	QString filename = 
+		QFileDialog::getOpenFileName( this, tr("Load tensor field"), "",
+		tr("Tensor field matrix (*.tensorfield)") );
+	if( filename.isEmpty() ) // User cancelled ?
+		return;
+
+	// Create tensorfield object
+	TensorfieldObject* tfo = new TensorfieldObject;
+	if( !tfo->loadTensorfield( filename.toStdString() ) )
+	{
+		QMessageBox::warning( this, tr("Error loading tensor field"),
+			tr("Could not load a valid tensor field from \"%1\"!")
+			.arg(filename) );
+		delete tfo;
+		return;
+	}
+	QFileInfo fi( filename );
+	tfo->setName( fi.baseName().toStdString() );
 
 	addMeshObject( (MeshObject*)tfo );
 }
