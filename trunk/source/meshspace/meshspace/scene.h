@@ -65,8 +65,7 @@ struct BoundingBox
 
 	void print( std::ostream& os=std::cout ) const
 	{
-		os << "Scene bounding box = "
-		   << "(" << min[0] << "," << min[1] << "," << min[2] << ") - "
+		os << "(" << min[0] << "," << min[1] << "," << min[2] << ") - "
 		   << "(" << max[0] << "," << max[1] << "," << max[2] << ")" << std::endl;
 	}
 

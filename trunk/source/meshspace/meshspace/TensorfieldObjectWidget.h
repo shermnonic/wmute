@@ -11,6 +11,7 @@ namespace scene
 class QDoubleSpinBox;
 class QSpinBox;
 class QCheckBox;
+class QPushButton;
 
 /** @addtogroup meshspaceGUI_grp meshspace GUI
   * @{ */
@@ -31,6 +32,9 @@ public:
 protected slots:
 	void updateMaster();
 
+	void loadTensors();
+	void saveTensors();
+
 private:
 	scene::TensorfieldObject* m_master;
 
@@ -38,6 +42,8 @@ private:
 	QDoubleSpinBox* m_dsbGlyphSharpness;
 	QSpinBox*       m_spbGlyphResolution;
 	QCheckBox*      m_chkGlyphSqrtEV;
+	QPushButton*    m_butLoadTensors;
+	QPushButton*    m_butSaveTensors;
 };
 
 /** @} */ // end group

@@ -5,6 +5,8 @@
 #include <ShapePCA.h>  // for PCAModel
 #include "MeshObject.h"
 
+#include <string>
+
 namespace scene {
 	
 //-----------------------------------------------------------------------------
@@ -58,6 +60,11 @@ public:
 	/// Performs required updates on tensor field geometry and coloring.
 	void updateTensorfield();
 
+	///@{ Tensorfield IO
+	void saveTensorfield( std::string filename );
+	bool loadTensorfield( std::string filename );
+	///@}
+
 protected:
 	// Called by deriveTensorsFromPCAModel()
 	void deriveTensorsFromCovariance( const Eigen::MatrixXd& S );	
@@ -95,6 +102,8 @@ private:
 	Eigen::MatrixXd m_R;       ///< Eigenvectors (3x3 V vectorized in 9x1 column)
 	Eigen::Matrix3Xd m_Lambda; ///< Eigenvalues  (3x1 vectors in columns)
 	Eigen::Matrix3Xd m_pos;    ///< Glyph centers
+
+	Eigen::MatrixXd m_tensorField; ///< Input tensorfield
 };
 
 } // namespace scene 

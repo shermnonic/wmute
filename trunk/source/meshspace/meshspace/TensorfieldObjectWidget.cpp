@@ -1,11 +1,14 @@
 #include "TensorfieldObjectWidget.h"
 #include "TensorfieldObject.h"
 #include <QDoubleSpinBox>
-#include <QSpinBox>
+#include <QPushButton>
 #include <QCheckBox>
+#include <QSpinBox>
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QGridLayout>
+#include <QFileDialog>
+#include <QMessageBox>
 
 using scene::TensorfieldObject;
 
@@ -13,8 +16,8 @@ TensorfieldObjectWidget::TensorfieldObjectWidget( QWidget* parent )
 : QWidget( parent )
 {
 	m_dsbGlyphScale = new QDoubleSpinBox;
-	m_dsbGlyphScale->setRange( 0.01, 10. );
-	m_dsbGlyphScale->setSingleStep( 0.01 );
+	m_dsbGlyphScale->setRange( 0.01, 1000. );
+	m_dsbGlyphScale->setSingleStep( 0.5 );
 	QLabel* lblGlyphScale = new QLabel(tr("Glyph scale"));
 	lblGlyphScale->setBuddy( m_dsbGlyphScale );
 	
@@ -33,6 +36,9 @@ TensorfieldObjectWidget::TensorfieldObjectWidget( QWidget* parent )
 	m_chkGlyphSqrtEV = new QCheckBox;
 	QLabel* lblGlyphSqrtEV = new QLabel(tr("Scale eigenvalues by sqrt"));
 	lblGlyphSqrtEV->setBuddy( m_chkGlyphSqrtEV );
+
+	m_butLoadTensors = new QPushButton(tr("Load tensor field"));
+	m_butSaveTensors = new QPushButton(tr("Save tensor field"));
 	
 	QGridLayout* l1 = new QGridLayout;
 	int row=0;
@@ -44,8 +50,13 @@ TensorfieldObjectWidget::TensorfieldObjectWidget( QWidget* parent )
 	l1->addWidget( m_spbGlyphResolution, row,1 ); row++;
 	l1->addWidget( lblGlyphSqrtEV      , row,0 );
 	l1->addWidget( m_chkGlyphSqrtEV    , row,1 ); row++;
+	l1->addWidget( m_butLoadTensors    , row,0, 1,2 ); row++;
+	l1->addWidget( m_butSaveTensors    , row,0, 1,2 ); row++;
 	
 	setLayout( l1 );
+
+	connect( m_butLoadTensors, SIGNAL(clicked()), this, SLOT(loadTensors()) );
+	connect( m_butSaveTensors, SIGNAL(clicked()), this, SLOT(saveTensors()) );
 }
 
 void TensorfieldObjectWidget::setMaster( TensorfieldObject* master )
@@ -90,3 +101,38 @@ void TensorfieldObjectWidget::updateMaster()
 
 	emit redrawRequired();
 }
+
+void TensorfieldObjectWidget::loadTensors()
+{
+	if( !m_master ) return;
+
+	// Ask for filename
+	QString filename = 
+		QFileDialog::getOpenFileName( this, tr("Load tensor field"), "",
+		tr("Tensor field matrix (*.tensorfield)") );
+	if( filename.isEmpty() ) // User cancelled ?
+		return;
+
+	if( !m_master->loadTensorfield( filename.toStdString() ) )
+	{
+		QMessageBox::warning( this, tr("Error loading tensor field"),
+			tr("Could not load a valid tensor field from \"%1\"!")
+			.arg(filename) );
+		return;
+	}
+}
+
+void TensorfieldObjectWidget::saveTensors()
+{
+	if( !m_master ) return;
+
+	// Ask for filename
+	QString filename =
+		QFileDialog::getSaveFileName( this, tr("Save tensor field"), "",
+		tr("Tensor field matrix (*.tensorfield)") );
+	if( filename.isEmpty() ) // User cancelled ?
+		return;
+
+	m_master->saveTensorfield( filename.toStdString() );
+}
+
