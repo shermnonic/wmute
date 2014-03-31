@@ -86,6 +86,7 @@ namespace scene {
 
 TensorfieldObject::TensorfieldObject()
 	: m_dirtyFlag     ( CompleteChange ),
+	  m_colorMode     ( ColorByFractionalAnisotropy ),
 	  m_glyphRes      ( 8  ),  // 16 = high quality
 	  m_glyphSharpness( 3. ),  // 3. is Kindlman default
 	  m_glyphScale    ( .1 ),
@@ -164,6 +165,51 @@ void TensorfieldObject::createTestScene()
 	}
 }
 
+void TensorfieldObject::exportTensorfieldAsNrrd( std::string path, std::string basename, MeshBuffer* mb )
+{
+	using namespace std;
+
+	string filename      = basename + ".nrrd",
+		   filename_raw  = basename + ".raw",
+	       filename_mesh = basename + "-mesh.lmpd";
+
+	// Write header file (.nrrd)
+	ofstream hf( path + "/" + filename );
+	if( !hf.is_open() )
+	{
+		cerr << "TensorfieldObject::exportTensorfieldAsNrrd() : Could not open " 
+			 << filename << endl;
+		return;	
+	}
+
+	hf << "NRRD0002" << endl
+	   << "type: double" << endl
+	   << "dimension: 3" << endl
+	   << "sizes: " << m_tensorField.rows() << " " << m_tensorField.cols() << endl
+	   << "endian: little" << endl
+	   << "encoding: raw" << endl
+	   << "data file: ./" << filename_raw << endl
+	   << "DATA_LIMN:=" << filename_mesh << endl
+	   << "DATA_NAME_0000:=" << basename << endl
+	   << "DATA_TYPE_0000:=tensor" << endl;
+	hf.close();
+
+	// Write raw data file with tensors (.raw)
+	ofstream rf( path + "/" + filename_raw, ios_base::binary );
+	if( !rf.is_open() )
+	{
+		cerr << "TensorfieldObject::exportTensorfieldAsNrrd() : Could not open " 
+			 << filename_raw << endl;
+		return;	
+	}
+	rf.write( (char*)m_tensorField.data(), m_tensorField.cols()*m_tensorField.rows()*sizeof(double) );
+	rf.close();
+
+	// Write mesh data
+	if( !mb )
+		return;
+}
+
 void TensorfieldObject::saveTensorfield( std::string filename )
 {
 	using namespace std;
@@ -223,14 +269,8 @@ bool TensorfieldObject::loadTensorfield( std::string filename )
 	f.read( (char*)&npts,  sizeof(unsigned) );
 
 	// Read tensor matrix
-#if 1 // DIRECT READ
 	Eigen::MatrixXd S; S.resize( nrows, ncols );
-	f.read( (char*)S.data(), sizeof(double)*nrows*ncols );	
-#else // BUFFERED READ
-	double* Sd = new double[nrows*ncols];
-	f.read( (char*)Sd, sizeof(double)*nrows*ncols );
-	Eigen::MatrixXd S = Eigen::Map<Eigen::MatrixXd>( Sd, nrows, ncols );
-#endif
+	f.read( (char*)S.data(), sizeof(double)*nrows*ncols );
 
 	// Read glyph positions (if included)
 	Eigen::Matrix3Xd pos; pos.resize(3,npts);
@@ -573,25 +613,67 @@ int imod( int a, int b )
 
 void TensorfieldObject::updateColor( int glyphId )
 {
-	Eigen::Vector3d lambda = m_Lambda.col( glyphId );
-	
-	// Mean diffusivity
-	double tr = lambda(0) + lambda(1) + lambda(2);
-	double mu = tr / 3.;
-	
-	// Fractional anisotropy
-	double FA = sqrt( 3.*((lambda(0)-mu)*(lambda(0)-mu) + (lambda(1)-mu)*(lambda(1)-mu) + (lambda(2)-mu)*(lambda(2)-mu))
-	            / (2.*tr*tr) );
-	
-	// Assign FA as scalar attribute to all vertices of given glyph
-	int ofs = glyphId*numGlyphVertices(); // Index of first vertex in scalar buffer 
-	for( int i=0; i < numGlyphVertices(); ++i )
+	if( m_colorMode==ColorByFractionalAnisotropy )
 	{
-		scalars()[ ofs + i ] = (float)FA;
-	}
+		Eigen::Vector3d lambda = m_Lambda.col( glyphId );
 	
-	// FA is normalized in [0,1]
-	setScalarShiftScale( 0, 1 );
+		// Mean diffusivity
+		double tr = lambda(0) + lambda(1) + lambda(2);
+		double mu = tr / 3.;
+	
+		// Fractional anisotropy
+		double FA = sqrt( 3.*((lambda(0)-mu)*(lambda(0)-mu) + (lambda(1)-mu)*(lambda(1)-mu) + (lambda(2)-mu)*(lambda(2)-mu))
+					/ (2.*tr*tr) );
+	
+		// Assign FA as scalar attribute to all vertices of given glyph
+		int ofs = glyphId*numGlyphVertices(); // Index of first vertex in scalar buffer 
+		for( int i=0; i < numGlyphVertices(); ++i )
+		{
+			scalars()[ ofs + i ] = (float)FA;
+		}
+	
+		// FA is normalized in [0,1]
+		setScalarShiftScale( 0.f, 1.f );
+	}
+	else
+	if( m_colorMode==ColorByCluster )
+	{
+		// Sanity
+		unsigned clusterIdx=0;
+		if( m_clusterIndices.size() != m_pos.cols() )
+			std::cerr << "TensorfieldObject::updateColor() : "
+				"Mismatch between cluster indices and sample points!" << std::endl;
+		else
+			clusterIdx = m_clusterIndices.at(glyphId);
+
+		int ofs = glyphId*numGlyphVertices(); // Index of first vertex in scalar buffer 
+		for( int i=0; i < numGlyphVertices(); ++i )
+		{
+			scalars()[ ofs + i ] = (float)clusterIdx;
+		}
+
+		if( m_numClusters > 0 )
+			setScalarShiftScale( 0.f, 1.f/(float)m_numClusters );
+		else
+			setScalarShiftScale( 0.f, 1.f );
+	}
+	else
+	{
+		std::cerr << "TensorfieldObject::updateColor() : Unknown color mode!" << std::endl;
+	}
+}
+
+void TensorfieldObject::setClusters( const std::vector<unsigned int>& indices, unsigned numClusters )
+{
+	m_clusterIndices = indices;
+	if( numClusters <= 0 )
+	{
+		// Find maximum index
+		for( unsigned i=0; i < indices.size(); i++ )
+			if( indices.at(i) > numClusters ) 
+				numClusters = indices.at(i);
+	}
+	m_numClusters = numClusters;
 }
 
 } // namespace scene

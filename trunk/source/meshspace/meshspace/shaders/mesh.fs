@@ -13,7 +13,7 @@ varying vec3 vViewPos;
 //varying vec3 vLightDir;
 varying vec3 vLightPos;
 
-varying float vScalar;
+flat varying float vScalar;
 varying float vSelection;
 
 // Classical Phong shading

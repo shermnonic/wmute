@@ -12,6 +12,7 @@ class QDoubleSpinBox;
 class QSpinBox;
 class QCheckBox;
 class QPushButton;
+class QComboBox;
 
 /** @addtogroup meshspaceGUI_grp meshspace GUI
   * @{ */
@@ -44,6 +45,7 @@ private:
 	QCheckBox*      m_chkGlyphSqrtEV;
 	QPushButton*    m_butLoadTensors;
 	QPushButton*    m_butSaveTensors;
+	QComboBox*      m_cmbColorMode;
 };
 
 /** @} */ // end group

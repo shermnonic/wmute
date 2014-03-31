@@ -30,6 +30,11 @@ public:
 		InterPointCovarianceUnweighted
 	};
 
+	enum ColorMode {
+		ColorByFractionalAnisotropy,
+		ColorByCluster
+	};
+
 	TensorfieldObject();
 
 	// Internally calls deriveTensorsFromCovariance() and setGlyphPositions()
@@ -55,6 +60,9 @@ public:
 
 	bool getGlyphSqrtEV() const { return m_glyphSqrtEV; }
 	void setGlyphSqrtEV( bool b ) { if( m_glyphSqrtEV != b ) m_dirtyFlag |= GeometryChange; m_glyphSqrtEV = b; }
+
+	void setColorMode( int mode ) { if( mode != m_colorMode ) m_dirtyFlag |= ColorChange; m_colorMode = mode; }
+	int getColorMode() const { return m_colorMode; }
 	///@}
 
 	/// Performs required updates on tensor field geometry and coloring.
@@ -63,7 +71,12 @@ public:
 	///@{ Tensorfield IO
 	void saveTensorfield( std::string filename );
 	bool loadTensorfield( std::string filename );
+	void exportTensorfieldAsNrrd( std::string path, std::string basename, MeshBuffer* mb=NULL );
 	///@}
+
+	void setClusters( const std::vector<unsigned int>& indices, unsigned numClusters=-1 );
+	const Eigen::MatrixXd& getTensorField() const { return m_tensorField; }
+	const Eigen::Matrix3Xd& getPositions() const { return m_pos; }
 
 protected:
 	// Called by deriveTensorsFromPCAModel()
@@ -96,6 +109,7 @@ protected:
 private:
 	int m_dirtyFlag;           ///< See \a DirtyFlags
 	int m_glyphRes;            ///< Resolution of glyph, i.e. sampling in phi/theta
+	int m_colorMode;           ///< Color mode, see \a ColorMode
 	double m_glyphSharpness;   ///< Sharpness of superquadric tensor glyph (gamma)
 	double m_glyphScale;       ///< Glyph scale factor
 	bool   m_glyphSqrtEV;      ///< Scale glyphs by sqrt of eigenvalues
@@ -104,6 +118,9 @@ private:
 	Eigen::Matrix3Xd m_pos;    ///< Glyph centers
 
 	Eigen::MatrixXd m_tensorField; ///< Input tensorfield
+
+	std::vector<unsigned int> m_clusterIndices;
+	unsigned m_numClusters;
 };
 
 } // namespace scene 

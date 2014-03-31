@@ -9,6 +9,10 @@ using Eigen::MatrixXd;
 using Eigen::Matrix3d;
 using Eigen::VectorXd;
 
+//-----------------------------------------------------------------------------
+// Vectorize / Devectorize
+//----------------------------------------------------------------------------- 
+
 void vectorizeCovariance( const Matrix3d& Sigma, VectorXd& v )
 {
 	v.resize( 6 );
@@ -24,6 +28,10 @@ void devectorizeCovariance( const VectorXd v, Matrix3d& Sigma )
 	Sigma(1,0) = v(1);  Sigma(1,1) = v(3);  Sigma(1,2) = v(4);
 	Sigma(2,0) = v(2);  Sigma(2,1) = v(4);  Sigma(2,2) = v(5);
 }
+
+//-----------------------------------------------------------------------------
+// Sample covariance functions
+//----------------------------------------------------------------------------- 
 
 void computeSampleCovariance( const MatrixXd& X, MatrixXd& S  )
 {
@@ -88,6 +96,10 @@ void computeSampleCovariance( const MatrixXd& X, std::vector<Matrix3d> S )
 	}	
 	printf("\n");
 }
+
+//-----------------------------------------------------------------------------
+// Inter point covariance functions
+//-----------------------------------------------------------------------------
 
 void computeInterPointZp( const MatrixXd& Bp, double gamma, MatrixXd& Zp )
 {
@@ -165,5 +177,69 @@ void computeInterPointCovariance( const MatrixXd& B, double gamma, MatrixXd& G )
 	}
 	printf("\n");
 }
+
+//-----------------------------------------------------------------------------
+// Distance functions
+//----------------------------------------------------------------------------- 
+
+double covarDistEuclidean( const Eigen::VectorXd& A_, const Eigen::VectorXd& B_ )
+{
+	Matrix3d A, B;
+	devectorizeCovariance( A_, A );
+	devectorizeCovariance( B_, B );
+	return (A - B).norm(); // Frobenius norm
+}
+
+double computeCovariancesNormAvg( const Eigen::MatrixXd& S )
+{	
+	unsigned n = (unsigned)S.cols(); // Number of points
+	
+	Matrix3d C; // Temporary 3x3 covariance matrix
+	
+	double avg(0.0);
+	for( unsigned p=0; p < n; p++ )
+	{
+		devectorizeCovariance( S.col(p), C );
+		avg += C.norm();
+	}
+	avg /= n;
+	
+	return avg;
+}
+
+double computeBBoxDiagonal( const Eigen::Matrix3Xd& pts )
+{
+	double minval(std::numeric_limits<double>::max()),
+	       maxval(-minval);
+
+	Eigen::Vector3d min_( minval, minval, minval ),
+	                max_( maxval, maxval, maxval );
+	
+	for( unsigned p=0; p < (unsigned)pts.cols(); p++ )
+	{
+		Eigen::Vector3d pt = pts.col(p);
+		for( unsigned i=0; i < 3; i++ ) {
+			min_(i) = (pt(i) < min_(i)) ? pt(i) : min_(i);
+			max_(i) = (pt(i) > max_(i)) ? pt(i) : max_(i);
+		}
+	}
+	
+	return (max_ - min_).norm();
+}
+
+void computeCovariancesDistanceMatrix( const Eigen::MatrixXd& S, Eigen::MatrixXd& D, CovarDistFunc dist )
+{
+	unsigned n = (unsigned)S.cols(); // Number of points
+	
+	D.resize( n, n );
+	
+	for( unsigned col=0; col < n; col++ )
+		for( unsigned row=0; row <= col; row++ )
+		{
+			D(row,col) = dist( S.col(row), S.col(col) );			
+			D(col,row) = D(row,col); // Force symmetry
+		}
+}
+
 
 }; // namespace ShapeCovariance

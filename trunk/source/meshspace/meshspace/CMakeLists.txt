@@ -105,8 +105,12 @@ set( gui_SRCS
 source_group("gui" FILES ${gui_SRCS})
 
 set( other_SRCS
-	Crossvalidate.h
+	Crossvalidate.h	
 	Crossvalidate.cpp
+	CovarianceClustering.h
+	CovarianceClustering.cpp
+	PAMClustering.h
+	PAMClustering.cpp
 )
 source_group("other" FILES ${other_SRCS})
 

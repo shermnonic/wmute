@@ -59,7 +59,9 @@ SceneViewer::SceneViewer( QWidget* parent )
 	QAction* actComputeDistance = new QAction(tr("Compute closest point distance"),this);
 	QAction* actComputePCA = new QAction(tr("Derive PCA model from current mesh buffer"),this);
 	QAction* actComputeCovariance = new QAction(tr("Derive covariance tensor field from current PCA model"),this);
+	QAction* actClusterCovariance = new QAction(tr("Cluster current covariance tensor field"),this);
 	QAction* actLoadCovariance = new QAction(tr("Load covariance tensor field from disk"),this);
+	QAction* actExportCovariance = new QAction(tr("Export covariance tensor field to Nrrd"),this);
 	QAction* actCrossvalidate = new QAction(tr("Cross-validate gamma on current PCA model"),this);
 
 	QAction* actExportMatrix = new QAction(tr("Export current mesh vertex matrix as text file"),this);
@@ -71,20 +73,33 @@ SceneViewer::SceneViewer( QWidget* parent )
 	connect( actComputeDistance, SIGNAL(triggered()), this, SLOT(computeDistance()) );
 	connect( actComputePCA, SIGNAL(triggered()), this, SLOT(computePCA()) );
 	connect( actComputeCovariance, SIGNAL(triggered()), this, SLOT(computeCovariance()) );
+	connect( actClusterCovariance, SIGNAL(triggered()), this, SLOT(computeClustering()) );
 	connect( actLoadCovariance, SIGNAL(triggered()), this, SLOT(loadCovariance()) );
+	connect( actExportCovariance, SIGNAL(triggered()), this, SLOT(exportCovariance()) );
 	connect( actCrossvalidate, SIGNAL(triggered()), this, SLOT(computeCrossValidation()) );
 	connect( actExportMatrix, SIGNAL(triggered()), this, SLOT(exportMatrix()) );
 	connect( actImportMatrix, SIGNAL(triggered()), this, SLOT(importMatrix()) );	
 
+	QAction* sep1 = new QAction(this); sep1->setSeparator(true);
+	QAction* sep2 = new QAction(this); sep2->setSeparator(true);
+	QAction* sep3 = new QAction(this); sep3->setSeparator(true);
+	QAction* sep4 = new QAction(this); sep4->setSeparator(true);
+
 	m_actions.push_back( actSelectNone );
 	m_actions.push_back( actSelectFrontFaces );
+	m_actions.push_back( sep1 );
 	m_actions.push_back( actReloadShaders );
+	m_actions.push_back( sep2 );
 	m_actions.push_back( actComputeDistance );
 	m_actions.push_back( actExportMatrix );	
 	m_actions.push_back( actImportMatrix );
+	m_actions.push_back( sep3 );
 	m_actions.push_back( actComputePCA );
+	m_actions.push_back( sep4 );
 	m_actions.push_back( actComputeCovariance );
-	m_actions.push_back( actLoadCovariance );	
+	m_actions.push_back( actClusterCovariance );
+	m_actions.push_back( actLoadCovariance );
+	m_actions.push_back( actExportCovariance );
 	m_actions.push_back( actCrossvalidate );
 }
 
@@ -973,6 +988,26 @@ void SceneViewer::loadCovariance()
 	addMeshObject( (MeshObject*)tfo );
 }
 
+void SceneViewer::exportCovariance()
+{
+	using scene::TensorfieldObject;
+	using scene::MeshObject;
+
+	TensorfieldObject* tfo = dynamic_cast<TensorfieldObject*>( currentMeshObject() );
+	if( !tfo )
+		return;
+
+	// Ask for filename
+	QString filename = 
+		QFileDialog::getSaveFileName( this, tr("Export tensor field as nrrd"), "",
+		tr("Nrrd file format (.nrrd)") );
+	if( filename.isEmpty() ) // User cancelled ?
+		return;
+
+	QFileInfo fi( filename );
+	tfo->exportTensorfieldAsNrrd( fi.absolutePath().toStdString(), fi.baseName().toStdString() );
+}
+
 void SceneViewer::computeCrossValidation()
 {
 	using scene::MeshObject;
@@ -1021,4 +1056,74 @@ void SceneViewer::computeCrossValidation()
 	cout << "Baseline error:" << endl;
 	for( unsigned i=0; i < baseline.size(); i++ )
 		cout << baseline[i] << endl;
+}
+
+#include "CovarianceClustering.h"
+void SceneViewer::computeClustering()
+{
+	using scene::TensorfieldObject;
+	using scene::MeshObject;
+
+	TensorfieldObject* tfo = dynamic_cast<TensorfieldObject*>( currentMeshObject() );
+	if( !tfo )
+		return;
+
+	// Cluster parameters
+	CovarianceClustering::ClusterParms parms;
+	parms.k       = 10;
+	parms.maxIter = 100;
+
+	parms.k = QInputDialog::getInt( this, tr("Clustering parameters"),
+		tr("Number of clusters"), parms.k, 2, 1000 );
+	parms.maxIter = QInputDialog::getInt( this, tr("Clustering parmeters"),
+		tr("Max. number of iterations"), parms.maxIter, 1, 10000 );
+	parms.weightTensorDist = QInputDialog::getDouble( this, tr("Clustering parameters"),
+		tr("Weight factor for Tensor distance"), parms.weightTensorDist, 0.0, 1000000.0, 2 );
+	parms.weightPointDist = QInputDialog::getDouble( this, tr("Clustering parameters"),
+		tr("Weight factor for Point distance"), parms.weightPointDist, 0.0, 1000000.0, 2 );
+	
+	// Compute clustering
+	CovarianceClustering cl;
+	cl.compute( tfo->getTensorField(), tfo->getPositions(), parms );
+	
+	// Update tensor visualization
+	tfo->setClusters( cl.getLabels(), parms.k );
+
+	// Transfer to mesh buffer
+	bool ok;
+	QStringList names;
+	for( unsigned i=0; i < m_scene.objects().size(); i++ )
+		names.push_back( QString(m_scene.objects().at(i)->getName().c_str()) );
+	QString selName = QInputDialog::getItem( this, tr("Select mesh to color"), 
+		tr("Select a mesh object to apply the cluster coloring (optional)"),
+		names, 0, false, &ok );
+	if( ok )
+	{
+		int selIdx=names.size();
+		for( int i=0; i < names.size(); i++ )
+			if( names.at(i).compare( selName )==0 )
+			{
+				selIdx = i;
+				break;
+			}
+		if( selIdx < names.size() )
+		{
+			MeshObject* mo = dynamic_cast<MeshObject*>( m_scene.objects().at(selIdx).get() );
+			if( !mo )
+				qDebug() << "SceneViewer::computeClustering() : Transfer selection is not a mesh!";				
+			else
+			{
+				if( mo->numVertices() != cl.getLabels().size() )
+					qDebug() << "SceneViewer::computeClustering() : Mismatch between mesh and cluster label size!";
+				else
+				{
+					// Set mesh scalars according to cluster index
+					std::vector<float> scalars( cl.getLabels().size() );
+					for( unsigned i=0; i < cl.getLabels().size(); i++ )
+						scalars[i] = (float)cl.getLabels().at(i) / parms.k;
+					mo->setScalars( scalars );
+				}
+			}
+		}
+	}
 }
