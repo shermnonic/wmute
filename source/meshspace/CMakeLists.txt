@@ -71,6 +71,18 @@ include_directories(
 	${EIGEN_INCLUDE_PATH}
 )
 
+#-------------------
+# teem (optional)
+#-------------------
+find_package(TEEM)
+if( TEEM_FOUND )
+	include_directories( ${TEEM_INCLUDES} )
+	add_definitions( -DUSE_TEEM )
+	message(STATUS "Teem enabled")
+else()
+	set(TEEM_LIBRARIES "")
+endif()
+
 #---- Sub-projects ------------------------------------------------------------
 
 include_directories( "include" )

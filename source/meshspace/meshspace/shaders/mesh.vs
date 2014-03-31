@@ -1,5 +1,7 @@
 #version 120
 
+#extension GL_EXT_gpu_shader4 : require
+
 attribute float scalar;
 attribute float selection;
 
@@ -10,7 +12,7 @@ varying vec3 vViewPos;
 //varying vec3 vLightDir;
 varying vec3 vLightPos;
 
-varying float vScalar;
+flat varying float vScalar;
 varying float vSelection;
 
 void main(void)

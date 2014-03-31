@@ -36,13 +36,17 @@ void sampleCovariance( const Eigen::MatrixBase<Derived1>& D, Eigen::MatrixBase<D
 //=============================================================================
 
 //-----------------------------------------------------------------------------
-// Specialized sample covariance functions
+// Vectorize / Devectorize
 //----------------------------------------------------------------------------- 
 
 ///@{ Write a symmetric 3x3 matrix as 6D column vector and vice versa
 void vectorizeCovariance( const Eigen::Matrix3d& Sigma, Eigen::VectorXd& v );
 void devectorizeCovariance( const Eigen::VectorXd v, Eigen::Matrix3d& Sigma );
 ///@}
+
+//-----------------------------------------------------------------------------
+// Specialized sample covariance functions
+//----------------------------------------------------------------------------- 
 
 /// Compute sample covariance tensors for zero-mean data matrix
 /// @param [in]  X  Data matrix with vectorized 3D displacements in columns.
@@ -74,6 +78,27 @@ void computeInterPointZ( const Eigen::MatrixXd& B, double gamma, Eigen::MatrixXd
 /// @param[in]  gamma  Tikhonov regularization parameter
 /// @param[out] Zp     Part of interaction tensor depending solely on p (3x3)
 void computeInterPointZp( const Eigen::MatrixXd& Bp, double gamma, Eigen::MatrixXd& Zp );
+
+//-----------------------------------------------------------------------------
+// Distance functions
+//----------------------------------------------------------------------------- 
+
+/// Distance function for vectorized covariance matrices A and B
+typedef double (*CovarDistFunc)( const Eigen::VectorXd& A, const Eigen::VectorXd& B );
+
+/// Euclidean distance, i.e. Frobenius norm
+double covarDistEuclidean( const Eigen::VectorXd& A_, const Eigen::VectorXd& B_ );
+
+/// Return average Frobenius norm for given covariance tensor set (vectorized in columns).
+double computeCovariancesNormAvg( const Eigen::MatrixXd& S );
+/// Return length of diagonal of bounding box for given point set.
+double computeBBoxDiagonal( const Eigen::Matrix3Xd& pts );
+
+/// Compute pairwise distance matrix
+/// @param[in]  S     Covariance matrices encoded as 6D column vectors.
+/// @param[out] D     Symmetric distance matrix.
+/// @param[in]  dist  Distance function to be used.
+void computeCovariancesDistanceMatrix( const Eigen::MatrixXd& S, Eigen::MatrixXd& D, CovarDistFunc dist );
 
 }; // namespace ShapeCovariance
 

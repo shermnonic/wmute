@@ -85,8 +85,10 @@ protected slots:
 	void computePCA();
 	void computeCovariance();
 	void computeCrossValidation();
+	void computeClustering();
 
 	void loadCovariance();
+	void exportCovariance();
 
 	void exportMatrix();
 	void importMatrix();
