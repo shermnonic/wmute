@@ -13,7 +13,8 @@ varying vec3 vViewPos;
 //varying vec3 vLightDir;
 varying vec3 vLightPos;
 
-flat varying float vScalar;
+varying float vScalar;
+flat varying float vScalarFlat;
 varying float vSelection;
 
 // Classical Phong shading
@@ -52,6 +53,7 @@ void main(void)
 #else
 	// Moving light (i.e. specified in world coordinates)
 	vec3 lightDir = normalize(vLightPos - vViewPos);
+	//lightDir = normalize(vec3(5.0,0.0,10.0));	
 		// normalize(gl_LightSource[0].position.xyz - vViewPos);
 #endif
 	
@@ -81,7 +83,29 @@ void main(void)
 	
 	// Apply transfer function to scalar value
 	if( mapScalars )
-		diffuse.rgb = texture1D( lookup, scalarScale*(vScalar+scalarShift) ).rgb;
+	#if 0
+	{
+		diffuse.rgb = texture1D( lookup, scalarScale*(vScalarFlat+scalarShift) ).rgb;
+	}
+	#else
+	{	
+		float val = scalarScale*(vScalar+scalarShift);
+		float valFlat = scalarScale*(vScalarFlat+scalarShift);
+		if( abs(vScalar - vScalarFlat) < 0.03 )
+		{
+			diffuse.rgb = texture1D( lookup, valFlat ).rgb;
+		}
+		else
+		{
+			diffuse.rgb = vec3(.5,.5,.5);
+			//diffuse.rgb = mix( texture1D( lookup, valFlat ).rgb, vec3(.5,.5,.5), fract(val) );
+		}
+		
+		//float inside_cluster = step( index - cluster, 0.9999999 );		
+		//float lu = inside_cluster*val + (1.0-inside_cluster)*0.0;
+		//diffuse.rgb = texture1D( lookup, lu ).rgb;
+	}
+	#endif
 	
 	// Custom selection shading based on vertex color
 	if( vSelection > .5 )

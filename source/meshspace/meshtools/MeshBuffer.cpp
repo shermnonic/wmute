@@ -405,10 +405,20 @@ void MeshBuffer::drawPoints( const std::vector<unsigned>& idx ) const
 	glEnableClientState( GL_VERTEX_ARRAY );
 	glVertexPointer( 3, GL_FLOAT, 0, &(m_vbuffer[ofs]) );
 
+	bool useCBuffer = m_cbufferEnabled && !m_cbuffer.empty();
+	if( useCBuffer )
+	{
+		glEnableClientState( GL_COLOR_ARRAY );
+		glColorPointer( 4, GL_FLOAT, 0, (void*)(sizeof(float)*m_numVertices*3+sizeof(float)*m_numNormals*3) );
+	}
+
 	if( !idx.empty() )
 		glDrawElements( GL_POINTS, (GLsizei)idx.size(), GL_UNSIGNED_INT, &(idx[0]) );
 	else
 		glDrawArrays( GL_POINTS, 0, m_numVertices );
+
+	if( useCBuffer )
+		glDisableClientState( GL_COLOR_ARRAY );
 
 	glDisableClientState( GL_VERTEX_ARRAY );
 }

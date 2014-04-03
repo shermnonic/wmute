@@ -940,7 +940,7 @@ void SceneViewer::computeCovariance()
 	if( mode>0 )	
 	{
 		gamma = QInputDialog::getDouble( this, tr("Tensor field options"),
-		tr("Specify regularization parameter gamma"), 100.0, 0.001, 2147483647.0, 1, &ok );
+		tr("Specify regularization parameter gamma"), 100.0, 0.0001, 2147483647.0, 4, &ok );
 		if( !ok ) // User cancelled?
 			return;
 
@@ -1018,27 +1018,39 @@ void SceneViewer::computeCrossValidation()
 		return;
 
 	// FIXME: Hard-coded test
-	unsigned numSamples = 17;
-	std::vector<double> gamma( numSamples ), 
+	std::vector<double> gamma, 
 		                error,
 						baseline;
-	gamma[ 0] = 10000000;
-	gamma[ 1] =  5000000;
-	gamma[ 2] =  2000000;
-	gamma[ 3] =  1500000;
-	gamma[ 4] =  1200000;
-	gamma[ 5] =  1000000;
-	gamma[ 6] =   800000;
-	gamma[ 7] =   500000;
-	gamma[ 8] =   200000;
-	gamma[ 9] =    50000;
-	gamma[10] =    10000;
-	gamma[11] =     2000;
-	gamma[12] =      500;
-	gamma[13] =       50;
-	gamma[14] =       10;
-	gamma[15] =        1;
-	gamma[16] =        0.1;
+	//gamma[ 0] = 10000000;
+	//gamma[ 1] =  5000000;
+	//gamma[ 2] =  2000000;
+	//gamma[ 3] =  1500000;
+	//gamma[ 4] =  1200000;
+	//gamma[ 5] =  1000000;
+	//gamma[ 6] =   800000;
+	//gamma[ 7] =   500000;
+	//gamma[ 8] =   200000;
+	//gamma[ 9] =    50000;
+	//gamma[10] =    10000;
+	//gamma[11] =     2000;
+	//gamma[12] =      500;
+	//gamma[13] =       50;
+	//gamma[14] =       10;
+	//gamma[15] =        1;
+	//gamma[16] =        0.1;
+
+	gamma.push_back( 10 );
+	gamma.push_back( 5 );
+	gamma.push_back( 1 );
+	gamma.push_back( 0.5 );
+	gamma.push_back( 0.1 );
+	gamma.push_back( 0.05 );
+	gamma.push_back( 0.01 );
+	gamma.push_back( 0.005 );
+	gamma.push_back( 0.001 );
+	gamma.push_back( 0.0005 );
+
+	unsigned numSamples = gamma.size();
 
 	// HACK: Assemble data matrix from PCA model
 	Eigen::MatrixXd X = pco->getPCAModel().X;
@@ -1120,7 +1132,7 @@ void SceneViewer::computeClustering()
 					// Set mesh scalars according to cluster index
 					std::vector<float> scalars( cl.getLabels().size() );
 					for( unsigned i=0; i < cl.getLabels().size(); i++ )
-						scalars[i] = (float)cl.getLabels().at(i) / parms.k;
+						scalars[i] = (float)cl.getLabels().at(i) / (parms.k-1);
 					mo->setScalars( scalars );
 				}
 			}

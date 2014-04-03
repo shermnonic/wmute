@@ -4,37 +4,13 @@
 #include <PCA.h>
 #include <iostream>
 
+#include "MatrixUtilities.h"
+using MatrixUtilities::removeColumn;
+
 using ShapeCovariance::computeInterPointZ;
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 using Eigen::Vector3d;
-
-//-----------------------------------------------------------------------------
-//  Helper functions
-//----------------------------------------------------------------------------- 
-
-// http://stackoverflow.com/questions/13290395/how-to-remove-a-certain-row-or-column-while-using-eigen-library-c
-void removeRow(Eigen::MatrixXd& matrix, unsigned int rowToRemove)
-{
-    unsigned numRows = (unsigned)matrix.rows()-1;
-    unsigned numCols = (unsigned)matrix.cols();
-
-    if( rowToRemove < numRows )
-        matrix.block(rowToRemove,0,numRows-rowToRemove,numCols) = matrix.block(rowToRemove+1,0,numRows-rowToRemove,numCols);
-
-    matrix.conservativeResize(numRows,numCols);
-}
-
-void removeColumn(Eigen::MatrixXd& matrix, unsigned int colToRemove)
-{
-    unsigned numRows = (unsigned)matrix.rows();
-    unsigned numCols = (unsigned)matrix.cols()-1;
-
-    if( colToRemove < numCols )
-        matrix.block(0,colToRemove,numRows,numCols-colToRemove) = matrix.block(0,colToRemove+1,numRows,numCols-colToRemove);
-
-    matrix.conservativeResize(numRows,numCols);
-}
 
 //-----------------------------------------------------------------------------
 //  error function
@@ -106,11 +82,14 @@ void crossvalidate( const MatrixXd& X, const std::vector<double>& gamma, std::ve
 	unsigned n = (unsigned)X.rows() / 3;  // Number of 3D vectors	
 	unsigned m = (unsigned)X.cols();      // Number of shapes
 
+	unsigned int step = 5;
+
 	baseline.clear();
 	
 	// Record error per gamma sample
 	VectorXd err = VectorXd::Zero( gamma.size() );
-	for( unsigned i=0; i < m; i++ )	
+	unsigned count = m / step;
+	for( unsigned i=0; i < m; i+=step )	
 	{
 		cout << "Cross-validation " << i+1 << " / " << m << endl;
 
@@ -135,7 +114,7 @@ void crossvalidate( const MatrixXd& X, const std::vector<double>& gamma, std::ve
 			// Accumulate error
 			double V0 = crossvalidate( Xi, xi, pca, gamma[g] );
 			cout << "    gamma=" << gamma[g] << ", error=" << V0 << endl;
-			err(g) += V0 / (double)m;
+			err(g) += V0 / (double)count;
 		}
 		cout << endl;
 	}
