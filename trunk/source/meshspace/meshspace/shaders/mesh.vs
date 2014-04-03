@@ -12,7 +12,8 @@ varying vec3 vViewPos;
 //varying vec3 vLightDir;
 varying vec3 vLightPos;
 
-flat varying float vScalar;
+varying float vScalar;
+flat varying float vScalarFlat;
 varying float vSelection;
 
 void main(void)
@@ -32,6 +33,7 @@ void main(void)
 	
 	vSelection = selection;
 	vScalar = scalar;
+	vScalarFlat = scalar;
 	
 	// Interpolated variables
 	

@@ -3,6 +3,9 @@
 #include <cmath>
 #include <fstream>
 
+#include "MatrixUtilities.h"
+using MatrixUtilities::removeColumn;
+
 //-----------------------------------------------------------------------------
 // 	Superquadric helper functions
 //-----------------------------------------------------------------------------
@@ -277,15 +280,61 @@ bool TensorfieldObject::loadTensorfield( std::string filename )
 	f.read( (char*)pos.data(), sizeof(double)*3*npts );	
 	f.close();
 
+	cout << "Loaded " << ncols << " tensors" << endl;
+
 	// FOR DEBUGGING
 	double* ptr_pos = (double*)pos.data();
 	double* ptr_S   = (double*)S.data();
+
+	// Filter results
+	unsigned filtered = filterTensorField( S, pos );
+	cout << "Filtered out " << filtered << " tensors with too small Frobenius norm" << endl;
 
 	// Update visualization
 	setGlyphPositions( pos );
 	deriveTensorsFromCovariance( S );
 
 	return true;
+}
+
+unsigned TensorfieldObject::filterTensorField( Eigen::MatrixXd& S, Eigen::Matrix3Xd& pts, double threshold )
+{
+	unsigned n = (unsigned)S.cols();
+#if 1 // USE TEMPORARIES
+	std::vector<unsigned> valid_columns;
+	for( unsigned p=0; p < n; p++ )
+	{
+		double frob = S.col(p).norm();
+		if( frob >= threshold )
+		{
+			valid_columns.push_back( p );
+		}
+	}
+	Eigen::MatrixXd  S_filtered( S.rows(), valid_columns.size() );
+	Eigen::Matrix3Xd pts_filtered( 3, valid_columns.size() );
+	for( unsigned i=0; i < valid_columns.size(); i++ )
+	{
+		S_filtered.col(i) = S.col( valid_columns[i] );
+		pts_filtered.col(i) = pts.col( valid_columns[i] );
+	}
+	unsigned filtered = S.cols() - S_filtered.cols();
+	S = S_filtered;
+	pts = pts_filtered;
+	return filtered;
+#else // DIRECT REMOVAL (CRASHES?!)
+	unsigned filtered = 0;
+	for( unsigned p=n-1; p >= 0; p-- )
+	{
+		double frob = S.col(p).norm();
+		if( frob < threshold && S.cols()>1 )
+		{
+			removeColumn( S,   p );
+			removeColumn( pts, p );
+			filtered++;
+		}
+	}
+	return filtered;
+#endif
 }
 
 void TensorfieldObject::deriveTensorsFromPCAModel( const PCAModel& pca,  int mode, double gamma, double scale )
@@ -653,7 +702,7 @@ void TensorfieldObject::updateColor( int glyphId )
 		}
 
 		if( m_numClusters > 0 )
-			setScalarShiftScale( 0.f, 1.f/(float)m_numClusters );
+			setScalarShiftScale( 0.f, 1.f/(float)(m_numClusters-1) );
 		else
 			setScalarShiftScale( 0.f, 1.f );
 	}

@@ -87,6 +87,11 @@ protected:
 	void setGlyphPositions( meshtools::Mesh* mesh );
 	void setGlyphPositions( Eigen::Matrix3Xd pos );
 
+	/// Filter tensor field (and corresponding 3D sample points) and remove
+	/// tensors with Frobenius norm smaller than the given threshold.
+	/// Returns the number of filtered out tensors.
+	unsigned filterTensorField( Eigen::MatrixXd& S, Eigen::Matrix3Xd& pts, double threshold=0.0001 );
+
 protected:
 	void updateFaces   ( int glyphId );
 	void updateVertices( int glyphId );
