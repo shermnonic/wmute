@@ -952,7 +952,7 @@ void SceneViewer::computeCovariance()
 
 	// Create tensorfield object
 	TensorfieldObject* tfo = new TensorfieldObject;
-	tfo->deriveTensorsFromPCAModel( pco->getPCAModel(), mode, gamma );	
+	tfo->deriveTensorsFromPCAModel( pco->getPCAModel(), mode, gamma, scale );
 	tfo->setName( modes.at(mode).toStdString() + std::string(" of ") + pco->getName() );
 
 	addMeshObject( (MeshObject*)tfo );

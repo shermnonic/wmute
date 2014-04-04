@@ -53,7 +53,7 @@ void main(void)
 #else
 	// Moving light (i.e. specified in world coordinates)
 	vec3 lightDir = normalize(vLightPos - vViewPos);
-	//lightDir = normalize(vec3(5.0,0.0,10.0));	
+	//lightDir = normalize(vec3(5.0,5.0,10.0));	
 		// normalize(gl_LightSource[0].position.xyz - vViewPos);
 #endif
 	
