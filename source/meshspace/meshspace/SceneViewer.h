@@ -18,7 +18,7 @@
 #include "meshtools.h"
 
 class ObjectPropertiesWidget;
-class QListView;
+class ObjectBrowserWidget;
 class QMouseEvent;
 class QAction;
 
@@ -92,6 +92,8 @@ protected slots:
 
 	void exportMatrix();
 	void importMatrix();
+
+	void removeObject(int);
 	
 protected:
 	///@{ QGLViewer implementation
@@ -131,7 +133,7 @@ private:
 	scene::Scene       m_scene; ///< The scene to be rendered
 	QStandardItemModel m_model; ///< A model for manipulating the scenegraph
 	ObjectPropertiesWidget* m_propertiesWidget;
-	QListView* m_listView;
+	ObjectBrowserWidget* m_browserWidget;
 
 	// Vertex selection	
 	int            m_selectionMode;

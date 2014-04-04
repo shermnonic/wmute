@@ -477,6 +477,7 @@ void TensorfieldObject::updateTensorfield()
 	// drawback is that color has to be encoded as per-vertex attribute.
 	// For now we are relying on MeshObject::m_scalarAttribBuffer for this which
 	// is accessible via MeshObject::scalars().
+	std::cout << "Generating tensor field geometry..." << std::endl;
 	
 	if( m_dirtyFlag & ResolutionChange )
 	{

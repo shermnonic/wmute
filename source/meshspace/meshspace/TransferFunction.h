@@ -18,6 +18,8 @@ public:
 	void bind( int tex_unit=-1 );
 	void release();
 
+	void getColor( float scalar, float& r, float &g, float &b ) const;
+
 private:
 	GL::GLTexture m_tex;
 };

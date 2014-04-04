@@ -31,6 +31,9 @@ public:
 
 	GL::GLSLProgram* program() { return m_program; }
 
+	const TransferFunction& getTransferFunction() const { return m_tf; }
+	//TransferFunction& getTransferFunction() { return m_tf; }
+
 private:
 	GL::GLSLProgram* m_program;
 	TransferFunction m_tf;

@@ -25,6 +25,7 @@ class MultiSliderWidget;
 	Specialized functionality is provided for the following scene objects:
 	- \a MeshObject
 	- \a PCAObject
+	- \a TensorfieldObject
 */
 class ObjectPropertiesWidget : public QWidget
 {

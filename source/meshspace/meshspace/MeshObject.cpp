@@ -266,4 +266,30 @@ void MeshObject::setScalarShiftScale( float shift, float scale )
 	//std::cout << "Scalars shift=" << m_scalarShift << ", scale=" << m_scalarScale << std::endl;
 }
 
+//------------------------------------------------------------------------------
+meshtools::Mesh* MeshObject::createMesh( int frame ) /*const*/
+{
+	if( frame < 0 ) frame = meshBuffer().curFrame();
+
+	if( m_scalarAttribBuffer.size() == meshBuffer().numVertices() )
+	{
+		std::cout << "Applying transfer function to mesh" << std::endl;
+		meshBuffer().setupCBuffer();
+		for( unsigned i=0; i < m_scalarAttribBuffer.size(); i++ )
+		{
+			float scalar = (m_scalarScale * m_scalarAttribBuffer.at(i)) + m_scalarShift;
+			float r,g,b;
+
+			m_shader.getTransferFunction().getColor( scalar, r,g,b );
+
+			meshBuffer().cbuffer().at(4*i+0) = r;
+			meshBuffer().cbuffer().at(4*i+1) = g;
+			meshBuffer().cbuffer().at(4*i+2) = b;
+			meshBuffer().cbuffer().at(4*i+3) = 1.f;
+		}
+	}
+
+	return meshBuffer().createMesh( frame );
+}
+
 } // namespace scene

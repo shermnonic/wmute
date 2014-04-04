@@ -85,6 +85,11 @@ public:
 	const MeshBuffer& meshBuffer() const { return m_meshBuffer; }
 	///@}
 
+	/// Create a new OpenMesh mesh for specific frame. Applies color from transfer
+	/// functions (which is done in shader only when rendering). Internally calls
+	/// meshBuffer()->createMesh() after setting the color information.
+	meshtools::Mesh* createMesh( int frame=-1 ) /*const*/;
+
 	/// Wrap \a MeshBuffer::projectVertexNormal()
 	double projectVertexNormal( unsigned idx, float x, float y, float z ) const;
 
