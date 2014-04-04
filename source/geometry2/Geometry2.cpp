@@ -518,6 +518,7 @@ vec3 superquadric_tensor( double cp, double cl, double gamma, double theta, doub
 
 void Superquadric::create( int res )
 {
+	m_mode = TensorGlyph;
 	double cp = .27,
 	       cl = .33,
 	       gamma = 3.0;
