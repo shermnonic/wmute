@@ -61,7 +61,7 @@ bool TransferFunction::create()
 	
 	// Download data to GPU
 	m_tex.Image( 0, GL_RGBA32F, n, 0, GL_RGB, GL_FLOAT, (void*)tf_poettkow );
-	
+		
 	// Set texture parameters
 	m_tex.SetWrapMode( GL_CLAMP_TO_EDGE );
 	m_tex.SetFilterMode( GL_LINEAR );
@@ -83,4 +83,93 @@ void TransferFunction::release()
 {
 	m_tex.Unbind();
 	GL::CheckGLError("TransferFunction::release()");
+}
+
+void TransferFunction::draw() const
+{
+	// Bar geometry
+	float major = .3f,
+		  minor = .02f,
+		  border = .02f;
+	bool vertical = false,
+	     centered = true,
+		 outer = vertical ? true : false;
+
+	float x0,y0, x1,y1;
+	{
+		float pos = outer ? (1. - border) : border;
+
+		// define horizontal bar
+		if( centered )
+		{
+			// y centered
+			y0 = major;
+			y1 = 1.f - major;
+		}
+		else
+		{
+			// ?
+		}
+
+		x0 = pos - minor/2.f;
+		x1 = pos + minor/2.f;
+
+		// flip if required
+		if( !vertical ) 
+		{
+			// x centered
+			std::swap( x0, y0 );
+			std::swap( x1, y1 );
+		}
+	}
+
+	// Store relevant state
+	glPushAttrib( GL_CURRENT_BIT | GL_ENABLE_BIT );
+
+	//// Store current viewport
+	//GLint viewport[4];
+	//glGetIntegerv( GL_VIEWPORT, viewport );
+
+	// Store current projection and modelview
+	glMatrixMode( GL_PROJECTION );
+	glPushMatrix();
+	glMatrixMode( GL_MODELVIEW );
+	glPushMatrix();
+
+	// Set orthographic projection
+	glMatrixMode( GL_PROJECTION );
+	glLoadIdentity();
+	gluOrtho2D( 0,1,0,1 ); // should be the same as: glOrtho( 0,1,0,1, -1,1 );
+	glMatrixMode( GL_MODELVIEW );
+	glLoadIdentity();
+
+	// Make sure we are not using any shader!
+	glUseProgram( 0 );
+	glActiveTexture( GL_TEXTURE0 );
+
+	// Draw colorbar
+	glColor4f( 1.f,1.f,1.f,1.f );
+	glEnable( GL_TEXTURE_1D );
+	glDisable( GL_CULL_FACE );
+	glDisable( GL_DEPTH_TEST );
+	glDisable( GL_LIGHTING );
+	glBindTexture( GL_TEXTURE_1D, m_tex.GetID() ); 	// <- bind() is not const!
+	glBegin( GL_QUADS );
+	glMultiTexCoord1f( GL_TEXTURE0, vertical ? 0.f : 0.f );	glVertex2f( x0, y0 );
+	glMultiTexCoord1f( GL_TEXTURE0, vertical ? 1.f : 0.f );	glVertex2f( x0, y1 );
+	glMultiTexCoord1f( GL_TEXTURE0, vertical ? 1.f : 1.f );	glVertex2f( x1, y1 );
+	glMultiTexCoord1f( GL_TEXTURE0, vertical ? 0.f : 1.f );	glVertex2f( x1, y0 );
+	glEnd();
+
+	// Restore previous projection and modelview
+	glPopMatrix();
+	glMatrixMode( GL_PROJECTION );
+	glPopMatrix();
+	glMatrixMode( GL_MODELVIEW );
+
+	//// Restore current viewport
+	//glViewport( viewport[0], viewport[1], viewport[2], viewport[3] );
+
+	// Restore previous state
+	glPopAttrib();
 }
