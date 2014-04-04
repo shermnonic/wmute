@@ -263,7 +263,7 @@ void MeshObject::setScalarShiftScale( float shift, float scale )
 { 
 	m_scalarShift = shift; 
 	m_scalarScale = scale; 
-	std::cout << "Scalars shift=" << m_scalarShift << ", scale=" << m_scalarScale << std::endl;
+	//std::cout << "Scalars shift=" << m_scalarShift << ", scale=" << m_scalarScale << std::endl;
 }
 
 } // namespace scene

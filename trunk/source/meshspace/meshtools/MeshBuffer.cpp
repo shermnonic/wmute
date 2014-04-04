@@ -47,6 +47,7 @@ bool MeshBuffer::addFrame( const meshtools::Mesh* mesh )
 	// Temporary buffers
 	std::vector<float>    vertices; vertices.reserve( mesh->n_vertices()*3 );
 	std::vector<float>    normals;  normals .reserve( mesh->n_vertices()*3 );		
+	std::vector<float>    colors;   colors  .reserve( mesh->n_vertices()*4 );
 	std::vector<unsigned> indices;  indices .reserve(10000);
 	
 	// Vertex list
@@ -65,7 +66,16 @@ bool MeshBuffer::addFrame( const meshtools::Mesh* mesh )
 			normals.push_back( n[0] );
 			normals.push_back( n[1] );
 			normals.push_back( n[2] );
-		}		
+		}
+
+		if( mesh->has_vertex_colors() )
+		{
+			const Mesh::Color & c = mesh->color( vh );
+			colors.push_back( c[0] / 255.f );
+			colors.push_back( c[1] / 255.f );
+			colors.push_back( c[2] / 255.f );
+			colors.push_back( 1.f ); // Default alpha=1.f
+		}
 	}
 	
 	// Indexed face list	
@@ -162,6 +172,13 @@ bool MeshBuffer::addFrame( const meshtools::Mesh* mesh )
 		// The first frame also defines vertex / normal count
 		m_numVertices = (unsigned)vertices.size() / 3;
 		m_numNormals  = (unsigned)normals.size() / 3;
+
+		// Use color from first mesh
+		if( mesh->has_vertex_colors() )
+		{
+			m_cbufferEnabled = true;
+			m_cbuffer = colors;
+		}
 	}
 	
 	// Append data to existing buffers
@@ -539,6 +556,9 @@ meshtools::Mesh* MeshBuffer::createMesh( int frame ) const
 		p[1] = *pv;  pv++;
 		p[2] = *pv;  pv++;
 		vhandle[i] = m->add_vertex( p );
+		if( m_cbufferEnabled && m_cbuffer.size() == 4*m_numVertices )
+			// Ignore alpha channel for export
+			m->set_color( vhandle[i], OpenMesh::Vec3uc( 255.f*m_cbuffer[4*i], 255.f*m_cbuffer[4*i+1], 255.f*m_cbuffer[4*i+2] ) );
 	}
 
 	// Mesh indexed faces
