@@ -49,6 +49,7 @@ set( meshspace_MOC_HDRS
 	MainWindow.h
 	SceneViewer.h
 	ObjectPropertiesWidget.h
+	ObjectBrowserWidget.h
 	MultiSliderWidget.h
 	TensorfieldObjectWidget.h
 )
@@ -97,6 +98,8 @@ set( gui_SRCS
 	SceneViewer.h
 	ObjectPropertiesWidget.h
 	ObjectPropertiesWidget.cpp
+	ObjectBrowserWidget.h
+	ObjectBrowserWidget.cpp
 	MultiSliderWidget.h
 	MultiSliderWidget.cpp
 	TensorfieldObjectWidget.h

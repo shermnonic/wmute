@@ -172,6 +172,9 @@ public:
 		addSceneObject( ObjectPtr( obj ) ); 
 	}
 
+	/// Delete i-th scene object
+	void removeSceneObject( int i );
+
 	/// Access current set of object in the scene
 	ObjectPtrArray& objects() { return m_objects; }
 

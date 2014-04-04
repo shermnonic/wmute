@@ -41,6 +41,12 @@ void Scene::addSceneObject( ObjectPtr obj )
 }
 
 //-----------------------------------------------------------------------------
+void Scene::removeSceneObject( int i )
+{
+	m_objects.erase( m_objects.begin() + i );
+}
+
+//-----------------------------------------------------------------------------
 BoundingBox Scene::getBoundingBox() const
 {
 	BoundingBox bbox;

@@ -2,13 +2,13 @@
 // Max Hermann, Jan 2014
 #include "SceneViewer.h"
 #include "ObjectPropertiesWidget.h"
+#include "ObjectBrowserWidget.h"
 #include "MeshObject.h"
 #include "PCAObject.h"
 #include "TensorfieldObject.h"
 #include "Crossvalidate.h"
 
 #include <qfileinfo.h>
-#include <QListView>
 #include <QDebug>
 #include <QProgressDialog>
 #include <QApplication>
@@ -30,14 +30,17 @@ SceneViewer::SceneViewer( QWidget* parent )
 	m_selectFrontFaces(true)
 {
 	// --- Widgets ---
-	m_listView = new QListView();
-	m_listView->setModel( &m_model );
-	m_listView->setSelectionMode( QAbstractItemView::SingleSelection );
+
+	m_browserWidget = new ObjectBrowserWidget;
+	m_browserWidget->setWindowTitle(tr("Browser"));
+	m_browserWidget->setModel( &m_model );
+
 	m_propertiesWidget = new ObjectPropertiesWidget();
 	m_propertiesWidget->setWindowTitle(tr("Inspector"));
 	
-	connect( m_listView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)),
+	connect( m_browserWidget, SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)),
 			 this, SLOT(selectModelItems(const QItemSelection&, const QItemSelection&)) );
+	connect( m_browserWidget, SIGNAL(removeObject(int)), this, SLOT(removeObject(int)) );
 	connect( m_propertiesWidget, SIGNAL(redrawRequired()), this, SLOT(updateScene()) );
 	connect( m_propertiesWidget, SIGNAL(modelChanged()), this, SLOT(updateModel()) );
 
@@ -110,7 +113,7 @@ QWidget* SceneViewer::getInspector()
 
 QWidget* SceneViewer::getBrowser()
 {
-	return m_listView;
+	return m_browserWidget;
 }
 
 QString SceneViewer::helpString() const
@@ -126,13 +129,19 @@ QString SceneViewer::helpString() const
 // Scene Model
 //----------------------------------------------------------------------------
 
+void SceneViewer::removeObject( int idx )
+{
+	m_scene.removeSceneObject( idx );
+	updateModel();
+	updateBoundingBox();
+
+	// Force redraw
+	updateGL();
+}
+
 int SceneViewer::selectedObject() const
 {	
-	if( !m_listView->selectionModel() )
-		return -1;
-	if( m_listView->selectionModel()->selectedIndexes().empty() )
-		return -1;
-	return m_listView->selectionModel()->selectedIndexes().front().row();
+	return m_browserWidget->selectedObject();
 }
 
 void SceneViewer::selectModelItem( const QModelIndex& current, const QModelIndex& previous )
@@ -236,7 +245,8 @@ void SceneViewer::saveMesh( QString filename )
 		return;
 	}
 
-	meshtools::Mesh* mesh = mo->meshBuffer().createMesh( mo->meshBuffer().curFrame() );
+	// was: meshtools::Mesh* mesh = mo->meshBuffer().createMesh( mo->meshBuffer().curFrame() );
+	meshtools::Mesh* mesh = mo->createMesh();
 	meshtools::saveMesh( *mesh, filename.toStdString().c_str() );
 	delete mesh;
 }
@@ -395,11 +405,11 @@ void SceneViewer::addMeshObject( scene::MeshObject* so )
 	camera()->showEntireScene();
 
 	// Auto-select the last added object
-	QModelIndex selection = m_model.item( m_model.rowCount()-1 )->index();
+	QModelIndex insertedItem = m_model.item( m_model.rowCount()-1 )->index();
 	// Highlight selection
-	m_listView->selectionModel()->select( selection, QItemSelectionModel::Select );
+	m_browserWidget->select( insertedItem );
 	// Set as current scene object
-	selectModelItem( selection );
+	selectModelItem( insertedItem );
 
 	// Force redraw
 	updateGL();
@@ -525,10 +535,6 @@ void SceneViewer::draw()
 		glEnd();
 	}
 
-	// FIXME: Text rendering does not work correctly, check GL states!
-	glColor3f( 1,1,1 );
-	drawText( 10,10, tr("current mesh object = %1").arg(selectedObject()) );
-
 	glEnable( GL_DEPTH_TEST );
 	glEnable( GL_LIGHTING );
 
@@ -537,6 +543,10 @@ void SceneViewer::draw()
 		drawSelectionRectangle();
 
 	glPopAttrib();
+
+	// FIXME: Text rendering does not work correctly, check GL states!
+	glColor3f( 1,1,1 );
+	drawText( 10,23, tr("current mesh object = %1").arg(selectedObject()) );
 }
 
 //----------------------------------------------------------------------------
@@ -1050,7 +1060,7 @@ void SceneViewer::computeCrossValidation()
 	gamma.push_back( 0.001 );
 	gamma.push_back( 0.0005 );
 
-	unsigned numSamples = gamma.size();
+	unsigned numSamples = (unsigned)gamma.size();
 
 	// HACK: Assemble data matrix from PCA model
 	Eigen::MatrixXd X = pco->getPCAModel().X;
