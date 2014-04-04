@@ -92,7 +92,7 @@ TensorfieldObject::TensorfieldObject()
 	  m_colorMode     ( ColorByFractionalAnisotropy ),
 	  m_glyphRes      ( 8  ),  // 16 = high quality
 	  m_glyphSharpness( 3. ),  // 3. is Kindlman default
-	  m_glyphScale    ( .1 ),
+	  m_glyphScale    ( 1. ),
 	  m_glyphSqrtEV   ( false )
 {}
 

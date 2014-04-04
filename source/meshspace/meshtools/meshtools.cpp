@@ -9,12 +9,14 @@ namespace meshtools {
 //  Mesh functions
 //-----------------------------------------------------------------------------
 
+OpenMesh::IO::Options meshIOdefaultOptions( OpenMesh::IO::Options::VertexColor );
+
 bool loadMesh( Mesh& mesh, const char* filename )
 {	
 	std::string file_in( filename );
 	try
 	{
-		if( !OpenMesh::IO::read_mesh( mesh, file_in ) )
+		if( !OpenMesh::IO::read_mesh( mesh, file_in, meshIOdefaultOptions ) )
 		{
 			std::cerr << "Error: Couldn't load mesh from '" << file_in << "'!" 
 				<< std::endl;
@@ -36,7 +38,7 @@ bool saveMesh( const Mesh& mesh, const char* filename )
 	std::string file_out( filename );
 	try
 	{
-		if( !OpenMesh::IO::write_mesh( mesh, file_out ) )
+		if( !OpenMesh::IO::write_mesh( mesh, file_out, meshIOdefaultOptions ) )
 		{
 			std::cerr << "Error: Couldn't save mesh to '" << file_out << "'!" 
 				<< std::endl;

@@ -18,8 +18,13 @@ namespace meshtools {
 struct MeshTraits : public OpenMesh::DefaultTraits
 {
 	// Status is required to allow deletion of geometry elements
-	// (see http://openmesh.org/Documentation/OpenMesh-2.0-Documentation/tutorial_07b.html)
-	VertexAttributes(OpenMesh::Attributes::Status);
+	// (see http://openmesh.org/Documentation/OpenMesh-2.0-Documentation/tutorial_07b.html).
+	// We use per-vertex colors (only for export, rendering is done via a
+	// transfer function in shader).
+	VertexAttributes(
+		           OpenMesh::Attributes::Status |
+				   OpenMesh::Attributes::Color
+				   );
 	FaceAttributes(OpenMesh::Attributes::Status);
 	EdgeAttributes(OpenMesh::Attributes::Status);
 };
