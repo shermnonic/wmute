@@ -235,27 +235,35 @@ void MeshObject::selectNone()
 }
 
 //------------------------------------------------------------------------------
-void MeshObject::setScalars( const std::vector<float>& scalars )
+void MeshObject::setScalars( const std::vector<float>& scalars, bool autoscale )
 {
 	m_scalarAttribBuffer.clear();
 	m_scalarAttribBuffer.insert( m_scalarAttribBuffer.begin(),
 		scalars.begin(), scalars.end() );
 
-	// Find min/max value
-	float minval=std::numeric_limits<float>::max(),
-		  maxval=-minval;	
-	for( unsigned int i=0; i < scalars.size(); i++ )
+	if( autoscale )
 	{
-		maxval = scalars[i] > maxval ? scalars[i] : maxval;
-		minval = scalars[i] < minval ? scalars[i] : minval;
+		// Find min/max value
+		float minval=std::numeric_limits<float>::max(),
+			  maxval=-minval;	
+		for( unsigned int i=0; i < scalars.size(); i++ )
+		{
+			maxval = scalars[i] > maxval ? scalars[i] : maxval;
+			minval = scalars[i] < minval ? scalars[i] : minval;
+		}
+
+		// Set parameters to rescale to [0,1] inside shader
+		m_scalarShift = -minval;
+		m_scalarScale = 1.f / (maxval - minval);		
 	}
-
-	// Set parameters to rescale to [0,1] inside shader
-	m_scalarShift = -minval;
-	m_scalarScale = 1.f / (maxval - minval);
-
-	std::cout << "Scalars shift=" << m_scalarShift << ", scale=" << m_scalarScale << std::endl;
 }
 
+//------------------------------------------------------------------------------
+void MeshObject::setScalarShiftScale( float shift, float scale ) 
+{ 
+	m_scalarShift = shift; 
+	m_scalarScale = scale; 
+	std::cout << "Scalars shift=" << m_scalarShift << ", scale=" << m_scalarScale << std::endl;
+}
 
 } // namespace scene

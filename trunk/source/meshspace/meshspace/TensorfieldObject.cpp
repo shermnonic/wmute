@@ -339,6 +339,9 @@ unsigned TensorfieldObject::filterTensorField( Eigen::MatrixXd& S, Eigen::Matrix
 
 void TensorfieldObject::deriveTensorsFromPCAModel( const PCAModel& pca,  int mode, double gamma, double scale )
 {
+	using std::cerr;
+	using std::cout;
+	using std::endl;
 	using ShapeCovariance::computeInterPointCovariance;
 	using ShapeCovariance::computeSampleCovariance;
 	using ShapeCovariance::devectorizeCovariance;
@@ -349,9 +352,9 @@ void TensorfieldObject::deriveTensorsFromPCAModel( const PCAModel& pca,  int mod
 		mode == InterPointCovariance )
 	{
 		if( gamma <= 0.0 )	
-			std::cerr << "TensorfieldObject::deriveTensorsFromPCAModel(): "
+			cerr << "TensorfieldObject::deriveTensorsFromPCAModel(): "
 			  "For inter-point covariance a gamma value > 0.0 has to be "
-			  "specified!" << std::endl;
+			  "specified!" << endl;
 	}
 
 	// For all modes we place glyph at vertex positions of mean shape
@@ -359,6 +362,7 @@ void TensorfieldObject::deriveTensorsFromPCAModel( const PCAModel& pca,  int mod
 
 	if( mode == AnatomicCovariance )
 	{
+		cout << "Computing anatomic covariance, scaled by " << scale << endl;
 		Eigen::MatrixXd S;
 		computeSampleCovariance( pca.X, S );
 		m_glyphSqrtEV = false;
@@ -367,6 +371,7 @@ void TensorfieldObject::deriveTensorsFromPCAModel( const PCAModel& pca,  int mod
 	else
 	if( mode == InterPointCovarianceUnweighted )
 	{
+		cout << "Computing unweighted inter-point covariance with gamma = " << gamma << ", scaled by " << scale << endl;
 		Eigen::MatrixXd G;
 		computeInterPointCovariance( pca.PC * pca.ev.asDiagonal(), gamma, G );
 		G *= scale;
@@ -376,12 +381,12 @@ void TensorfieldObject::deriveTensorsFromPCAModel( const PCAModel& pca,  int mod
 	else
 	if( mode == InterPointCovariance )
 	{
+		cout << "Computing inter-point covariance with gamma = " << gamma << ", scaled by " << scale << endl;
 		Eigen::MatrixXd S, G;
 		computeSampleCovariance( pca.X, S );
 		computeInterPointCovariance( pca.PC * pca.ev.asDiagonal(), gamma, G );
-		G *= scale;
 
-		// Weight inter-point with global covariance tensors
+		// Weight inter-point with anatomic covariance tensor
 		for( unsigned p=0; p < G.cols(); p++ )
 		{
 			// Extract tensors at point p
@@ -398,6 +403,8 @@ void TensorfieldObject::deriveTensorsFromPCAModel( const PCAModel& pca,  int mod
 			vectorizeCovariance( W, w );
 			G.col(p) = w;
 		}
+
+		G *= scale;  // Apply scaling after weighting with anatomic covariance (?)
 
 		m_glyphSqrtEV = true;
 		deriveTensorsFromCovariance( G );
