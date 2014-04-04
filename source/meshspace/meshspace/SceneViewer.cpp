@@ -504,6 +504,9 @@ void SceneViewer::draw()
 {
 	glPushAttrib( GL_ALL_ATTRIB_BITS );
 
+	//......................................
+	// Render scene
+
 	GL::CheckGLError("SceneViewer::draw() - berfore rendering the scene");
 
 	//if( m_mode == ModeWireframe )
@@ -514,6 +517,16 @@ void SceneViewer::draw()
 	m_scene.render();
 
 	GL::CheckGLError("SceneViewer::draw() - after rendering the scene");
+
+	//......................................
+	// Render color bar
+
+	// Show transfer function only for tensor field objects for now
+	if( currentMeshObject() && dynamic_cast<scene::TensorfieldObject*>(currentMeshObject()) )
+		currentMeshObject()->meshShader().getTransferFunction().draw();
+
+	//......................................
+	// Render selection
 
 	glDisable( GL_LIGHTING );
 	glDisable( GL_DEPTH_TEST );
@@ -541,6 +554,9 @@ void SceneViewer::draw()
 	// Draw brush shape
 	if( m_selectionMode != SelectNone )
 		drawSelectionRectangle();
+
+	//......................................
+	// Render text
 
 	glPopAttrib();
 

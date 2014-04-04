@@ -109,6 +109,8 @@ public:
 	/// Recompile the used \a MeshShader from source
 	bool reloadShader();
 
+	MeshShader& meshShader() { return m_shader; }
+
 private:
 	boost::shared_ptr<meshtools::Mesh> m_mesh;  ///< Reference mesh (1st frame of an animation sequence)
 	MeshBuffer m_meshBuffer; ///< Buffer objects and rendering functionality
