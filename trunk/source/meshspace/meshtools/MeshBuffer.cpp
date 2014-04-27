@@ -201,6 +201,8 @@ void MeshBuffer::initSingleFrameFromRawBuffers()
 	m_numFrames   = 1;
 	m_numVertices = (unsigned)m_vbuffer.size() / 3;
 	m_numNormals  = (unsigned)m_nbuffer.size() / 3;
+
+	m_cbufferEnabled = m_cbuffer.size() == 4*m_numVertices;
 }
 
 //------------------------------------------------------------------------------
@@ -288,19 +290,16 @@ void MeshBuffer::downloadGPU()
 	start += sizeof(float)*m_numNormals*3;
 
 	// Download colors (optional)
-	if( m_cbuffer.empty() )
-		setupCBuffer();
+	//if( m_cbufferEnabled ) // Upload buffer in any case to allow enabling color on-the-fly
 	{
 		if( m_cbuffer.size() != m_numVertices*4 )
 		{
 			std::cout << "MeshBuffer::downloadGPU() : Color buffer mismatch, must be of format RGBA!" << std::endl;
-			m_cbuffer.clear();
+			setupCBuffer();
 		}
-		else
-		{
-			glBufferSubData( GL_ARRAY_BUFFER, start,
-				sizeof(float)*m_cbuffer.size(), &(m_cbuffer[0]) );
-		}
+
+		glBufferSubData( GL_ARRAY_BUFFER, start,
+			sizeof(float)*m_cbuffer.size(), &(m_cbuffer[0]) );
 	}
 
 	GL::CheckGLError("MeshBuffer::downloadGPU() - glBufferSubData()");
@@ -556,7 +555,7 @@ meshtools::Mesh* MeshBuffer::createMesh( int frame ) const
 		p[1] = *pv;  pv++;
 		p[2] = *pv;  pv++;
 		vhandle[i] = m->add_vertex( p );
-		if( m_cbufferEnabled && m_cbuffer.size() == 4*m_numVertices )
+		if( m_cbuffer.size() == 4*m_numVertices ) // was: && m_cbufferEnabled
 			// Ignore alpha channel for export
 			m->set_color( vhandle[i], OpenMesh::Vec3uc( 255.f*m_cbuffer[4*i], 255.f*m_cbuffer[4*i+1], 255.f*m_cbuffer[4*i+2] ) );
 	}
