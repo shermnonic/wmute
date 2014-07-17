@@ -24,6 +24,8 @@
 class MeshBuffer
 {
 public:
+	/** @name Setup */
+	///@{
 	MeshBuffer()
 	: m_curFrame(-1),
 	  m_numFrames(0),
@@ -34,49 +36,64 @@ public:
 	  m_frameUpdateRequired(true),
 	  m_cbufferEnabled(false)
 	{}
-
 	void clear();
 	bool addFrame( const meshtools::Mesh* mesh );
-
-	void initSingleFrameFromRawBuffers();
-
-	///@{ Render functions
+	///@}
+	
+	/** @name Render functions */
+	///@{ 
 	void draw();
-
 	void drawPoints( const std::vector<unsigned>& idx ) const;
 	void drawPoints() const;
-
 	void drawNamedPoints() const;
 	void drawNamedPoints( const std::vector<unsigned>& idx ) const;
 	///@}
 
+	/** @name Other functions */
+	///@{
 	/// Change current frame
 	void setFrame( int f );
-
-	///@{ Properties
-	int      curFrame() const { return m_curFrame; }
-	unsigned numFrames() const { return m_numFrames; }
-	unsigned numVertices() const { return m_numVertices; }
-	///@}
-
-	///@{ File IO for custom .meshbuffer/.mb file format
-	void write( const char* filename ) const;
-	bool read( const char* filename );
-	///@}
+	/// Force download of buffers to GPU (automatically set in \a setFrame())
+	void setFrameUpdateRequired() { m_frameUpdateRequired=true; }
 
 	/// Create a new OpenMesh mesh for specific frame
 	meshtools::Mesh* createMesh( int frame=0 ) const;
 
 	/// Return scalar product between given direction and vertex normal of vertex idx (No range checking!).
 	double projectVertexNormal( unsigned idx, float x, float y, float z ) const;
+	///@}
+
+	/** @name Properties */
+	///@{
+	int      curFrame() const { return m_curFrame; }
+	unsigned numFrames() const { return m_numFrames; }
+	unsigned numVertices() const { return m_numVertices; }
+	///@}
+
+	/** @name File IO 
+	 *  File IO for custom .meshbuffer/.mb file format
+	 */
+	///@{ 
+	void write( const char* filename ) const;
+	bool read( const char* filename );
+	///@}
+
+	/** @name Buffer management */
+	//@{
+	void initSingleFrameFromRawBuffers();
 
 	/// Setup color buffer (which is used for special attributes as well).
 	/// Must be called after vbuffer is set, i.e. after a file is loaded, but
 	/// before downloadGPU() called for the first time.
 	void setupCBuffer();
 	void setCBufferEnabled( bool b ) { m_cbufferEnabled = b; }
+	///@}
 
-	///@{ Access to raw buffers (you better know what you are doing, \sa initSingleFrameFromRawBuffers)
+	/** @name Raw buffer access
+	 *  Access to raw buffers (you better know what you are doing, 
+	 *  see also \a initSingleFrameFromRawBuffers())
+	 */
+	///@{ 
 	std::vector<float>& cbuffer() { return m_cbuffer; }
 	std::vector<float>& vbuffer() { return m_vbuffer; }
 	std::vector<float>& nbuffer() { return m_nbuffer; }
@@ -86,9 +103,6 @@ public:
 	const std::vector<float>& nbuffer() const { return m_nbuffer; }
 	const std::vector<unsigned>& ibuffer() const { return m_ibuffer; }
 	///@}
-
-	/// Force download of buffers to GPU (automatically set in \a setFrame())
-	void setFrameUpdateRequired() { m_frameUpdateRequired=true; }
 
 protected:
 	/// Called internally in \a draw() function
@@ -112,6 +126,6 @@ private:
 	std::vector<float>    m_cbuffer; ///< color buffer (same for all meshes?!)
 };
 
-/** @} */ // end group
+/** @} end group */
 
 #endif // MESHBUFFER_H
