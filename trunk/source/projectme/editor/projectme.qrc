@@ -1,0 +1,15 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+	<file>projectme.png</file>
+<!--
+  <file>data/icons/icon.png</file>
+  <file>data/icons/document-new.png</file>
+  <file>data/icons/document-open.png</file>
+  <file>data/icons/document-save.png</file>
+  <file>data/icons/document-save-as.png</file>
+-->
+</qresource>
+</RCC>
+
+
+
