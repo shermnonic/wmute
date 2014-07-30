@@ -62,7 +62,11 @@ void RenderSetWidget::initializeGL()
 
 		glewInitialized = true;
 	}
-	
+
+	// Enable multisampling
+	// Note that multisampling is configured via QGLFormat, usually in main.cpp.
+	glEnable( GL_MULTISAMPLE );
+
 	// OpenGL default states
 	glClearColor(0,0,1,1);	
 }

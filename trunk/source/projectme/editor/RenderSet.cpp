@@ -53,10 +53,20 @@ RenderSet::RenderSet()
 		 .9f, -.9f
 	};
 
+	float texcoords[] =
+	{
+		0.f, 0.f,
+		0.f, 1.f,
+		1.f, 1.f,
+		1.f, 0.f
+	};
+
 	m_areas.clear();
 	m_areas.push_back( RenderArea() );
 	m_areas[0].polygon().verts() 
 		= std::vector<float>( verts, verts+sizeof(verts)/sizeof(float));
+	m_areas[0].polygon().texcoords()
+		= std::vector<float>( texcoords, texcoords+sizeof(texcoords)/sizeof(float));
 }
 
 //-----------------------------------------------------------------------------

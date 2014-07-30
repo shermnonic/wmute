@@ -177,9 +177,10 @@ void MainWindow::newPreview()
 
 	RenderSetWidget* w = new RenderSetWidget( m_mdiArea, m_sharedGLWidget );
 	w->setRenderSet( m_renderSetManager.getActiveRenderSet() );
-	m_mdiArea->addSubWindow( w );
+	QMdiSubWindow* sub = m_mdiArea->addSubWindow( w );
 	w->setWindowTitle("Preview #"+QString::number(windowCount++));
 	w->show();
+	sub->resize( 640, 480 );
 
 	m_previews.append( w );
 	updateViewMenu();

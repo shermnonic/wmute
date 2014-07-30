@@ -26,23 +26,28 @@ public:
 class RenderArea
 {
 	/// Simple polygon helper class
-	template <typename T, int DIM>
+	template <typename T, int DIM, int TC>
 	class TPolygon
 	{
 	public:
-		void resize( int n ) { m_verts.resize( DIM * n ); }	
+		void resize( int n ) { m_verts.resize( DIM * n ); m_texcoords.resize( TC * n ); }	
 		int  nverts() const { return (int)m_verts.size() / DIM; }
 
 		      T* vert( int i )       { return (i<0 || i>=m_verts.size()) ? 0 : &m_verts[DIM*i]; }
 		const T* vert( int i ) const { return &m_verts[DIM*i]; }
 
+		      T* texcoord( int i )       { return (i<0 || i>=m_texcoords.size()) ? 0 : &m_texcoords[TC*i]; }
+		const T* texcoord( int i ) const { return &m_texcoords[TC*i]; }
+
 		std::vector<T>& verts() { return m_verts; }
+		std::vector<T>& texcoords() { return m_texcoords; }
 
 	private:
 		std::vector<T> m_verts;
+		std::vector<T> m_texcoords;
 	};
 
-	typedef TPolygon<float,2> Polygon;
+	typedef TPolygon<float,2,2> Polygon;
 	
 public:
 	///@{ Draw polygonal area bounds
