@@ -11,7 +11,7 @@
 class ModuleRenderer
 {
 public:
-	void render() { /*TBD*/ };
+	virtual void render() { /*TBD*/ };
 };
 
 //=============================================================================
