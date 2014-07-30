@@ -63,7 +63,7 @@ RenderSet::RenderSet()
 int RenderSet::pickVertex( float x, float y )
 {
 	// Find closest point (brute-force)
-	float radius = 0.1;
+	float radius = 0.1f;
 	int polygon=-1,
 	    vertex=-1;
 	float sqdist = std::numeric_limits<float>::max();
