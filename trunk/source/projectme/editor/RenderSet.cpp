@@ -6,6 +6,32 @@
 //=============================================================================
 
 //-----------------------------------------------------------------------------
+RenderArea::RenderArea()
+{
+	float verts[] =
+	{
+		-.9f, -.9f,
+		-.9f,  .9f,
+		 .9f,  .9f,
+		 .9f, -.9f
+	};
+
+	float texcoords[] =
+	{
+		0.f, 0.f,
+		0.f, 1.f,
+		1.f, 1.f,
+		1.f, 0.f
+	};
+
+	polygon().clear();
+	polygon().verts() 
+		= std::vector<float>( verts, verts+sizeof(verts)/sizeof(float));
+	polygon().texcoords()
+		= std::vector<float>( texcoords, texcoords+sizeof(texcoords)/sizeof(float));
+}
+
+//-----------------------------------------------------------------------------
 void RenderArea::drawAreaOutline() const
 {
 	// Draw line
@@ -34,7 +60,14 @@ void RenderArea::drawAreaFilled() const
 //-----------------------------------------------------------------------------
 void RenderArea::render( int gltexid ) const
 {
-	// TBD
+
+	glBegin( GL_POLYGON );
+	for( int i=0; i < m_poly.nverts(); i++ )
+	{
+		glTexCoord2fv( m_poly.texcoord(i) );
+		glVertex2fv  ( m_poly.vert(i) );
+	}
+	glEnd();	
 }
 
 //=============================================================================
@@ -45,28 +78,14 @@ void RenderArea::render( int gltexid ) const
 RenderSet::RenderSet()
 : m_areaMode( AreaOutline )
 {
-	float verts[] =
-	{
-		-.9f, -.9f,
-		-.9f,  .9f,
-		 .9f,  .9f,
-		 .9f, -.9f
-	};
+	addArea( RenderArea(), 0 );
+}
 
-	float texcoords[] =
-	{
-		0.f, 0.f,
-		0.f, 1.f,
-		1.f, 1.f,
-		1.f, 0.f
-	};
-
-	m_areas.clear();
-	m_areas.push_back( RenderArea() );
-	m_areas[0].polygon().verts() 
-		= std::vector<float>( verts, verts+sizeof(verts)/sizeof(float));
-	m_areas[0].polygon().texcoords()
-		= std::vector<float>( texcoords, texcoords+sizeof(texcoords)/sizeof(float));
+//-----------------------------------------------------------------------------
+void RenderSet::addArea( RenderArea area, ModuleRenderer* module )
+{
+	m_areas .push_back( area );
+	m_mapper.push_back( module );
 }
 
 //-----------------------------------------------------------------------------
@@ -199,6 +218,15 @@ void RenderSet::drawOutline() const
 void RenderSet::render() const
 {
 	beginRendering();
-	// TBD
+	glColor4f( 1.f, 1.f, 1.f, 1.f );
+	glEnable( GL_TEXTURE_2D );
+
+	for( int i=0; i < m_areas.size(); i++ )
+	{
+		if( !m_mapper[i] ) continue;
+		m_areas[i].render( m_mapper[i]->target() );
+	}
+
+	glDisable( GL_TEXTURE_2D );
 	endRendering();
 }
