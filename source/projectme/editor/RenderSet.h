@@ -11,7 +11,41 @@
 class ModuleRenderer
 {
 public:
-	virtual void render() { /*TBD*/ };
+	virtual void render() = 0;
+	virtual int  target() const = 0;
+};
+
+//=============================================================================
+//  ModuleManager
+//=============================================================================
+class ModuleManager
+{
+public:
+	~ModuleManager()
+	{
+		clear();
+	}
+
+	void clear()
+	{
+		for( int i=0; i < m_modules.size(); i++ )
+			delete m_modules[i];
+		m_modules.clear();
+	}
+
+	void addModule( ModuleRenderer* module )
+	{
+		m_modules.push_back( module );
+	}
+
+	void render()
+	{
+		for( int i=0; i < m_modules.size(); i++ )
+			m_modules[i]->render();
+	}
+
+private:
+	std::vector<ModuleRenderer*> m_modules;
 };
 
 //=============================================================================
@@ -30,6 +64,8 @@ class RenderArea
 	class TPolygon
 	{
 	public:
+		void clear() { m_verts.clear(); m_texcoords.clear(); }
+
 		void resize( int n ) { m_verts.resize( DIM * n ); m_texcoords.resize( TC * n ); }	
 		int  nverts() const { return (int)m_verts.size() / DIM; }
 
@@ -50,6 +86,9 @@ class RenderArea
 	typedef TPolygon<float,2,2> Polygon;
 	
 public:
+	/// C'tor, sets a default render area
+	RenderArea();
+
 	///@{ Draw polygonal area bounds
 	void drawAreaOutline() const;
 	void drawAreaFilled() const;
@@ -73,7 +112,9 @@ private:
 //=============================================================================
 
 typedef std::vector<RenderArea>                    RenderAreaCollection;
-typedef std::multimap<ModuleRenderer*,RenderArea*> RenderAreaModuleMapper;
+//typedef std::multimap<ModuleRenderer*,RenderArea*> RenderAreaModuleMapper;
+//typedef std::map<RenderArea*,ModuleRenderer*> RenderAreaModuleMapper;
+typedef std::vector<ModuleRenderer*> RenderAreaModuleMapper;
 
 /**
 	\class RenderSet
@@ -114,6 +155,8 @@ public:
 	int getAreaMode() const { return m_areaMode; }
 	void setAreaMode( int i ) { m_areaMode = i; }
 	///@}
+
+	void addArea( RenderArea area, ModuleRenderer* module=0 );
 	
 protected:
 	void beginRendering() const;
