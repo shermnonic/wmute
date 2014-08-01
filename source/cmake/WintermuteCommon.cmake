@@ -18,7 +18,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})
 
 #---- Output paths ------------------------------------------------------------
 
-set(WINTERMUTE_OUTPUT_PATH "${CMAKE_CURRENT_LIST_DIR}/../../../../"  
+get_filename_component(WINTERMUTE_OUTPUT_REALPATH "${CMAKE_CURRENT_LIST_DIR}/../../../../" ABSOLUTE)
+set(WINTERMUTE_OUTPUT_PATH ${WINTERMUTE_OUTPUT_REALPATH}
 	CACHE PATH "Wintermute base path for bin and lib outputs.")
 
 # Set default output paths
@@ -28,8 +29,8 @@ set(CMAKE_RUNTIME_OUTPUT_PATH ${WINTERMUTE_OUTPUT_PATH}/bin)
 
 #---- Global project variables ------------------------------------------------
 
-set(WINTERMUTE_3RDPARTY_LIBS_PATH "${CMAKE_CURRENT_LIST_DIR}/../3rdparty")
-set(WINTERMUTE_GLUTILS_PATH       "${CMAKE_CURRENT_LIST_DIR}/..") # /glutils
+get_filename_component(WINTERMUTE_3RDPARTY_LIBS_PATH "${CMAKE_CURRENT_LIST_DIR}/../3rdparty" ABSOLUTE)
+get_filename_component(WINTERMUTE_GLUTILS_PATH       "${CMAKE_CURRENT_LIST_DIR}/.."          ABSOLUTE)
 
 file(GLOB_RECURSE WINTERMUTE_GLUTILS_SOURCES ${WINTERMUTE_GLUTILS_PATH}/glutils/*.cpp)
 source_group("glutils" FILES ${WINTERMUTE_GLUTILS_SOURCES})
@@ -81,9 +82,11 @@ endif(UNIX)
 
 #---- Print status information ------------------------------------------------
 
-message(STATUS "WINTERMUTE_OUTPUT_PATH     = ${WINTERMUTE_OUTPUT_PATH}")
-message(STATUS "WINTERMUTE_INSTALL_LIB_DIR = ${WINTERMUTE_INSTALL_LIB_DIR}")
-message(STATUS "CMAKE_MODULE_PATH          = ${CMAKE_MODULE_PATH}")
-message(STATUS "CMAKE_CURRENT_LIST_DIR     = ${CMAKE_CURRENT_LIST_DIR}")
+message(STATUS "CMAKE_MODULE_PATH             = ${CMAKE_MODULE_PATH}")
+message(STATUS "CMAKE_CURRENT_LIST_DIR        = ${CMAKE_CURRENT_LIST_DIR}")
+message(STATUS "WINTERMUTE_OUTPUT_PATH        = ${WINTERMUTE_OUTPUT_PATH}")
+message(STATUS "WINTERMUTE_INSTALL_LIB_DIR    = ${WINTERMUTE_INSTALL_LIB_DIR}")
+message(STATUS "WINTERMUTE_3RDPARTY_LIBS_PATH = ${WINTERMUTE_3RDPARTY_LIBS_PATH}")
+message(STATUS "WINTERMUTE_GLUTILS_PATH       = ${WINTERMUTE_GLUTILS_PATH}")
 
 message(STATUS "----------------------------------")
