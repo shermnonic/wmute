@@ -7,6 +7,7 @@
 #include <QPoint>
 #include <QMessageBox>
 #include <QMouseEvent>
+#include <QDebug>
 
 //=============================================================================
 //  RenderSetWidget
@@ -14,9 +15,10 @@
 
 //-----------------------------------------------------------------------------
 RenderSetWidget::RenderSetWidget( QWidget *parent, QGLWidget *share )
-: QGLWidget( parent, share ),
-  m_set( 0 ),
+: QGLWidget( parent, share ),  
+  m_set( 0 ),  
   m_state( DefaultState ),
+  m_flags( RenderPreview ),
   m_fullscreen( false )
 {
 	// Actions
@@ -34,41 +36,17 @@ RenderSetWidget::RenderSetWidget( QWidget *parent, QGLWidget *share )
 	m_renderUpdateTimer = new QTimer( this );
 	connect( m_renderUpdateTimer, SIGNAL(timeout()), this, SLOT(updateGL()) );
 	m_renderUpdateTimer->start( 42 );
+
+	// DEBUG
+	qDebug() << "The newly created RenderSetWidget" << 
+		(isSharing() ? "is sharing!" : "is *not* sharing?!");
 }
 
 //-----------------------------------------------------------------------------
 void RenderSetWidget::initializeGL()
 {
-	// At first creation of the (shared) GL context, we have to initialize GLEW		
-	static bool glewInitialized = false;
-	
-	if( !glewInitialized )
-	{
-		glewExperimental = GL_TRUE;	
-		GLenum glew_err = glewInit();
-		if( glew_err != GLEW_OK )
-		{
-			std::cerr << "GLEW Error:\n" << glewGetErrorString(glew_err) << std::endl;
-			QMessageBox::warning( this, tr("Error"),
-				tr("Could not setup GLEW OpenGL extension manager!\n") );
-		}
-		std::cout << "Using GLEW " << glewGetString( GLEW_VERSION ) << std::endl;
-		if( !glewIsSupported("GL_VERSION_1_3") )
-		{
-			std::cerr << "GLEW Error:\n" << glewGetErrorString(glew_err) << std::endl;
-			QMessageBox::warning( this, tr("sdmvis: Warning"),
-				tr("OpenGL 1.3 not supported by current graphics hardware/driver!") );
-		}
-
-		glewInitialized = true;
-	}
-
-	// Enable multisampling
-	// Note that multisampling is configured via QGLFormat, usually in main.cpp.
-	glEnable( GL_MULTISAMPLE );
-
-	// OpenGL default states
-	glClearColor(0,0,1,1);	
+	// The context should already be initialized correctly by the master
+	// QGLWidget whose context this RenderSetWidget shares.
 }
 
 //-----------------------------------------------------------------------------
@@ -91,12 +69,26 @@ void RenderSetWidget::resizeGL( int w, int h )
 
 //-----------------------------------------------------------------------------
 void RenderSetWidget::paintGL()
-{
+{	
+	glClearColor( 0,0,0,1 );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-	
+
 	if( m_set )
 	{
-		m_set->drawOutline();
+		if( m_flags & RenderFinal )
+		{
+			if( m_flags & RenderDebug )
+			{
+				GLuint texid = 
+					bindTexture( QPixmap(":/projectme.png"), GL_TEXTURE_2D, GL_RGBA );
+				m_set->render( texid );
+			}
+			else
+				m_set->render();
+		}
+
+		if( m_flags & RenderPreview )
+			m_set->drawOutline();
 	}
 }
 
@@ -201,16 +193,34 @@ void RenderSetWidget::showContextMenu( const QPoint& pt )
 	menu.addSeparator();
 	QAction* a1 = menu.addAction( tr("Preview blue&yellow") );
 	QAction* a2 = menu.addAction( tr("Preview black&white") );
+	a1->setCheckable( true );
+	a2->setCheckable( true );
+
 	switch( m_set->getAreaMode() )	{
 	case RenderSet::AreaOutline   : a1->setChecked(true); break;
 	case RenderSet::AreaBlackWhite: a2->setChecked(true); break;
 	}
 
+	menu.addSeparator();
+	QAction* f1 = menu.addAction( tr("Render preview") );
+	QAction* f2 = menu.addAction( tr("Render final") );	
+	QAction* f3 = menu.addAction( tr("Render debug") );	
+	f1->setCheckable( true );
+	f2->setCheckable( true );
+	f3->setCheckable( true );
+
+	f1->setChecked( m_flags & RenderPreview );
+	f2->setChecked( m_flags & RenderFinal   );
+	f3->setChecked( m_flags & RenderDebug  );
+
 	QAction* selectedItem = menu.exec( mapToGlobal(pt) );	
 	if( selectedItem )
 	{
 		if( selectedItem==a1 ) m_set->setAreaMode( RenderSet::AreaOutline ); else
-		if( selectedItem==a2 ) m_set->setAreaMode( RenderSet::AreaBlackWhite );
+		if( selectedItem==a2 ) m_set->setAreaMode( RenderSet::AreaBlackWhite ); else
+		if( selectedItem==f1 ) m_flags = RenderPreview; else
+		if( selectedItem==f2 ) m_flags = RenderFinal; else
+		if( selectedItem==f3 ) m_flags = RenderFinal | RenderDebug;
 	}
 }
 

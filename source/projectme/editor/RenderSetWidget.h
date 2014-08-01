@@ -27,13 +27,18 @@ class RenderSetWidget : public QGLWidget
 	Q_OBJECT
 
 public:
-	enum InteractionState { DefaultState, PickedVertexState };	
+	enum InteractionState { DefaultState, PickedVertexState };
+	enum RenderFlags {
+		RenderPreview = 1,
+		RenderFinal   = 2,
+		RenderDebug   = 4
+	};
 	
 	/// C'tor
 	RenderSetWidget( QWidget *parent, QGLWidget *share );
 
 	/// Set RenderSet, pointer must stay valid while it is assigned here!
-	void setRenderSet( RenderSet* set ) { m_set = set; }
+	void setRenderSet( RenderSet* set ) { m_set = set; }	
 
 	///@name Fullscreen
 	///@{
@@ -63,8 +68,9 @@ protected:
 	///@}
 
 private:
-	RenderSet* m_set;
+	RenderSet* m_set;	
 	int        m_state;
+	int        m_flags;
 	QPointF    m_delta;
 	bool       m_fullscreen;
 	QAction*   m_actFullscreen;

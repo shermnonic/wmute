@@ -3,18 +3,56 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "glbase.h"
+#include <QGLWidget>
+
 #include <QMainWindow>
 #include "RenderSet.h"
 
 class QMdiArea;
 class QGLWidget;
 class QMenu;
+class QTimer;
 
 class RenderSetWidget;
+class ShaderModule;
 
 /** @addtogroup editor_grp Editor
   * @{ */
 
+//=============================================================================
+//  SharedGLContext
+//=============================================================================
+/**
+	\class SharedGLContextWidget
+	- Provide OpenGL context shared between previews and screens.
+	- Setup GL extension manager GLEW in initializeGL().
+	- Frequent update of RenderModule's of a ModuleManager in paintGL().
+*/
+class SharedGLContextWidget : public QGLWidget
+{
+	Q_OBJECT
+public:
+	SharedGLContextWidget( QWidget* parent );
+
+	void setModuleManager( ModuleManager* man ) { m_man = man; }
+
+protected:
+	///@name QGLWidget implementation
+	///@{ 
+	void initializeGL();
+	void resizeGL( int w, int h ) {}
+	void paintGL();
+	QTimer* m_renderUpdateTimer;
+	///@}
+
+private:
+	ModuleManager* m_man;
+};
+
+//=============================================================================
+//  MainWindow
+//=============================================================================
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT
@@ -31,8 +69,11 @@ private slots:
 	void newPreview();
 	void newScreen();
 	void updateViewMenu();
+	void loadShader();
 
 protected:
+	void createUI();
+
 	void closeEvent( QCloseEvent* event );
 
 	///@{ Application settings
@@ -42,12 +83,17 @@ protected:
 	///@}
 	
 private:
-	QMdiArea * m_mdiArea;
-	QGLWidget* m_sharedGLWidget;
+	QMdiArea        *m_mdiArea;
+	SharedGLContextWidget
+	                *m_sharedGLWidget;
 
 	RenderSetManager m_renderSetManager;
+	ModuleManager    m_moduleManager;
+
+	ShaderModule    *m_shaderModule;
 	
 	QMenu* m_menuView;
+
 	QList<RenderSetWidget*> m_previews;
 	QList<RenderSetWidget*> m_screens;
 };

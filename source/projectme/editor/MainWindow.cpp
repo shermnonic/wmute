@@ -1,25 +1,121 @@
 // MainWindow for projectme editor
 // Max Hermann, Jul 2014
-#include "MainWindow.h"
 #include "glbase.h"
+#include "MainWindow.h"
+#include "ShaderModule.h"
+#include "RenderSetWidget.h"
 
-#include <QtGui>
+#include <QtGui> // FIXME: Include only required Qt classes
 #include <QMdiArea>
 #include <QGLWidget>
 #include <QDockWidget>
+#include <QTimer>
 
 const QString APP_NAME        ( "projectme" );
 const QString APP_ORGANIZATION( "www.386dx25.de" );
 #define       APP_ICON        QIcon(QPixmap(":/projectme.png"))
 
+//=============================================================================
+//  SharedGLContextWidget
+//=============================================================================
+#include <QGLFormat>
+#include <iostream>
+using std::cout;
+using std::cerr;
+using std::endl;
+
+SharedGLContextWidget::SharedGLContextWidget( QWidget* parent )
+: QGLWidget( parent ),
+  m_man(0)
+{
+	// Set multisampling option for OpenGL.
+	// Note that it still has to enabled in OpenGL via glEnable(GL_MULTISAMPLE)
+    QGLFormat glf = QGLFormat::defaultFormat();
+    glf.setSampleBuffers(true);
+    glf.setSamples(4);
+    QGLFormat::setDefaultFormat(glf);
+
+	// Render update timer
+	m_renderUpdateTimer = new QTimer( this );
+	connect( m_renderUpdateTimer, SIGNAL(timeout()), this, SLOT(updateGL()) );
+	m_renderUpdateTimer->start( 42 );
+}
+
+void SharedGLContextWidget::initializeGL()
+{
+	// At first creation of the (shared) GL context, we have to initialize GLEW		
+	static bool glewInitialized = false;
+	
+	if( !glewInitialized )
+	{
+		glewExperimental = GL_TRUE;	
+		GLenum glew_err = glewInit();
+		if( glew_err != GLEW_OK )
+		{
+			cerr << "GLEW Error:\n" << glewGetErrorString(glew_err) << endl;
+			QMessageBox::warning( this, tr("Error"),
+				tr("Could not setup GLEW OpenGL extension manager!\n") );
+		}
+		cout << "Using GLEW " << glewGetString( GLEW_VERSION ) << endl;
+		if( !glewIsSupported("GL_VERSION_1_3") )
+		{
+			cerr << "GLEW Error:\n" << glewGetErrorString(glew_err) << endl;
+			QMessageBox::warning( this, tr("sdmvis: Warning"),
+				tr("OpenGL 1.3 not supported by current graphics hardware/driver!") );
+		}
+
+		glewInitialized = true;
+	}
+
+	// Enable multisampling
+	// Note that multisampling is configured via QGLFormat, usually in main.cpp.
+	glEnable( GL_MULTISAMPLE );
+
+	// OpenGL default states
+	glClearColor(0,0,0,1);	
+}
+
+void SharedGLContextWidget::paintGL()
+{	
+	// All modules will be updated here
+	if( m_man )		
+		m_man->render();
+}
+
+
+//=============================================================================
+//  MainWindow
+//=============================================================================
 MainWindow::MainWindow()
+{
+	// Create UI (widgets, menu, actions, connections)
+	createUI();	
+
+	// Load application settings
+	readSettings();
+
+	// Setup render set
+	ShaderModule* shaderModule = new ShaderModule;
+	m_moduleManager.addModule( shaderModule );
+	m_renderSetManager.getActiveRenderSet()->setModule( 0, shaderModule );
+	m_sharedGLWidget->setModuleManager( &m_moduleManager );
+	m_shaderModule = shaderModule;
+
+	statusBar()->showMessage( tr("Ready.") );
+}
+
+MainWindow::~MainWindow()
+{
+}
+
+void MainWindow::createUI()
 {
 	setWindowTitle( APP_NAME );
 	setWindowIcon( APP_ICON );
 
 	// --- MDI ---
 
-	m_sharedGLWidget = new QGLWidget(this);
+	m_sharedGLWidget = new SharedGLContextWidget(this);
 	m_sharedGLWidget->resize(1,1);
 
 	m_mdiArea = new QMdiArea(this);
@@ -38,7 +134,8 @@ MainWindow::MainWindow()
 		*actSave,
 		*actQuit,
 		*actNewPreview,
-		*actNewScreen;
+		*actNewScreen,
+		*actLoadShader;
 	
 	actOpen = new QAction( tr("&Open project..."), this );
 	actOpen->setShortcut( tr("Ctrl+O") );
@@ -53,11 +150,14 @@ MainWindow::MainWindow()
 	actNewPreview = new QAction( tr("New preview"), this );
 	actNewScreen  = new QAction( tr("New screen"), this );
 
+	actLoadShader = new QAction( tr("Load shader..."), this );
+
 	// --- build menu ---
 
 	QMenu
 		*menuFile,
-		*menuWindows;
+		*menuWindows,
+		*menuModules;
 
 	menuFile = menuBar()->addMenu( tr("&File") );
 	menuFile->addAction( actOpen );
@@ -73,6 +173,9 @@ MainWindow::MainWindow()
 	m_menuView = new QMenu( tr("Configure windows") );
 	menuWindows->addMenu( m_menuView );	
 
+	menuModules = menuBar()->addMenu( tr("&Modules") );
+	menuModules->addAction( actLoadShader );
+
 	// --- connections ---
 
 	connect( actOpen, SIGNAL(triggered()), this, SLOT(open() ) );
@@ -81,21 +184,16 @@ MainWindow::MainWindow()
 
 	connect( actNewPreview, SIGNAL(triggered()), this, SLOT(newPreview()) );
 	connect( actNewScreen,  SIGNAL(triggered()), this, SLOT(newScreen ()) );
-	
-	// --- finish up ---
 
-	// load application settings
-	readSettings();
-
-	statusBar()->showMessage( tr("Ready.") );
-}
-
-MainWindow::~MainWindow()
-{
+	connect( actLoadShader, SIGNAL(triggered()), this, SLOT(loadShader()) );
 }
 
 void MainWindow::closeEvent( QCloseEvent* event )
 {	
+	// Destroy OpenGL resources
+	m_sharedGLWidget->makeCurrent(); // Get OpenGL context
+	m_moduleManager.clear();
+
 	m_mdiArea->closeAllSubWindows();
 	if( m_mdiArea->currentSubWindow() )
 	{
@@ -216,4 +314,15 @@ void MainWindow::updateViewMenu()
 
 		m_menuView->addAction( a );
 	}
+}
+
+void MainWindow::loadShader()
+{
+	QString filename = QFileDialog::getOpenFileName( this, tr("Load shader") );	
+	if( filename.isEmpty() )
+		return;
+
+	m_sharedGLWidget->makeCurrent();
+	if( !m_shaderModule->loadShader( filename.toStdString().c_str() ) )
+		QMessageBox::warning( this, tr("Error"), tr("Failed to load and/or compile shader!") );
 }

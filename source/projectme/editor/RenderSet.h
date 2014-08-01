@@ -8,11 +8,20 @@
 //=============================================================================
 //  ModuleRenderer
 //=============================================================================
+/**
+	\class ModuleRenderer
+
+	- OpenGL effect which renders into a texture.
+*/
 class ModuleRenderer
 {
 public:
+	/// Render the effect into a texture
 	virtual void render() = 0;
+	/// Return the texture id where the effect has rendered into
 	virtual int  target() const = 0;
+	/// Release any OpenGL resources (assume a valid GL context)
+	virtual void destroy() = 0;
 };
 
 //=============================================================================
@@ -29,7 +38,11 @@ public:
 	void clear()
 	{
 		for( int i=0; i < m_modules.size(); i++ )
+		{
+			// Let's hope that we have a proper OpenGL context!
+			m_modules[i]->destroy();
 			delete m_modules[i];
+		}
 		m_modules.clear();
 	}
 
@@ -111,9 +124,7 @@ private:
 //  RenderSet
 //=============================================================================
 
-typedef std::vector<RenderArea>                    RenderAreaCollection;
-//typedef std::multimap<ModuleRenderer*,RenderArea*> RenderAreaModuleMapper;
-//typedef std::map<RenderArea*,ModuleRenderer*> RenderAreaModuleMapper;
+typedef std::vector<RenderArea>      RenderAreaCollection;
 typedef std::vector<ModuleRenderer*> RenderAreaModuleMapper;
 
 /**
@@ -139,7 +150,7 @@ public:
 	/// Draw area and screen outlines
 	void drawOutline() const;	
 	/// Render all attached modules into specified areas
-	void render() const;
+	void render( int texid=-1 ) const;
 	///@}
 
 	///@name Area editing
@@ -156,7 +167,11 @@ public:
 	void setAreaMode( int i ) { m_areaMode = i; }
 	///@}
 
+	///@name Setup
+	///@{
 	void addArea( RenderArea area, ModuleRenderer* module=0 );
+	void setModule( int areaIdx, ModuleRenderer* module );
+	///@}
 	
 protected:
 	void beginRendering() const;
