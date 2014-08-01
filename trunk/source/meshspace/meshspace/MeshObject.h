@@ -61,6 +61,12 @@ public:
 	/// reference mesh is defined by the first frame.
 	void setMeshBuffer( const MeshBuffer& mb );
 
+	/// Force update of reference mesh from current mesh buffer.
+	/// Internally called in \a setMeshBuffer(). Should also be called after
+	/// changing the mesh buffer vertex data, e.g. via 
+	/// \a MeshBuffer::normalizeSize().
+	void updateMesh();
+
 	/// Add a frame of a mesh animation with same connectivity as reference.
 	/// If no reference was given so far, the first frame takes its role.
 	/// Returns true if frame was successfully appended, else false.
@@ -97,6 +103,7 @@ public:
 	void selectVertices( const std::vector<unsigned>&, bool selected=true );
 	void selectVertex( unsigned idx, bool selected=true );	
 	void selectNone();
+	std::set<unsigned> getSelectedVertices() const { return m_selectedVertices; }
 	///@}
 
 	/// Set scalar field on vertices (e.g. used for color-coding in shader)

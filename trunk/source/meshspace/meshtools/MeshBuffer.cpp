@@ -4,6 +4,9 @@
 #include <GL/glew.h>
 #include <glutils/GLError.h>
 #include <fstream>
+#include <iostream>
+#include <limits> // std::numeric_limits()
+#include <cmath>  // std::sqrt()
 
 //------------------------------------------------------------------------------
 void MeshBuffer::clear()
@@ -557,7 +560,10 @@ meshtools::Mesh* MeshBuffer::createMesh( int frame ) const
 		vhandle[i] = m->add_vertex( p );
 		if( m_cbuffer.size() == 4*m_numVertices ) // was: && m_cbufferEnabled
 			// Ignore alpha channel for export
-			m->set_color( vhandle[i], OpenMesh::Vec3uc( 255.f*m_cbuffer[4*i], 255.f*m_cbuffer[4*i+1], 255.f*m_cbuffer[4*i+2] ) );
+			m->set_color( vhandle[i], OpenMesh::Vec3uc( 
+				(unsigned char)(255.f*m_cbuffer[4*i]), 
+				(unsigned char)(255.f*m_cbuffer[4*i+1]), 
+				(unsigned char)(255.f*m_cbuffer[4*i+2])  ));
 	}
 
 	// Mesh indexed faces
@@ -590,4 +596,48 @@ double MeshBuffer::projectVertexNormal( unsigned idx, float x, float y, float z 
 		  nz = m_nbuffer[ofs + 2];
 
 	return nx*x + ny*y + nz*z;
+}
+
+//------------------------------------------------------------------------------
+float MeshBuffer::computeBBoxDiagonal() const
+{
+	float minval(std::numeric_limits<float>::max()),
+	      maxval(-minval);
+
+	// Bounding box is given by min/max coordinate values
+	float min_[3], max_[3];
+	min_[0]=min_[1]=min_[2]=minval;
+	max_[0]=max_[1]=max_[2]=maxval;
+
+	// Get min/max coordinates over all vertices
+	unsigned n = numVertices() * numFrames();
+	const float* vptr = &m_vbuffer[0];
+	for( unsigned int p=0; p < n; p++ )
+	{
+		for( unsigned int d=0; d < 3; d++ )
+		{
+			float val = (*vptr);
+			min_[d] = (val < min_[d]) ? val : min_[d];
+			max_[d] = (val > max_[d]) ? val : max_[d];
+			vptr++;
+		}
+	}
+
+	/// Return length of (max-min)
+	return sqrt( (max_[0]-min_[0])*(max_[0]-min_[0]) +
+	             (max_[1]-min_[1])*(max_[1]-min_[1]) +
+	             (max_[2]-min_[2])*(max_[2]-min_[2]) );
+}
+
+//------------------------------------------------------------------------------
+float MeshBuffer::normalizeSize()
+{
+	float scale = 1.f / computeBBoxDiagonal();
+	//double scale = 1. / computeBBoxDiagonal();
+
+	for( FloatBuffer::iterator it=vbuffer().begin(); it!=vbuffer().end(); ++it )
+		(*it) *= scale;                           // float precision
+	//	(*it) = (float)((double)(*it) * scale);   // double precision
+
+	return scale;
 }

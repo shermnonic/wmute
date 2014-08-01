@@ -78,14 +78,19 @@ protected slots:
 	int  selectedObject() const; // Returns index of currently selected row in list view
 
 	void selectNone();
-	void reloadShaders();
 	void selectFrontFaces(bool);
+	void exportSelection();
+
+	void reloadShaders();
+
+	void normalizeScale();
 
 	void computeDistance();
 	void computePCA();
 	void computeCovariance();
 	void computeCrossValidation();
 	void computeClustering();
+	void computeCovarianceEmbedding();
 
 	void loadCovariance();
 	void exportCovariance();

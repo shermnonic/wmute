@@ -8,10 +8,14 @@ add_library( meshtools
 	../include/MeshBuffer.h
 	../include/ShapePCA.h
 	../include/ShapeCovariance.h
+	../include/CovarianceAnalysis.h
+	../include/MDSEmbedding.h
 	meshtools.cpp
 	MeshBuffer.cpp
 	ShapePCA.cpp
 	ShapeCovariance.cpp
+	CovarianceAnalysis.cpp
+	MDSEmbedding.cpp
 )
 
 meshtoolsExportLibrary( meshtools )

@@ -36,13 +36,42 @@ void CovarianceClustering::compute( const MatrixXd& S, const Matrix3Xd& pts, Clu
 	// Clustering
 	cout << "Starting clustering..." << endl;
 	m_parms = parms;
-	//KDistanceMedoids<Eigen::MatrixXd> kmedoids( D, m_parms.k );
 	PAMClustering kmedoids( D, m_parms.k );
-	int ret = kmedoids.cluster( m_parms.maxIter );	
-	
-	// Copy result
-	m_labels  = kmedoids.labels();
-	m_medoids = kmedoids.medoids();
+	ClusterSeeds<MatrixXd> seedGen( D, n, m_parms.k, m_parms.seedingStrategy );
+	PAMClustering::ivec seedPoints;
+
+	double bestObjective = std::numeric_limits<double>::max();
+	std::vector<double> objectiveGraph;
+	for( unsigned i=0; i < m_parms.repetitions; i++ )
+	{
+		// seed points
+		seedGen.seed();
+		seedGen.getSeeds( seedPoints );
+
+		// k-medoids
+		kmedoids.setSeedPoints( seedPoints );
+		int iters = kmedoids.cluster( m_parms.maxIter );
+		double objective = kmedoids.getError();
+
+		std::cout << "Round " << i+1 << "/" << m_parms.repetitions << ": " 
+			<< objective << ((objective < bestObjective) ? "(best so far)" : "")
+			<< std::endl;
+
+		if( objective < bestObjective )
+		{
+			bestObjective = objective;
+
+			// Store best result so far
+			m_labels  = kmedoids.labels();
+			m_medoids = kmedoids.medoids();			
+		}
+
+		objectiveGraph.push_back( objective );
+	}
+
+	std::cout << "Graph of objective function values:" << std::endl;
+	for( unsigned i=0; i < objectiveGraph.size(); i++ )
+		std::cout << objectiveGraph.at(i) << std::endl;
 }
 
 void CovarianceClustering::computeDistanceMatrix( const Eigen::MatrixXd& S, const Eigen::Matrix3Xd& pts, const ClusterParms& parms, Eigen::MatrixXd& D )
