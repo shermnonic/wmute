@@ -34,14 +34,20 @@ void MeshObject::setMeshBuffer( const MeshBuffer& mb )
 {
 	using meshtools::Mesh;
 
-	// Create reference mesh from first frame in MeshBuffer
-	m_mesh = boost::shared_ptr<meshtools::Mesh>( mb.createMesh() );	
-
 	// Copy mesh buffer
 	m_meshBuffer = mb;
 
 	// Set some defaults
 	m_meshBuffer.setFrame( 0 );
+
+	updateMesh();
+}
+
+//-----------------------------------------------------------------------------
+void MeshObject::updateMesh()
+{
+	// Create reference mesh from first frame in MeshBuffer
+	m_mesh = boost::shared_ptr<meshtools::Mesh>( m_meshBuffer.createMesh() );	
 }
 
 //-----------------------------------------------------------------------------

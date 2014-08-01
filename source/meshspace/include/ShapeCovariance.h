@@ -80,13 +80,13 @@ void computeInterPointZ( const Eigen::MatrixXd& B, double gamma, Eigen::MatrixXd
 void computeInterPointZp( const Eigen::MatrixXd& Bp, double gamma, Eigen::MatrixXd& Zp );
 
 //-----------------------------------------------------------------------------
-// Distance functions
+// Distance functions (for 3x3 covariance matrices vectorized as 6D vectors)
 //----------------------------------------------------------------------------- 
 
-/// Distance function for vectorized covariance matrices A and B
+/// Distance function for vectorized 3x3 covariance matrices A and B
 typedef double (*CovarDistFunc)( const Eigen::VectorXd& A, const Eigen::VectorXd& B );
 
-/// Euclidean distance, i.e. Frobenius norm
+/// Euclidean distance, i.e. Frobenius norm for 3x3 vectorized covariance matrices
 double covarDistEuclidean( const Eigen::VectorXd& A_, const Eigen::VectorXd& B_ );
 
 /// Return average Frobenius norm for given covariance tensor set (vectorized in columns).

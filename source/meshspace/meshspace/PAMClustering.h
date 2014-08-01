@@ -38,6 +38,12 @@ public:
 	/// \return number of iterations needed until convergence 
 	int cluster( unsigned int maxIterations=10000 );
 
+	/// Return value of objective function after clustering with \a cluster().
+	double getError() const { return m_objective; }
+
+	/// Set initial seed points (invalidates current medoids and requires subsequent call to \a cluster()).
+	void setSeedPoints( ivec seeds );
+
 	/// Calculate per point, per cluster and overall silhouette width.
 	/// \return overall silhouette width
 	double calcSilhouette();

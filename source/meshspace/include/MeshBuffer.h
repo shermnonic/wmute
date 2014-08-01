@@ -61,6 +61,10 @@ public:
 
 	/// Return scalar product between given direction and vertex normal of vertex idx (No range checking!).
 	double projectVertexNormal( unsigned idx, float x, float y, float z ) const;
+
+	/// Scale meshes to bounding box diagonal 1, returns scale factor.
+	/// The scale factor is computed internally via \a computeBBoxDiagonal().
+	float normalizeSize();
 	///@}
 
 	/** @name Properties */
@@ -94,19 +98,24 @@ public:
 	 *  see also \a initSingleFrameFromRawBuffers())
 	 */
 	///@{ 
-	std::vector<float>& cbuffer() { return m_cbuffer; }
-	std::vector<float>& vbuffer() { return m_vbuffer; }
-	std::vector<float>& nbuffer() { return m_nbuffer; }
-	std::vector<unsigned>& ibuffer() { return m_ibuffer; }
-	const std::vector<float>& cbuffer() const { return m_cbuffer; }
-	const std::vector<float>& vbuffer() const { return m_vbuffer; }
-	const std::vector<float>& nbuffer() const { return m_nbuffer; }
-	const std::vector<unsigned>& ibuffer() const { return m_ibuffer; }
+	typedef std::vector<float>    FloatBuffer;
+	typedef std::vector<unsigned> IndexBuffer;
+	FloatBuffer& cbuffer() { return m_cbuffer; }
+	FloatBuffer& vbuffer() { return m_vbuffer; }
+	FloatBuffer& nbuffer() { return m_nbuffer; }
+	IndexBuffer& ibuffer() { return m_ibuffer; }
+	const FloatBuffer& cbuffer() const { return m_cbuffer; }
+	const FloatBuffer& vbuffer() const { return m_vbuffer; }
+	const FloatBuffer& nbuffer() const { return m_nbuffer; }
+	const IndexBuffer& ibuffer() const { return m_ibuffer; }
 	///@}
 
 protected:
 	/// Called internally in \a draw() function
 	void downloadGPU();
+
+	/// Return bounding box diagonal of all points over all frames.
+	float computeBBoxDiagonal() const;
 
 private:	
 	int      m_curFrame;

@@ -24,6 +24,13 @@
 
 #include <glutils/GLError.h>
 
+QAction* genSeparator( QWidget* parent )
+{
+	QAction* sep = new QAction(parent); 
+	sep->setSeparator(true);
+	return sep;
+}
+
 SceneViewer::SceneViewer( QWidget* parent )
   : QGLViewer(parent),
 	m_selectionMode(SelectNone),
@@ -51,16 +58,21 @@ SceneViewer::SceneViewer( QWidget* parent )
 	actSelectNone->setShortcut( Qt::CTRL + Qt::SHIFT + Qt::Key_A );
 	QGLViewer::setKeyDescription( Qt::CTRL + Qt::SHIFT + Qt::Key_A, "Select none (deselects all vertices)" );
 
-	QAction* actReloadShaders = new QAction(tr("Reload shaders"),this);
-	actReloadShaders->setShortcut( Qt::CTRL + Qt::Key_R );
-	QGLViewer::setKeyDescription( Qt::CTRL + Qt::Key_R, "Reload shaders" );
-
 	QAction* actSelectFrontFaces = new QAction(tr("Select vertices only on front faces"),this);
 	actSelectFrontFaces->setCheckable( true );
 	actSelectFrontFaces->setChecked( m_selectFrontFaces );
 
+	QAction* actExportSelection = new QAction(tr("Export selection..."),this);
+
+	QAction* actReloadShaders = new QAction(tr("Reload shaders"),this);
+	actReloadShaders->setShortcut( Qt::CTRL + Qt::Key_R );
+	QGLViewer::setKeyDescription( Qt::CTRL + Qt::Key_R, "Reload shaders" );
+
+	QAction* actNormalizeScale = new QAction(tr("Scale mesh animation to unit diagonal"),this);
+
 	QAction* actComputeDistance = new QAction(tr("Compute closest point distance"),this);
 	QAction* actComputePCA = new QAction(tr("Derive PCA model from current mesh buffer"),this);
+	QAction* actComputeEmbedding = new QAction(tr("Compute covariance embedding"),this);
 	QAction* actComputeCovariance = new QAction(tr("Derive covariance tensor field from current PCA model"),this);
 	QAction* actClusterCovariance = new QAction(tr("Cluster current covariance tensor field"),this);
 	QAction* actLoadCovariance = new QAction(tr("Load covariance tensor field from disk"),this);
@@ -71,10 +83,13 @@ SceneViewer::SceneViewer( QWidget* parent )
 	QAction* actImportMatrix = new QAction(tr("Import mesh vertex matrix, replacing vertices of current mesh"),this);
 
 	connect( actSelectNone, SIGNAL(triggered()), this, SLOT(selectNone()) );
-	connect( actReloadShaders, SIGNAL(triggered()), this, SLOT(reloadShaders()) );
 	connect( actSelectFrontFaces, SIGNAL(toggled(bool)), this, SLOT(selectFrontFaces(bool)) );
+	connect( actExportSelection, SIGNAL(triggered()), this, SLOT(exportSelection()) );
+	connect( actReloadShaders, SIGNAL(triggered()), this, SLOT(reloadShaders()) );
+	connect( actNormalizeScale, SIGNAL(triggered()), this, SLOT(normalizeScale()) );
 	connect( actComputeDistance, SIGNAL(triggered()), this, SLOT(computeDistance()) );
 	connect( actComputePCA, SIGNAL(triggered()), this, SLOT(computePCA()) );
+	connect( actComputeEmbedding, SIGNAL(triggered()), this, SLOT(computeCovarianceEmbedding()) );
 	connect( actComputeCovariance, SIGNAL(triggered()), this, SLOT(computeCovariance()) );
 	connect( actClusterCovariance, SIGNAL(triggered()), this, SLOT(computeClustering()) );
 	connect( actLoadCovariance, SIGNAL(triggered()), this, SLOT(loadCovariance()) );
@@ -83,22 +98,23 @@ SceneViewer::SceneViewer( QWidget* parent )
 	connect( actExportMatrix, SIGNAL(triggered()), this, SLOT(exportMatrix()) );
 	connect( actImportMatrix, SIGNAL(triggered()), this, SLOT(importMatrix()) );	
 
-	QAction* sep1 = new QAction(this); sep1->setSeparator(true);
-	QAction* sep2 = new QAction(this); sep2->setSeparator(true);
-	QAction* sep3 = new QAction(this); sep3->setSeparator(true);
-	QAction* sep4 = new QAction(this); sep4->setSeparator(true);
-
 	m_actions.push_back( actSelectNone );
 	m_actions.push_back( actSelectFrontFaces );
-	m_actions.push_back( sep1 );
+	m_actions.push_back( actExportSelection );
+	m_actions.push_back( actExportSelection );
+	m_actions.push_back( genSeparator(this) );
+	m_actions.push_back( actNormalizeScale );
+	m_actions.push_back( genSeparator(this) );
 	m_actions.push_back( actReloadShaders );
-	m_actions.push_back( sep2 );
+	m_actions.push_back( genSeparator(this) );
 	m_actions.push_back( actComputeDistance );
 	m_actions.push_back( actExportMatrix );	
 	m_actions.push_back( actImportMatrix );
-	m_actions.push_back( sep3 );
+	m_actions.push_back( genSeparator(this) );
 	m_actions.push_back( actComputePCA );
-	m_actions.push_back( sep4 );
+	m_actions.push_back( genSeparator(this) );
+	m_actions.push_back( actComputeEmbedding );
+	m_actions.push_back( genSeparator(this) );
 	m_actions.push_back( actComputeCovariance );
 	m_actions.push_back( actClusterCovariance );
 	m_actions.push_back( actLoadCovariance );
@@ -558,11 +574,17 @@ void SceneViewer::draw()
 	//......................................
 	// Render text
 
-	glPopAttrib();
+	glPopAttrib();	
 
-	// FIXME: Text rendering does not work correctly, check GL states!
+	// FIXME: Text rendering does not always work correctly, check GL states!
 	glColor3f( 1,1,1 );
 	drawText( 10,23, tr("current mesh object = %1").arg(selectedObject()) );
+	
+	scene::MeshObject* mo = currentMeshObject();
+	if( mo && mo->isAnimation() )
+	{
+		drawText( 10,35, tr("frame %1 / %2").arg(mo->curFrame()+1).arg(mo->numFrames()) );
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -585,6 +607,53 @@ void SceneViewer::selectNone()
 void SceneViewer::selectFrontFaces( bool enable )
 {
 	m_selectFrontFaces = enable;
+}
+
+void SceneViewer::exportSelection()
+{
+	// Get mesh object
+	scene::MeshObject* mo = currentMeshObject();
+	if( !mo )
+	{
+		QMessageBox::warning( this, tr("Export selection warning"),
+			tr("No mesh object selected!") );
+		return;
+	}
+
+	// Get selection
+	typedef std::set<unsigned> Selection;
+	Selection selection = mo->getSelectedVertices();
+	if( selection.empty() )
+	{
+		QMessageBox::warning( this, tr("Export selection warning"),
+			tr("No vertices selected on current mesh object!") );
+		return;
+	}
+
+	// Get filename
+	QString filename = QFileDialog::getSaveFileName( this, 
+		tr("Export selection"), QString(), tr("*.txt") );
+
+	if( filename.isEmpty() )
+		return;
+
+	// Save selection to file
+	std::ofstream f( filename.toStdString().c_str() );
+	if( !f.is_open() )
+	{
+		QMessageBox::warning( this, tr("Export selection warning"),
+			tr("Could not open %1!").arg(filename) );
+		return;
+	}
+
+	std::cout << "Selection:" << std::endl;
+	for( Selection::const_iterator it=selection.begin(); it!=selection.end(); ++it )
+	{
+		std::cout << (*it) << std::endl; // DEBUG
+		f << *it << std::endl;
+	}
+
+	f.close();
 }
 
 void SceneViewer::drawWithNames()
@@ -699,7 +768,15 @@ void SceneViewer::endSelection( const QPoint& point )
 	case SelectAdd    : meshObject->selectVertices( selected );	        break;
 	case SelectRemove : meshObject->selectVertices( selected, false );	break;
 	default: break;
-	}			
+	}
+
+	// DEBUG
+	if( m_selectionMode==SelectAdd && !selected.empty())
+	{
+		qDebug() << "Selected vertices:";
+		for( int i=0; i < selected.size(); i++ )
+			qDebug() << selected[i];
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -1110,11 +1187,14 @@ void SceneViewer::computeClustering()
 	CovarianceClustering::ClusterParms parms;
 	parms.k       = 10;
 	parms.maxIter = 100;
+	parms.repetitions = 10;
 
 	parms.k = QInputDialog::getInt( this, tr("Clustering parameters"),
 		tr("Number of clusters"), parms.k, 2, 1000 );
-	parms.maxIter = QInputDialog::getInt( this, tr("Clustering parmeters"),
-		tr("Max. number of iterations"), parms.maxIter, 1, 10000 );
+	parms.repetitions = QInputDialog::getInt( this, tr("Clustering parmeters"),
+		tr("Number of repetitions"), parms.repetitions, 1, 1000 );
+	//parms.maxIter = QInputDialog::getInt( this, tr("Clustering parmeters"),
+	//	tr("Max. number of iterations"), parms.maxIter, 1, 10000 );
 	parms.weightTensorDist = QInputDialog::getDouble( this, tr("Clustering parameters"),
 		tr("Weight factor for Tensor distance"), parms.weightTensorDist, 0.0, 1000000.0, 2 );
 	parms.weightPointDist = QInputDialog::getDouble( this, tr("Clustering parameters"),
@@ -1164,4 +1244,48 @@ void SceneViewer::computeClustering()
 			}
 		}
 	}
+}
+
+#include "CovarianceEmbedding.h"
+void SceneViewer::computeCovarianceEmbedding()
+{
+	CovarianceEmbedding ce;
+
+	scene::MeshObject* mo = currentMeshObject();
+	if( !mo )
+		return;
+
+	int numGroups = 20,
+		numFramesPerGroup = 10;
+
+	numGroups = QInputDialog::getInt( this, tr("Embedding parameters"),
+		tr("Number of groups"), numGroups, 2, mo->numFrames() );
+
+	numFramesPerGroup = QInputDialog::getInt( this, tr("Embedding parameters"),
+		tr("Number of frames per group"), numFramesPerGroup, 1, mo->numFrames() );
+
+	ce.setup( mo->meshBuffer(), 
+		CovarianceEmbedding::genLabels( mo->meshBuffer().numFrames(), numGroups, numFramesPerGroup ) );
+	ce.compute();
+}
+
+void SceneViewer::normalizeScale()
+{
+	scene::MeshObject* mo = currentMeshObject();
+	if( !mo )
+		return;
+
+	// Rescale vertex buffer to unit diagonal
+	mo->meshBuffer().normalizeSize();
+
+	// Update MeshObject mesh
+	mo->updateMesh();
+
+	// Update camera to show the whole scene
+	updateBoundingBox();
+	camera()->showEntireScene();
+
+	// Force redraw
+	updateGL();
+
 }

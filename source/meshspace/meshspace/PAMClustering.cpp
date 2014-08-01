@@ -19,15 +19,8 @@ PAMClustering::PAMClustering( const matrix_type& d, unsigned int k )
 	// randomly select initial medoids
 	ivec indices( N );
 	for( unsigned int i=0; i < N; ++i ) indices[i] = i;
-	std::random_shuffle( indices.begin(), indices.end() );	
-	m_medoids = ivec( indices.begin(), indices.begin()+K );
-
-	// mark initial medoids as "selected"
-	for( unsigned int i=0; i < m_medoids.size(); ++i )
-		m_selected.push_back( m_medoids[i] );
-	
-	// label each point with its nearest medoid
-	label();	
+	std::random_shuffle( indices.begin(), indices.end() );
+	setSeedPoints( indices );
 }
 
 PAMClustering::~PAMClustering()
@@ -54,6 +47,21 @@ PAMClustering::PAMClustering( PAMClustering& other )
 }
 
 
+void PAMClustering::setSeedPoints( ivec indices )
+{
+	// set initial seeds
+	m_medoids = indices;
+
+	// clear previous "selected" points
+	m_selected.clear();
+
+	// mark initial medoids as "selected"
+	for( unsigned int i=0; i < m_medoids.size(); ++i )
+		m_selected.push_back( m_medoids[i] );
+
+	// initially label each point with its nearest medoid
+	label();
+}
 
 
 int PAMClustering::cluster( unsigned int maxIterations )

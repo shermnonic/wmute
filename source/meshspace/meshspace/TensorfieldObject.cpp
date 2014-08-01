@@ -317,7 +317,7 @@ unsigned TensorfieldObject::filterTensorField( Eigen::MatrixXd& S, Eigen::Matrix
 		S_filtered.col(i) = S.col( valid_columns[i] );
 		pts_filtered.col(i) = pts.col( valid_columns[i] );
 	}
-	unsigned filtered = S.cols() - S_filtered.cols();
+	unsigned filtered = (unsigned)(S.cols() - S_filtered.cols());
 	S = S_filtered;
 	pts = pts_filtered;
 	return filtered;

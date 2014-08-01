@@ -114,6 +114,8 @@ set( other_SRCS
 	CovarianceClustering.cpp
 	PAMClustering.h
 	PAMClustering.cpp
+	CovarianceEmbedding.h
+	CovarianceEmbedding.cpp
 )
 source_group("other" FILES ${other_SRCS})
 
