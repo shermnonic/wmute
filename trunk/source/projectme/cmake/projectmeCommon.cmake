@@ -29,7 +29,7 @@ set(CMAKE_RUNTIME_OUTPUT_PATH ${PROJECTME_OUTPUT_PATH}/bin)
 #---- Global project variables ------------------------------------------------
 
 # Header only 3rd party libraries (like SparseICP and nanoflann)
-set(PROJECTME_3RDPARTY_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/../3rdparty)
+set(PROJECTME_3RDPARTY_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/../../3rdparty)
 
 #---- Common dependencies -----------------------------------------------------
 

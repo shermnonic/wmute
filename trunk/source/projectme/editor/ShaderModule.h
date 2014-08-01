@@ -9,8 +9,11 @@
 
 #ifdef GL_NAMESPACE
 using GL::GLTexture;
-using GL::GLSLProgram
+using GL::GLSLProgram;
 #endif
+
+#include "RenderSet.h" // for ModuleRenderer
+
 
 class ShaderModule : public ModuleRenderer
 {
@@ -26,14 +29,20 @@ public:
 	/// Target texture id
 	int target() const { return m_target.GetID(); }
 
-	/// Re-compile shader
+	/// Re-compile current shader
 	bool compile();
+	/// Compile new shader
+	bool compile( std::string vshader, std::string fshader );
+
+	bool loadShader( const char* filename );
 	
 private:
-	int          m_width, m_height;
-	GLTexture    m_target;
-	GLSLProgram* m_shader;
-	std::string  m_vshader, m_fshader;
+	bool            m_initialized;
+	int             m_width, m_height;
+	GLTexture       m_target;
+	GLSLProgram*    m_shader;
+	RenderToTexture m_r2t;
+	std::string     m_vshader, m_fshader;
 };
 
 #endif // SHADERMODULE_H

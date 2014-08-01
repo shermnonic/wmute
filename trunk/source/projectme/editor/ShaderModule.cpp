@@ -1,22 +1,18 @@
 #include "ShaderModule.h"
+#include <glutils/GLError.h>
 #include <iostream>
 #include <ctime>
-
 using std::cerr;
 using std::endl;
-
 using GL::checkGLError;
 
 //----------------------------------------------------------------------------
 // Default GLSL 120 / GLSL ES 2.0 shader 
 //----------------------------------------------------------------------------
-const std::string defaultVertexShader =
-"void main(void)\n"
-"{\n"
-//"    gl_TexCoord[0] = gl_MultiTexCoord0;\n"; // required?
-"    gl_Position = gl_Vertex;\n"
-"}\n";
-
+const std::string defaultUniforms =
+"uniform vec3      iResolution;\n"           // viewport resolution (in pixels)
+"uniform float     iGlobalTime;\n"           // shader playback time (in seconds)
+"\n";
 /* shadertoy uniforms
 uniform vec3      iResolution;           // viewport resolution (in pixels)
 uniform float     iGlobalTime;           // shader playback time (in seconds)
@@ -26,10 +22,17 @@ uniform vec4      iMouse;                // mouse pixel coords. xy: current (if 
 uniform samplerXX iChannel0..3;          // input channel. XX = 2D/Cube
 uniform vec4      iDate;                 // (year, month, day, time in seconds)
 */
+
+const std::string defaultVertexShader =
+defaultUniforms + 
+"void main(void)\n"
+"{\n"
+//"    gl_TexCoord[0] = gl_MultiTexCoord0;\n"; // required?
+"    gl_Position = gl_Vertex;\n"
+"}\n";
+
 const std::string defaultFragmentShader =
-"uniform vec3      iResolution;\n"           // viewport resolution (in pixels)
-"uniform float     iGlobalTime;\n"           // shader playback time (in seconds)
-"\n"
+defaultUniforms + 
 "void main(void)\n"
 "{\n"
 "	vec2 uv = gl_FragCoord.xy / iResolution.xy;\n"
@@ -38,7 +41,9 @@ const std::string defaultFragmentShader =
 
 //----------------------------------------------------------------------------
 ShaderModule::ShaderModule()
-: m_width(512), m_height(512),
+: m_initialized(false),
+  m_width(512), m_height(512),
+  m_shader(0),
   m_vshader( defaultVertexShader ),
   m_fshader( defaultFragmentShader )
 {
@@ -64,7 +69,7 @@ bool ShaderModule::init()
 	m_target.Image(0, internalFormat, m_width,m_width, 0, GL_RGBA, GL_FLOAT, NULL );
 	
 	// Setup Render-2-Texture
-	if( !m_r2t.init( m_width,m_width, m_target.GetID(), true ) )
+	if( !m_r2t.init( m_width,m_width, m_target.GetID(), false/* no depthbuffer*/ ) )
 	{
 		cerr << "ShaderModule::init() : Couldn't setup render-to-texture!" << endl;
 		return false;
@@ -80,9 +85,12 @@ bool ShaderModule::init()
 	}
 	
 	// Compile shader
-	compile();
+	if( !compile() )
+		// On this call we currently require the shader to compile correctly!
+		return false;
 
-	return checkGLError( "ShaderModule::init() : GL error at exit!" );
+	m_initialized = checkGLError( "ShaderModule::init() : GL error at exit!" );
+	return m_initialized;
 }
 
 //----------------------------------------------------------------------------
@@ -95,39 +103,77 @@ void ShaderModule::destroy()
 //----------------------------------------------------------------------------
 bool ShaderModule::compile()
 {
-	if( !m_shader ) return;
-	if( !m_shader->load( m_vshader, m_fshader ) )
+	return compile( m_vshader, m_fshader );
+}
+
+//----------------------------------------------------------------------------
+bool ShaderModule::compile( std::string vshader, std::string fshader )
+{
+	if( !m_shader ) return false;
+	if( !m_shader->load( vshader, fshader ) )
 	{
 		cerr << "ShaderModule::compile() : Compilation of shaders failed!" << endl;
 		return false;
-	}
-	
+	}	
 	return checkGLError( "ShaderModule::compile()" );
+}
+
+//----------------------------------------------------------------------------
+bool ShaderModule::loadShader( const char* filename )
+{
+	char* fshader_src = GL::GLSLProgram::read_shader_from_disk( filename );
+	if( !fshader_src ) 
+		return false;
+
+	std::string fshader( fshader_src );
+	if( !compile( m_vshader, fshader ) )
+		return false;
+
+	// Replace current fragment shader on succesfull compilation
+	m_fshader = fshader;
+	return checkGLError( "ShaderModule::loadShader() : GL error at exit!" );
 }
 
 //----------------------------------------------------------------------------
 void ShaderModule::render()
 {
-	if( !m_shader ) return;	
+	// Initialized on first render() call; by then we should have a valid 
+	// OpenGL context.
+	if( !m_initialized && !init() ) return;
+
+	if( !m_shader ) return;
 	
 	// Time is measured w.r.t. to first render() call
 	static clock_t t0 = clock();	
 	
 	// Bind shader and set default uniforms
 	m_shader->bind();
-	
-	GLfloat res[3]; 
-	res[0] = (GLfloat)m_width; 
-	res[1] = (GLfloat)m_height; 
-	res[2] = (GLfloat)1.f;
-	glUniform3f( m_shader->getUniformLocation( "iResolution" ), res );
-	
-	float time = (float)(clock() - t0) / CLOCKS_PER_SEC;
-	glUniform1f( m_shader->getUniformLocation( "iGlobalTime" ), time );
-	
-	if( m_r2t.bind( m_target ) )
+	checkGLError( "ShaderModule::render() - After shader bind" );
+
+	GLint iResolution = m_shader->getUniformLocation("iResolution");
+	GLint iGlobalTime = m_shader->getUniformLocation("iGlobalTime");
+	if( iResolution >= 0 )
 	{
-		// Render target resolution sized quad		
+		GLfloat res[3]; 
+		res[0] = (GLfloat)m_width; 
+		res[1] = (GLfloat)m_height; 
+		res[2] = (GLfloat)1.f;
+		glUniform3f( m_shader->getUniformLocation( "iResolution" ), 
+			(GLfloat)m_width, (GLfloat)m_height, (GLfloat)1.f );
+		checkGLError( "ShaderModule::render() - After glUniform3f()" );
+	}
+	if( iGlobalTime >= 0 )
+	{	
+		float time = (float)(clock() - t0) / CLOCKS_PER_SEC;
+		glUniform1f( m_shader->getUniformLocation( "iGlobalTime" ), time );
+		checkGLError( "ShaderModule::render() - After glUniform1f()" );
+	}
+	checkGLError( "ShaderModule::render() - After shader uniform setup" );
+	
+	if( m_r2t.bind( m_target.GetID() ) )
+	{
+		// Render target resolution sized quad
+
 		int viewport[4];
 		glGetIntegerv( GL_VIEWPORT, viewport );
 		glViewport( 0,0, m_width,m_height );
@@ -143,6 +189,8 @@ void ShaderModule::render()
 		glTexCoord2f( 1, 1 );	glVertex3i(1, 1, 0);
 		glTexCoord2f( 0, 1 );	glVertex3i(-1, 1, 0);
 		glEnd();
+
+		glViewport( viewport[0], viewport[1], viewport[2], viewport[3] );
 	}
 	else
 	{

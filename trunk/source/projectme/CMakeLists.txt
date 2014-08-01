@@ -3,21 +3,23 @@
 cmake_minimum_required (VERSION 2.6)
 project(projectme)
 
-# Common CMake macros (e.g. meshtoolsExportLibrary)
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/projectmeCommon.cmake)
+# Common CMake macros (e.g. wintermuteExportLibrary)
+include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/WintermuteCommon.cmake)
 
 #---- Dependencies ------------------------------------------------------------
 
 #-------------------
-# Custom dependencies
+# Wintermute dependencies
 #-------------------
-set(WINTERMUTE_3RDPARTY_LIBS_PATH "${CMAKE_CURRENT_LIST_DIR}/../../3rdparty")
-set(WINTERMUTE_GLUTILS_PATH       "${CMAKE_CURRENT_LIST_DIR}/../..") # /glutils
+
+# WintermuteCommon.cmake defines
+# - WINTERMUTE_3RDPARTY_LIBS_PATH
+# - WINTERMUTE_GLUTILS_PATH
+# - WINTERMUTE_GLUTILS_SOURCES
 
 set(GLM_INCLUDE_DIR  "${WINTERMUTE_3RDPARTY_LIBS_PATH}/glm"    CACHE PATH "glm include path")
 set(GLUTILS_PATH     "${WINTERMUTE_GLUTILS_PATH}"              CACHE PATH "path to authors custom glutils")
-
-file(GLOB_RECURSE GLUTILS_SOURCES ${GLUTILS_PATH}/glutils/*.cpp)
+set(GLUTILS_SOURCES ${WINTERMUTE_GLUTILS_SOURCES})
 
 include_directories( ${GLUTILS_PATH} )
 include_directories( ${GLM_INCLUDE_DIR} )

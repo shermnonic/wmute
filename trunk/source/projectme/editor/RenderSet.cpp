@@ -1,5 +1,9 @@
 #include "RenderSet.h"
 #include "glbase.h"
+#include <iostream>
+using std::cout;
+using std::cerr;
+using std::endl;
 
 //=============================================================================
 //  RenderArea
@@ -60,8 +64,8 @@ void RenderArea::drawAreaFilled() const
 //-----------------------------------------------------------------------------
 void RenderArea::render( int gltexid ) const
 {
-
-	glBegin( GL_POLYGON );
+	glBindTexture( GL_TEXTURE_2D, gltexid );
+	glBegin( (m_poly.nverts()==4) ? GL_QUADS : GL_POLYGON );
 	for( int i=0; i < m_poly.nverts(); i++ )
 	{
 		glTexCoord2fv( m_poly.texcoord(i) );
@@ -86,6 +90,20 @@ void RenderSet::addArea( RenderArea area, ModuleRenderer* module )
 {
 	m_areas .push_back( area );
 	m_mapper.push_back( module );
+}
+
+//-----------------------------------------------------------------------------
+void RenderSet::setModule( int areaIdx, ModuleRenderer* module )
+{
+	if( areaIdx >= 0 && areaIdx < m_areas.size() )
+	{
+		m_mapper[areaIdx] = module;
+	}
+	else
+	{
+		cerr << "RenderSet::setModule() : Called with invalid index "
+		     << areaIdx << "!" << endl;		     
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -152,6 +170,8 @@ void RenderSet::beginRendering() const
 {
 	// Push the projection matrix and the entire GL state
 	glPushAttrib( GL_ALL_ATTRIB_BITS );
+	glMatrixMode( GL_MODELVIEW );
+	glPushMatrix();
 	glMatrixMode( GL_PROJECTION );
 	glPushMatrix();
 	
@@ -166,10 +186,12 @@ void RenderSet::beginRendering() const
 void RenderSet::endRendering() const
 {
 	// Pop the projection matrix and GL state back for rendering
-	glPopAttrib();
+	glMatrixMode( GL_MODELVIEW );
+	glPopMatrix();
 	glMatrixMode( GL_PROJECTION );
 	glPopMatrix();
 	glMatrixMode( GL_MODELVIEW );	
+	glPopAttrib();
 }
 
 //-----------------------------------------------------------------------------
@@ -181,7 +203,7 @@ void RenderSet::drawOutline() const
 	{
 		glClearColor( 0,0,0,1 );
 		glClear( GL_COLOR_BUFFER_BIT );
-	}		
+	}	
 	
 	// Draw all areas
 	for( int i=0; i < m_areas.size(); i++ )
@@ -215,16 +237,27 @@ void RenderSet::drawOutline() const
 }
 
 //-----------------------------------------------------------------------------
-void RenderSet::render() const
+void RenderSet::render( int texid ) const
 {
 	beginRendering();
+
 	glColor4f( 1.f, 1.f, 1.f, 1.f );
 	glEnable( GL_TEXTURE_2D );
 
 	for( int i=0; i < m_areas.size(); i++ )
 	{
-		if( !m_mapper[i] ) continue;
-		m_areas[i].render( m_mapper[i]->target() );
+		if( texid < 0 )
+		{
+			// Default behaviour: Render module textures onto render areas
+			if( !m_mapper[i] ) continue;
+			texid = m_mapper[i]->target();
+			m_areas[i].render( texid );
+		}
+		else
+		{
+			// Debug: Render given texture id onto all render areas
+			m_areas[i].render( texid );
+		}
 	}
 
 	glDisable( GL_TEXTURE_2D );
