@@ -9,6 +9,10 @@ using namespace GL;
 bool RenderToTexture::init( int width, int height, GLint texid,
                             bool attach_depth )
 {
+	// FIXME: Width and height are only needed for depth buffer attachement?!
+	m_width = width;
+	m_height = height;
+
 	// gen FBO
 	glGenFramebuffers( 1, &m_fbo );
 	glBindFramebuffer( GL_FRAMEBUFFER, m_fbo );
