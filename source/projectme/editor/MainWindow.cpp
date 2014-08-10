@@ -195,7 +195,7 @@ void MainWindow::createUI()
 
 	connect( actOpen, SIGNAL(triggered()), this, SLOT(open() ) );
 	connect( actSave, SIGNAL(triggered()), this, SLOT(save() ) );
-	connect( actQuit, SIGNAL(triggered()), this, SLOT(close()) );	
+	connect( actQuit, SIGNAL(triggered()), qApp, SLOT(closeAllWindows()) );
 
 	connect( actNewPreview, SIGNAL(triggered()), this, SLOT(newPreview()) );
 	connect( actNewScreen,  SIGNAL(triggered()), this, SLOT(newScreen ()) );
@@ -207,7 +207,6 @@ void MainWindow::closeEvent( QCloseEvent* event )
 {	
 	// Destroy OpenGL resources
 	m_sharedGLWidget->makeCurrent(); // Get OpenGL context
-	m_moduleManager.clear();
 
 	m_mdiArea->closeAllSubWindows();
 	if( m_mdiArea->currentSubWindow() )
@@ -216,6 +215,9 @@ void MainWindow::closeEvent( QCloseEvent* event )
 	}
 	else
 	{
+		m_sharedGLWidget->makeCurrent(); // Get OpenGL context
+		m_moduleManager.clear();
+
 		writeSettings();
 		event->accept();
 	}
@@ -318,15 +320,8 @@ void MainWindow::updateViewMenu()
 
 	for( int i=0; i < m_screens.size(); i++ )	
 	{
-	  #if 1
 		QAction* a = m_screens.at(i)->toggleFullscreenAction();
-	  #else
-		QAction* a = new QAction( tr("Toggle fullscreen for screen #%1").arg(i), this );
-		a->setCheckable( true );
-		a->setChecked( m_screens.at(i)->isFullscreen() );
-		connect( a, SIGNAL(toggled(bool)), m_screens.at(i), SLOT(toggleFullscreen(bool)) );
-	  #endif
-
+		a->setText( tr("Toggle fullscreen for screen #%1").arg(i+1) );
 		m_menuView->addAction( a );
 	}
 }

@@ -24,21 +24,23 @@ class ShaderModule : public ModuleRenderer
 public:
 	ShaderModule();
 
-	/// Render shader scene to texture
+	///@name ModuleRenderer implementation
+	///@{
 	void render();
-	
-	bool init();
+	int  target() const { return m_target.GetID(); }	
 	void destroy();
-
-	/// Target texture id
-	int target() const { return m_target.GetID(); }
+	///@}
 
 	/// Re-compile current shader
 	bool compile();
 	/// Compile new shader
 	bool compile( std::string vshader, std::string fshader );
-
+	/// Load fragment shader from disk, implicitly compiles the shader
 	bool loadShader( const char* filename );
+
+protected:
+	// Invoked once in first render() call
+	bool init();
 	
 private:
 	bool            m_initialized;
