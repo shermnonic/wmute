@@ -36,7 +36,7 @@ void main(void)
 	a = iResolution.x / iResolution.y;
 	
 	// Knot numbers
-	vec2 mn = vec2(4.0,2.0);
+	vec2 mn = vec2(5.0,2.0);
 	
 	// Superposition coefficients
 	float alpha = iGlobalTime;
@@ -51,7 +51,7 @@ void main(void)
 	u = (0.5+u/2.0);
 	
 	// Visualize knot lines (i.e. zero-crossings)
-	u = step( abs(u-0.5), 0.023 );
+	//u = step( abs(u-0.3), 0.23 );
 	
-	gl_FragColor = vec4(u*vec3(1.0),1.0);
+	gl_FragColor = vec4(u*vec3(0.5),1.0);
 }

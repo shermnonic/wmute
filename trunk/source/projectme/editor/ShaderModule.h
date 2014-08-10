@@ -14,7 +14,11 @@ using GL::GLSLProgram;
 
 #include "RenderSet.h" // for ModuleRenderer
 
+/**
+	\class ShaderModule
 
+	Simple fragment shader module in the spirit of shadertoy.
+*/
 class ShaderModule : public ModuleRenderer
 {
 public:

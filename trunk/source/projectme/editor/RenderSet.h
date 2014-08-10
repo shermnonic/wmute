@@ -96,11 +96,14 @@ class RenderArea
 		std::vector<T> m_texcoords;
 	};
 
+	/// Our 2D polygon type
 	typedef TPolygon<float,2,2> Polygon;
 	
 public:
 	/// C'tor, sets a default render area
 	RenderArea();
+	/// C'tor, sets axis aligned render area
+	RenderArea( float xmin, float ymin, float xmax, float ymax );
 
 	///@{ Draw polygonal area bounds
 	void drawAreaOutline() const;
@@ -144,6 +147,8 @@ public:
 
 	/// C'tor, creates a single default RenderArea nearly covering the full domain
 	RenderSet();
+
+	void clear() { m_areas.clear(); m_mapper.clear(); }
 
 	///@name Rendering
 	///@{
@@ -201,10 +206,24 @@ private:
 class RenderSetManager
 {
 public:
-	RenderSet* getActiveRenderSet() { return &m_set; }
+	RenderSetManager()
+	: m_active(-1)
+	{
+		// Provide a single RenderSet by default
+		m_set.push_back( RenderSet() );
+		m_active = 0;
+	}
+	
+	RenderSet* getActiveRenderSet() 
+	{ 
+		if( m_active >= 0 && m_active < m_set.size() )
+			return &m_set.at(m_active);
+		return 0; 
+	}
 
 private:
-	RenderSet m_set;
+	int m_active;
+	std::vector<RenderSet> m_set;
 };
 
 #endif // RENDERSET_H

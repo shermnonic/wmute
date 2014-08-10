@@ -97,9 +97,24 @@ MainWindow::MainWindow()
 	// Setup render set
 	ShaderModule* shaderModule = new ShaderModule;
 	m_moduleManager.addModule( shaderModule );
+#if 0
 	m_renderSetManager.getActiveRenderSet()->setModule( 0, shaderModule );
+#else
+	RenderSet* set = m_renderSetManager.getActiveRenderSet();
+	if( set )
+	{
+		set->clear();
+		for( int i=0; i < 3; i++ )
+		{
+			float w = 2.f/3.f; // width
+			RenderArea ra( (float)i*w+.1f-1.f, -.9f, (float)(i+1)*w-.1f-1.f, .9f );
+			set->addArea( ra, shaderModule );
+		}
+	}
+#endif
 	m_sharedGLWidget->setModuleManager( &m_moduleManager );
 	m_shaderModule = shaderModule;
+
 
 	statusBar()->showMessage( tr("Ready.") );
 }
