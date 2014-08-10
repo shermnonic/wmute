@@ -36,6 +36,26 @@ RenderArea::RenderArea()
 }
 
 //-----------------------------------------------------------------------------
+RenderArea::RenderArea( float xmin, float ymin, float xmax, float ymax )
+{
+	polygon().clear();
+	polygon().verts().push_back( xmin );  polygon().verts().push_back( ymin );
+	polygon().verts().push_back( xmin );  polygon().verts().push_back( ymax );
+	polygon().verts().push_back( xmax );  polygon().verts().push_back( ymax );
+	polygon().verts().push_back( xmax );  polygon().verts().push_back( ymin );
+
+	float texcoords[] =
+	{
+		0.f, 0.f,
+		0.f, 1.f,
+		1.f, 1.f,
+		1.f, 0.f
+	};
+	polygon().texcoords()
+		= std::vector<float>( texcoords, texcoords+sizeof(texcoords)/sizeof(float));
+}
+
+//-----------------------------------------------------------------------------
 void RenderArea::drawAreaOutline() const
 {
 	// Draw line
