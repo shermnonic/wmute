@@ -4,6 +4,15 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <boost/property_tree/ptree.hpp>
+
+class Serializable
+{
+public:
+	typedef boost::property_tree::ptree PropertyTree;
+	void serialize  ( PropertyTree& pt ) const = 0;
+	void deserialize( PropertyTree& pt )       = 0;	
+};
 
 //=============================================================================
 //  ModuleRenderer
@@ -70,7 +79,7 @@ private:
 
 	- Responsible to manage a single polygon geometry later used as render target.
 */
-class RenderArea
+class RenderArea : public Serializable
 {
 	/// Simple polygon helper class
 	template <typename T, int DIM, int TC>
@@ -118,6 +127,12 @@ public:
 	const Polygon& polygon() const { return m_poly; }
 	///@}
 
+	/// @name Serialization
+	///@{
+	void serialize  ( Serializable::PropertyTree& pt ) const;
+	void deserialize( Serializable::PropertyTree& pt );
+	///@}
+
 private:
 	std::string m_name;	
 	Polygon     m_poly; ///< 2D polygon w/ tex-coords (geometry to render to)
@@ -140,7 +155,7 @@ typedef std::vector<ModuleRenderer*> RenderAreaModuleMapper;
       editing) but offers utility functoins to pick and edit area vertices.
 	- Areas are edited in normalized coordinates [-1,-1]-[1,1].
 */
-class RenderSet
+class RenderSet : public Serializable
 {
 public:
 	enum AreaMode { AreaOutline, AreaBlackWhite };
@@ -176,6 +191,12 @@ public:
 	///@{
 	void addArea( RenderArea area, ModuleRenderer* module=0 );
 	void setModule( int areaIdx, ModuleRenderer* module );
+	///@}
+
+	/// @name Serialization
+	///@{
+	void serialize  ( Serializable::PropertyTree& pt ) const;
+	void deserialize( Serializable::PropertyTree& pt );
 	///@}
 	
 protected:
