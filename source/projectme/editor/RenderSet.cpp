@@ -283,3 +283,26 @@ void RenderSet::render( int texid ) const
 	glDisable( GL_TEXTURE_2D );
 	endRendering();
 }
+
+//-----------------------------------------------------------------------------
+void RenderSet::serialize( Serializable::PropertyTree& pt ) const
+{
+	/*
+	Serializable::PropertyTree root; 
+	//node.put("Name",m_name);
+	root.put("RenderSet.NumAreas",m_areas.size());
+	for( int i=0; i < m_areas.size(); i++ )
+	{
+		Serializable::PropertyTree node;
+		
+		m_areas[i].serialize( pt_area );
+
+		pt.push_back( s
+	}*/
+}
+
+//-----------------------------------------------------------------------------
+void RenderSet::deserialize( Serializable::PropertyTree& pt )
+{
+}
+

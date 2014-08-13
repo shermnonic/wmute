@@ -23,7 +23,7 @@ struct Foo
 		parms.push_back( &doit );
 
 		d0.setValue( 42.3 ); d0.setLimits(0.0,100.0);
-		d1.setValue( 23.7 ); d0.setLimits(-50.0,50.0);
+		d1.setValue( 23.7 ); d1.setLimits(-50.0,50.0);
 		index.setValue( 77 ); index.setLimits(0,1000);
 		title.setValue( "Foobar" );
 		mode.setValue( 2 );
