@@ -69,7 +69,9 @@ private slots:
 	void newPreview();
 	void newScreen();
 	void updateViewMenu();
+
 	void loadShader();
+	void reloadShader();
 
 protected:
 	void createUI();
@@ -91,6 +93,7 @@ private:
 	ModuleManager    m_moduleManager;
 
 	ShaderModule    *m_shaderModule;
+	QString          m_shaderFilename;
 	
 	QMenu* m_menuView;
 

@@ -51,7 +51,11 @@ void main(void)
 	u = (0.5+u/2.0);
 	
 	// Visualize knot lines (i.e. zero-crossings)
-	//u = step( abs(u-0.3), 0.23 );
+	//u = step( abs(u-0.3), 0.13 );
 	
-	gl_FragColor = vec4(u*vec3(0.5),1.0);
+	// Smooth radial border blend out
+	float r = length(2.0*uv - vec2(1.0,1.0));
+	float border = 1.0 - smoothstep( 0.8, 1.1, r );
+	
+	gl_FragColor = vec4(border*u*vec3(0.5),1.0);
 }

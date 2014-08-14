@@ -150,7 +150,8 @@ void MainWindow::createUI()
 		*actQuit,
 		*actNewPreview,
 		*actNewScreen,
-		*actLoadShader;
+		*actLoadShader,
+		*actReloadShader;
 	
 	actOpen = new QAction( tr("&Open project..."), this );
 	actOpen->setShortcut( tr("Ctrl+O") );
@@ -166,6 +167,8 @@ void MainWindow::createUI()
 	actNewScreen  = new QAction( tr("New screen"), this );
 
 	actLoadShader = new QAction( tr("Load shader..."), this );
+	actReloadShader = new QAction( tr("&Reload shader"), this );
+	actReloadShader->setShortcut( tr("Ctrl+R") );
 
 	// --- build menu ---
 
@@ -190,6 +193,7 @@ void MainWindow::createUI()
 
 	menuModules = menuBar()->addMenu( tr("&Modules") );
 	menuModules->addAction( actLoadShader );
+	menuModules->addAction( actReloadShader );
 
 	// --- connections ---
 
@@ -201,6 +205,7 @@ void MainWindow::createUI()
 	connect( actNewScreen,  SIGNAL(triggered()), this, SLOT(newScreen ()) );
 
 	connect( actLoadShader, SIGNAL(triggered()), this, SLOT(loadShader()) );
+	connect( actReloadShader, SIGNAL(triggered()), this, SLOT(reloadShader()) );
 }
 
 void MainWindow::closeEvent( QCloseEvent* event )
@@ -253,8 +258,10 @@ void MainWindow::open()
 	QFileInfo info( filename );
 	m_baseDir = info.absolutePath();
 
-	// TBD: Load code!
-	if( true )
+	// TBD: More general load code!
+	RenderSet* rs = m_renderSetManager.getActiveRenderSet();
+	if( !rs ) return; // Sanity
+	if( rs->deserializeFromDisk( filename.toStdString() ) )
 	{
 		// success		
 		statusBar()->showMessage( tr("Sucessfully loaded %1").arg( filename ) );
@@ -278,7 +285,12 @@ void MainWindow::save()
 	QFileInfo info( filename );
 	m_baseDir = info.absolutePath();
 	
-	// TBD: Save code!
+	// TBD: More general save code!
+	RenderSet* rs = m_renderSetManager.getActiveRenderSet();
+	if( rs )
+	{
+		rs->serializeToDisk( filename.toStdString() );
+	}
 }
 
 #include "RenderSetWidget.h"
@@ -332,7 +344,17 @@ void MainWindow::loadShader()
 	if( filename.isEmpty() )
 		return;
 
+	m_shaderFilename = filename;
+
+	reloadShader();
+}
+
+void MainWindow::reloadShader()
+{
+	if( m_shaderFilename.isEmpty() )
+		return;
+
 	m_sharedGLWidget->makeCurrent();
-	if( !m_shaderModule->loadShader( filename.toStdString().c_str() ) )
+	if( !m_shaderModule->loadShader( m_shaderFilename.toStdString().c_str() ) )
 		QMessageBox::warning( this, tr("Error"), tr("Failed to load and/or compile shader!") );
 }

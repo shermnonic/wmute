@@ -1,9 +1,31 @@
 #include "RenderSet.h"
 #include "glbase.h"
 #include <iostream>
+#include <boost/foreach.hpp>
+#include <boost/property_tree/xml_parser.hpp>
 using std::cout;
 using std::cerr;
 using std::endl;
+
+//=============================================================================
+//  Serializable
+//=============================================================================
+
+//-----------------------------------------------------------------------------
+void Serializable::serializeToDisk( std::string filename )
+{
+	PropertyTree pt = serialize();
+	write_xml( filename, pt );
+}
+
+//-----------------------------------------------------------------------------
+bool Serializable::deserializeFromDisk( std::string filename )
+{
+	PropertyTree pt;
+	read_xml( filename, pt );
+	deserialize( pt );
+	return true; // FIXME: Implement some error-checking!
+}
 
 //=============================================================================
 //  RenderArea
@@ -92,6 +114,60 @@ void RenderArea::render( int gltexid ) const
 		glVertex2fv  ( m_poly.vert(i) );
 	}
 	glEnd();	
+}
+
+//-----------------------------------------------------------------------------
+Serializable::PropertyTree& RenderArea::serialize() const
+{
+	static Serializable::PropertyTree cache;
+	cache.clear();
+	
+	cache.put( "Name"        , m_name );
+	cache.put( "NumVertices" , m_poly.nverts() );
+
+	for( int i=0; i < m_poly.nverts(); i++ )
+	{		
+		Serializable::PropertyTree t;
+		t.put( "Pos.x", m_poly.vert(i)[0] );
+		t.put( "Pos.y", m_poly.vert(i)[1] );
+		t.put( "TexCoord.u", m_poly.texcoord(i)[0] );
+		t.put( "TexCoord.v", m_poly.texcoord(i)[1] );
+
+		cache.add_child( "Vertices.Vertex", t );
+	}
+
+	return cache;
+}
+
+//-----------------------------------------------------------------------------
+void RenderArea::deserialize( Serializable::PropertyTree& pt )
+{
+	m_name = pt.get( "Name", "unnamed" );
+	int nverts = pt.get( "NumVertices", -1 ); // unused
+
+	m_poly.clear();
+
+	BOOST_FOREACH( PropertyTree::value_type& l, pt.get_child("Vertices") )
+	{		
+		if( l.first.compare("Vertex")==0 )
+		{
+			float x = l.second.get<float>("Pos.x"),
+			      y = l.second.get<float>("Pos.y"),
+				  u = l.second.get<float>("TexCoord.u"),
+				  v = l.second.get<float>("TexCoord.v");
+
+			m_poly.verts().push_back( x );
+			m_poly.verts().push_back( y );
+			m_poly.texcoords().push_back( u );
+			m_poly.texcoords().push_back( v );
+		}
+		else
+			cerr << "RenderArea::deserialize() : Unknown key "
+			  "\"" << l.first << "\" in Vertices!" << endl;
+	}
+
+	if( m_poly.nverts() != nverts )
+		cerr << "RenderArea::deserialize() : Mismatching number of vertices!" << endl;
 }
 
 //=============================================================================
@@ -285,24 +361,44 @@ void RenderSet::render( int texid ) const
 }
 
 //-----------------------------------------------------------------------------
-void RenderSet::serialize( Serializable::PropertyTree& pt ) const
+Serializable::PropertyTree& RenderSet::serialize() const
 {
-	/*
-	Serializable::PropertyTree root; 
-	//node.put("Name",m_name);
-	root.put("RenderSet.NumAreas",m_areas.size());
+	static Serializable::PropertyTree cache;
+	cache.clear();
+	
+	cache.put("RenderSet.Name","unnamed");
+	cache.put("RenderSet.NumAreas",m_areas.size());
 	for( int i=0; i < m_areas.size(); i++ )
-	{
-		Serializable::PropertyTree node;
-		
-		m_areas[i].serialize( pt_area );
+		cache.add_child( "RenderSet.RenderArea", m_areas[i].serialize() );
 
-		pt.push_back( s
-	}*/
+	return cache;
 }
 
 //-----------------------------------------------------------------------------
 void RenderSet::deserialize( Serializable::PropertyTree& pt )
 {
+	//clear();
+	// WORKAROUND: Re-use module mapper for now!
+	m_areas.clear();
+
+	std::string name = pt.get("RenderSet.Name","unnamed");
+	int numAreas = pt.get<int>("RenderSet.NumAreas",0);
+
+	BOOST_FOREACH( PropertyTree::value_type& v, pt.get_child("RenderSet") )
+	{		
+		if( v.first.compare("RenderArea")==0 )
+		{
+			RenderArea area;
+			area.deserialize( v.second );
+			m_areas.push_back( area );
+
+			// WORKAROUND: See above
+			while( m_areas.size() > m_mapper.size() )
+				m_mapper.push_back( 0 );				
+		}
+	}
+
+	if( m_areas.size() != numAreas )
+		cerr << "RenderSet::deserialize() : Mismatching number of areas!" << endl;
 }
 
