@@ -6,12 +6,24 @@
 #include <map>
 #include <boost/property_tree/ptree.hpp>
 
+//=============================================================================
+//  Serializable
+//=============================================================================
+/**
+	\class Serializable
+
+	Simplistic serialization using boost::property_tree.
+*/
 class Serializable
 {
 public:
 	typedef boost::property_tree::ptree PropertyTree;
-	void serialize  ( PropertyTree& pt ) const = 0;
-	void deserialize( PropertyTree& pt )       = 0;	
+
+	virtual PropertyTree& serialize() const = 0;
+	virtual void deserialize( PropertyTree& pt ) = 0;
+
+	void serializeToDisk( std::string filename );
+	bool deserializeFromDisk( std::string filename );
 };
 
 //=============================================================================
@@ -129,7 +141,7 @@ public:
 
 	/// @name Serialization
 	///@{
-	void serialize  ( Serializable::PropertyTree& pt ) const;
+	PropertyTree& serialize() const;
 	void deserialize( Serializable::PropertyTree& pt );
 	///@}
 
@@ -195,7 +207,7 @@ public:
 
 	/// @name Serialization
 	///@{
-	void serialize  ( Serializable::PropertyTree& pt ) const;
+	PropertyTree& serialize() const;
 	void deserialize( Serializable::PropertyTree& pt );
 	///@}
 	
