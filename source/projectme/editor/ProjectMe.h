@@ -3,6 +3,15 @@
 
 #include "RenderSet.h"
 
+/**
+	\class ProjectMe
+	
+	ProjectMe encapsulates ModuleManager and RenderSetManager and provided IO
+	via the Serializable interface.
+	
+	For now, ProjectMe sole purpose is serialization / IO. It does not manage
+	(own) the manager instances itself.
+*/
 class ProjectMe : public Serializable
 {
 public:

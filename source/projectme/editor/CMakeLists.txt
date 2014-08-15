@@ -60,6 +60,8 @@ set( engine_SRCS
 	RenderSet.cpp
 	ShaderModule.h
 	ShaderModule.cpp
+	ProjectMe.h
+	ProjectMe.cpp
 )
 source_group("engine" FILES ${engine_SRCS})
 
