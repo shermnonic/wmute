@@ -41,7 +41,8 @@ defaultUniforms +
 
 //----------------------------------------------------------------------------
 ShaderModule::ShaderModule()
-: m_initialized(false),
+: ModuleRenderer( "ShaderModule" ),
+  m_initialized(false),
   m_width(512), m_height(512),
   m_shader(0),
   m_vshader( defaultVertexShader ),
@@ -200,4 +201,27 @@ void ShaderModule::render()
 	m_shader->release();
 	
 	m_r2t.unbind();
+}
+
+//-----------------------------------------------------------------------------
+Serializable::PropertyTree& ShaderModule::serialize() const
+{
+	static Serializable::PropertyTree cache;
+	cache.clear();
+	
+	cache.put("ShaderModule.Name",getName());
+	cache.put("ShaderModule.FragmentShader",m_fshader);
+
+	return cache;
+}
+
+//-----------------------------------------------------------------------------
+void ShaderModule::deserialize( Serializable::PropertyTree& pt )
+{
+	setName( pt.get("ShaderModule.Name", getDefaultName()) );
+	std::string fshader = pt.get( "ShaderModule.FragmentShader", "" );
+	if( !fshader.empty() )
+		m_fshader = fshader;
+	else
+		cerr << "ShaderModule::deserialize : No fragment shader found!" << endl;
 }

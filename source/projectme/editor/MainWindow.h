@@ -15,6 +15,7 @@ class QMenu;
 class QTimer;
 
 class RenderSetWidget;
+class ModuleManagerWidget;
 class ShaderModule;
 
 /** @addtogroup editor_grp Editor
@@ -69,12 +70,13 @@ private slots:
 	void newPreview();
 	void newScreen();
 	void updateViewMenu();
-
+	
 	void loadShader();
 	void reloadShader();
 
 protected:
 	void createUI();
+	void createRenderSet();
 
 	void closeEvent( QCloseEvent* event );
 
@@ -99,6 +101,8 @@ private:
 
 	QList<RenderSetWidget*> m_previews;
 	QList<RenderSetWidget*> m_screens;
+
+	ModuleManagerWidget* m_moduleWidget;
 };
 
 /** @} */ // end group
