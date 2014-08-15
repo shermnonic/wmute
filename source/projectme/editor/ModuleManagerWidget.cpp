@@ -4,13 +4,15 @@
 #include <QStandardItemModel>
 #include <QStandardItem>
 #include <QTableView>
+#include <QItemSelection>
 #include <QVBoxLayout>
 #include <QStringList>
 
 //----------------------------------------------------------------------------
 ModuleManagerWidget::ModuleManagerWidget( QWidget* parent )
 : QWidget(parent),
-  m_master(0)
+  m_master(0),
+  m_activeRow(-1)
 {
 	// Setup model and table view
 	m_model = new QStandardItemModel;
@@ -31,8 +33,19 @@ ModuleManagerWidget::ModuleManagerWidget( QWidget* parent )
 //----------------------------------------------------------------------------
 void ModuleManagerWidget::setModuleManager( ModuleManager* mm )
 {
-	m_master = mm;
+	// Disconnect
+	disconnect( m_tableView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&,const QItemSelection&)), this, SLOT(selectionChanged(const QItemSelection&,const QItemSelection&)) );
+	
+	// Update
+	m_activeRow = -1; // Reset active module
+	m_master = mm;	
 	updateModuleTable();
+
+	// Re-connect
+	if( m_master )
+	{
+		connect( m_tableView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&,const QItemSelection&)), this, SLOT(selectionChanged(const QItemSelection&,const QItemSelection&)) );
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -72,4 +85,19 @@ void ModuleManagerWidget::updateModuleTable()
 	// Resize table view
 	m_tableView->resizeColumnsToContents();
 	m_tableView->resizeRowsToContents();
+}
+
+//----------------------------------------------------------------------------
+void ModuleManagerWidget::selectionChanged( const QItemSelection& selected, const QItemSelection& deselected )
+{
+	if( !m_master || selected.isEmpty() || selected.first().indexes().isEmpty() )
+		return;
+
+	QModelIndex mi = selected.first().indexes().first();
+	
+	const ModuleManager::ModuleArray& modules = m_master->modules();
+	if( mi.row() >=0 && mi.row() < modules.size() )
+	{
+		m_activeRow = mi.row();
+	}
 }

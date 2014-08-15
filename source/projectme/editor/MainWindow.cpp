@@ -280,7 +280,6 @@ void MainWindow::open()
 	m_baseDir = info.absolutePath();
 
 	// TBD: More general load code!
-#if 1
 	ProjectMe pm;
 	pm.setModuleManager( &m_moduleManager );
 	pm.setRenderSetManager( &m_renderSetManager );
@@ -288,11 +287,6 @@ void MainWindow::open()
 	m_sharedGLWidget->makeCurrent(); // Some deserializers require GL context!
 
 	if( pm.deserializeFromDisk( filename.toStdString() ) )
-#else
-	RenderSet* rs = m_renderSetManager.getActiveRenderSet();
-	if( !rs ) return; // Sanity
-	if( rs->deserializeFromDisk( filename.toStdString() ) )
-#endif
 	{
 		// success		
 		statusBar()->showMessage( tr("Sucessfully loaded %1").arg( filename ) );
@@ -317,18 +311,10 @@ void MainWindow::save()
 	m_baseDir = info.absolutePath();
 	
 	// TBD: More general save code!
-#if 1
 	ProjectMe pm;
 	pm.setModuleManager( &m_moduleManager );
 	pm.setRenderSetManager( &m_renderSetManager );
 	pm.serializeToDisk( filename.toStdString() );
-#else
-	RenderSet* rs = m_renderSetManager.getActiveRenderSet();
-	if( rs )
-	{
-		rs->serializeToDisk( filename.toStdString() );
-	}
-#endif
 }
 
 #include "RenderSetWidget.h"
@@ -392,7 +378,31 @@ void MainWindow::reloadShader()
 	if( m_shaderFilename.isEmpty() )
 		return;
 
+	int idx = m_moduleWidget->getActiveModuleIndex();
+	if( idx < 0 ) 
+	{
+		QMessageBox::warning( this, tr("Warning"), tr("No module selected!") );
+		return;
+	}
+
+	if( idx >= m_moduleManager.modules().size() )
+	{
+		QMessageBox::warning( this, tr("Error"), tr("Selection out of range?!") );
+		return;
+	}
+
+	ShaderModule* sm = dynamic_cast<ShaderModule*>(	m_moduleManager.modules().at( idx ) );
+	if( !sm )
+	{
+		QMessageBox::warning( this, tr("Warning"), tr("Selected module is not a shader module!") );
+		return;
+	}
+
 	m_sharedGLWidget->makeCurrent();
-	if( !m_shaderModule->loadShader( m_shaderFilename.toStdString().c_str() ) )
+	if( !sm->loadShader( m_shaderFilename.toStdString().c_str() ) )
 		QMessageBox::warning( this, tr("Error"), tr("Failed to load and/or compile shader!") );
+
+	// Was:
+	//if( !m_shaderModule->loadShader( m_shaderFilename.toStdString().c_str() ) )
+	//	QMessageBox::warning( this, tr("Error"), tr("Failed to load and/or compile shader!") );
 }
