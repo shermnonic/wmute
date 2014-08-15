@@ -5,6 +5,7 @@
 #include "ShaderModule.h"
 #include "RenderSetWidget.h"
 #include "ModuleManagerWidget.h"
+#include "ProjectMe.h"
 
 #include <QtGui> // FIXME: Include only required Qt classes
 #include <QMdiArea>
@@ -279,9 +280,19 @@ void MainWindow::open()
 	m_baseDir = info.absolutePath();
 
 	// TBD: More general load code!
+#if 1
+	ProjectMe pm;
+	pm.setModuleManager( &m_moduleManager );
+	pm.setRenderSetManager( &m_renderSetManager );
+
+	m_sharedGLWidget->makeCurrent(); // Some deserializers require GL context!
+
+	if( pm.deserializeFromDisk( filename.toStdString() ) )
+#else
 	RenderSet* rs = m_renderSetManager.getActiveRenderSet();
 	if( !rs ) return; // Sanity
 	if( rs->deserializeFromDisk( filename.toStdString() ) )
+#endif
 	{
 		// success		
 		statusBar()->showMessage( tr("Sucessfully loaded %1").arg( filename ) );
@@ -306,11 +317,18 @@ void MainWindow::save()
 	m_baseDir = info.absolutePath();
 	
 	// TBD: More general save code!
+#if 1
+	ProjectMe pm;
+	pm.setModuleManager( &m_moduleManager );
+	pm.setRenderSetManager( &m_renderSetManager );
+	pm.serializeToDisk( filename.toStdString() );
+#else
 	RenderSet* rs = m_renderSetManager.getActiveRenderSet();
 	if( rs )
 	{
 		rs->serializeToDisk( filename.toStdString() );
 	}
+#endif
 }
 
 #include "RenderSetWidget.h"

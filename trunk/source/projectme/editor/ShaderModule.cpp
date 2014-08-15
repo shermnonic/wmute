@@ -224,4 +224,6 @@ void ShaderModule::deserialize( Serializable::PropertyTree& pt )
 		m_fshader = fshader;
 	else
 		cerr << "ShaderModule::deserialize : No fragment shader found!" << endl;
+
+	compile();
 }
