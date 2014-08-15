@@ -4,6 +4,7 @@
 #include "MainWindow.h"
 #include "ShaderModule.h"
 #include "RenderSetWidget.h"
+#include "ModuleManagerWidget.h"
 
 #include <QtGui> // FIXME: Include only required Qt classes
 #include <QMdiArea>
@@ -95,11 +96,23 @@ MainWindow::MainWindow()
 	readSettings();
 
 	// Setup render set
-	ShaderModule* shaderModule = new ShaderModule;
-	m_moduleManager.addModule( shaderModule );
-#if 0
-	m_renderSetManager.getActiveRenderSet()->setModule( 0, shaderModule );
-#else
+	createRenderSet();
+
+	statusBar()->showMessage( tr("Ready.") );
+}
+
+MainWindow::~MainWindow()
+{
+}
+
+void MainWindow::createRenderSet()
+{
+	// Create hard-coded setup of 3 render areas with 3 ShaderModules
+
+	m_moduleManager.addModule( new ShaderModule );
+	m_moduleManager.addModule( new ShaderModule );
+	m_moduleManager.addModule( new ShaderModule );
+
 	RenderSet* set = m_renderSetManager.getActiveRenderSet();
 	if( set )
 	{
@@ -108,19 +121,16 @@ MainWindow::MainWindow()
 		{
 			float w = 2.f/3.f; // width
 			RenderArea ra( (float)i*w+.1f-1.f, -.9f, (float)(i+1)*w-.1f-1.f, .9f );
-			set->addArea( ra, shaderModule );
+			set->addArea( ra, m_moduleManager.modules().at(i) );
 		}
 	}
-#endif
+
+	// Update UI
 	m_sharedGLWidget->setModuleManager( &m_moduleManager );
-	m_shaderModule = shaderModule;
+	m_moduleWidget  ->setModuleManager( &m_moduleManager );
 
-
-	statusBar()->showMessage( tr("Ready.") );
-}
-
-MainWindow::~MainWindow()
-{
+	// FIXME: Load shader works only on a single ShaderModule
+	m_shaderModule = dynamic_cast<ShaderModule*>( m_moduleManager.modules()[0] );
 }
 
 void MainWindow::createUI()
@@ -140,6 +150,9 @@ void MainWindow::createUI()
 
 	// --- widgets ---
 
+	m_moduleWidget = new ModuleManagerWidget();
+	m_moduleWidget->setWindowTitle(tr("Module Manager"));
+
 	// --- dock widgets ---
 	
 	// --- actions ---
@@ -148,6 +161,7 @@ void MainWindow::createUI()
 		*actOpen,
 		*actSave,
 		*actQuit,
+		*actShowModuleManager,
 		*actNewPreview,
 		*actNewScreen,
 		*actLoadShader,
@@ -162,6 +176,8 @@ void MainWindow::createUI()
 	actQuit = new QAction( tr("&Quit"), this );
 	actQuit->setStatusTip( tr("Quit application.") );
 	actQuit->setShortcut( tr("Ctrl+Q") );
+
+	actShowModuleManager = new QAction( tr("Show module manager"), this );
 
 	actNewPreview = new QAction( tr("New preview"), this );
 	actNewScreen  = new QAction( tr("New screen"), this );
@@ -184,6 +200,8 @@ void MainWindow::createUI()
 	menuFile->addAction( actQuit );
 
 	menuWindows = menuBar()->addMenu( tr("&Windows") );
+	menuWindows->addAction( actShowModuleManager );
+	menuWindows->addSeparator();
 	menuWindows->addAction( actNewPreview );
 	menuWindows->addAction( actNewScreen );
 	menuWindows->addSeparator();
@@ -200,6 +218,8 @@ void MainWindow::createUI()
 	connect( actOpen, SIGNAL(triggered()), this, SLOT(open() ) );
 	connect( actSave, SIGNAL(triggered()), this, SLOT(save() ) );
 	connect( actQuit, SIGNAL(triggered()), qApp, SLOT(closeAllWindows()) );
+
+	connect( actShowModuleManager, SIGNAL(triggered()), m_moduleWidget, SLOT(show()) );
 
 	connect( actNewPreview, SIGNAL(triggered()), this, SLOT(newPreview()) );
 	connect( actNewScreen,  SIGNAL(triggered()), this, SLOT(newScreen ()) );

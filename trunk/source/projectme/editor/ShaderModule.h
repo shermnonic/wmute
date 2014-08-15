@@ -31,12 +31,21 @@ public:
 	void destroy();
 	///@}
 
+	///@name Shader management
+	///@{
 	/// Re-compile current shader
 	bool compile();
 	/// Compile new shader
 	bool compile( std::string vshader, std::string fshader );
 	/// Load fragment shader from disk, implicitly compiles the shader
 	bool loadShader( const char* filename );
+	///@}
+
+	/// @name Serialization
+	///@{
+	PropertyTree& serialize() const;
+	void deserialize( Serializable::PropertyTree& pt );
+	///@}
 
 protected:
 	// Invoked once in first render() call

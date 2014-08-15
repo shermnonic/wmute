@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <sstream>
 #include <map>
 #include <boost/property_tree/ptree.hpp>
 
@@ -13,17 +14,38 @@
 	\class Serializable
 
 	Simplistic serialization using boost::property_tree.
+	Prodivdes a name property.
 */
 class Serializable
 {
 public:
 	typedef boost::property_tree::ptree PropertyTree;
 
+	Serializable()
+	{
+		setName( getDefaultName() );
+	}
+
 	virtual PropertyTree& serialize() const = 0;
 	virtual void deserialize( PropertyTree& pt ) = 0;
 
 	void serializeToDisk( std::string filename );
 	bool deserializeFromDisk( std::string filename );
+
+	///@{ Access name
+	std::string getName() const { return m_name; }
+	void setName( const std::string& name ) { m_name = name; }
+	static std::string getDefaultName()
+	{
+		static int count=0;
+		std::stringstream ss;
+		ss << "unnamed" << count++;
+		return ss.str();
+	}
+	///@}
+
+private:
+	std::string m_name;
 };
 
 //=============================================================================
@@ -34,15 +56,25 @@ public:
 
 	- OpenGL effect which renders into a texture.
 */
-class ModuleRenderer
+class ModuleRenderer : public Serializable
 {
 public:
+	ModuleRenderer( std::string typeName )
+		: m_moduleTypeName( typeName )
+	{}
+
 	/// Render the effect into a texture
 	virtual void render() = 0;
 	/// Return the texture id where the effect has rendered into
 	virtual int  target() const = 0;
 	/// Release any OpenGL resources (assume a valid GL context)
 	virtual void destroy() = 0;
+
+	/// Return type of module as string
+	std::string getModuleType() const { return m_moduleTypeName; }
+
+private:
+	std::string m_moduleTypeName;
 };
 
 //=============================================================================
@@ -51,6 +83,8 @@ public:
 class ModuleManager
 {
 public:
+	typedef std::vector<ModuleRenderer*> ModuleArray;
+
 	~ModuleManager()
 	{
 		clear();
@@ -67,6 +101,9 @@ public:
 		m_modules.clear();
 	}
 
+	ModuleArray& modules() { return m_modules; }
+	const ModuleArray& modules() const { return m_modules; }
+
 	void addModule( ModuleRenderer* module )
 	{
 		m_modules.push_back( module );
@@ -79,7 +116,7 @@ public:
 	}
 
 private:
-	std::vector<ModuleRenderer*> m_modules;
+	ModuleArray m_modules;
 };
 
 //=============================================================================
@@ -146,7 +183,6 @@ public:
 	///@}
 
 private:
-	std::string m_name;	
 	Polygon     m_poly; ///< 2D polygon w/ tex-coords (geometry to render to)
 };
 
@@ -210,7 +246,7 @@ public:
 	PropertyTree& serialize() const;
 	void deserialize( Serializable::PropertyTree& pt );
 	///@}
-	
+
 protected:
 	void beginRendering() const;
 	void endRendering()   const;

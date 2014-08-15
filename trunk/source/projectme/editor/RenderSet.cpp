@@ -122,7 +122,7 @@ Serializable::PropertyTree& RenderArea::serialize() const
 	static Serializable::PropertyTree cache;
 	cache.clear();
 	
-	cache.put( "Name"        , m_name );
+	cache.put( "Name"        , getName() );
 	cache.put( "NumVertices" , m_poly.nverts() );
 
 	for( int i=0; i < m_poly.nverts(); i++ )
@@ -142,7 +142,7 @@ Serializable::PropertyTree& RenderArea::serialize() const
 //-----------------------------------------------------------------------------
 void RenderArea::deserialize( Serializable::PropertyTree& pt )
 {
-	m_name = pt.get( "Name", "unnamed" );
+	setName( pt.get( "Name", getDefaultName() ) );
 	int nverts = pt.get( "NumVertices", -1 ); // unused
 
 	m_poly.clear();
@@ -346,8 +346,7 @@ void RenderSet::render( int texid ) const
 		{
 			// Default behaviour: Render module textures onto render areas
 			if( !m_mapper[i] ) continue;
-			texid = m_mapper[i]->target();
-			m_areas[i].render( texid );
+			m_areas[i].render( m_mapper[i]->target() );
 		}
 		else
 		{
@@ -366,7 +365,7 @@ Serializable::PropertyTree& RenderSet::serialize() const
 	static Serializable::PropertyTree cache;
 	cache.clear();
 	
-	cache.put("RenderSet.Name","unnamed");
+	cache.put("RenderSet.Name",getName());
 	cache.put("RenderSet.NumAreas",m_areas.size());
 	for( int i=0; i < m_areas.size(); i++ )
 		cache.add_child( "RenderSet.RenderArea", m_areas[i].serialize() );
@@ -381,7 +380,7 @@ void RenderSet::deserialize( Serializable::PropertyTree& pt )
 	// WORKAROUND: Re-use module mapper for now!
 	m_areas.clear();
 
-	std::string name = pt.get("RenderSet.Name","unnamed");
+	std::string name = pt.get("RenderSet.Name",getDefaultName());
 	int numAreas = pt.get<int>("RenderSet.NumAreas",0);
 
 	BOOST_FOREACH( PropertyTree::value_type& v, pt.get_child("RenderSet") )
