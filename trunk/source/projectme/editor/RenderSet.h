@@ -1,6 +1,8 @@
 #ifndef RENDERSET_H
 #define RENDERSET_H
 
+#include "Geometry.h"
+
 #include <vector>
 #include <string>
 #include <sstream>
@@ -122,7 +124,6 @@ private:
 //=============================================================================
 //  RenderArea
 //=============================================================================
-
 /**
 	\class RenderArea
 
@@ -130,32 +131,10 @@ private:
 */
 class RenderArea : public Serializable
 {
-	/// Simple polygon helper class
-	template <typename T, int DIM, int TC>
-	class TPolygon
-	{
-	public:
-		void clear() { m_verts.clear(); m_texcoords.clear(); }
-
-		void resize( int n ) { m_verts.resize( DIM * n ); m_texcoords.resize( TC * n ); }	
-		int  nverts() const { return (int)m_verts.size() / DIM; }
-
-		      T* vert( int i )       { return (i<0 || i>=m_verts.size()) ? 0 : &m_verts[DIM*i]; }
-		const T* vert( int i ) const { return &m_verts[DIM*i]; }
-
-		      T* texcoord( int i )       { return (i<0 || i>=m_texcoords.size()) ? 0 : &m_texcoords[TC*i]; }
-		const T* texcoord( int i ) const { return &m_texcoords[TC*i]; }
-
-		std::vector<T>& verts() { return m_verts; }
-		std::vector<T>& texcoords() { return m_texcoords; }
-
-	private:
-		std::vector<T> m_verts;
-		std::vector<T> m_texcoords;
-	};
-
-	/// Our 2D polygon type
-	typedef TPolygon<float,2,2> Polygon;
+	///@{ Our geometry types
+	typedef Geometry::TPolygon          <float,2,2> Polygon;
+	typedef Geometry::THomogeneousQuad2D<float>     HomogeneousQuad;
+	///@}
 	
 public:
 	/// C'tor, sets a default render area
@@ -174,6 +153,7 @@ public:
 	///@{ Access bounding polygon
 	      Polygon& polygon()       { return m_poly; }
 	const Polygon& polygon() const { return m_poly; }
+	bool  isQuad() const { return m_poly.nverts()==4; }
 	///@}
 
 	/// @name Serialization
@@ -183,7 +163,8 @@ public:
 	///@}
 
 private:
-	Polygon     m_poly; ///< 2D polygon w/ tex-coords (geometry to render to)
+	Polygon m_poly; ///< 2D polygon w/ tex-coords (geometry to render to)
+	mutable HomogeneousQuad m_hq; ///< Projective mapping if polygon is a quad
 };
 
 //=============================================================================
