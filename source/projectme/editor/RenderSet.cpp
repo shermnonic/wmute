@@ -104,16 +104,74 @@ void RenderArea::drawAreaFilled() const
 }
 
 //-----------------------------------------------------------------------------
+template<int D, typename T> T dotprod( const T* u, const T* v )
+{
+	T res=0.f;
+	for( int i=0; i < D; i++ )
+		res += u[i]*v[i];
+	return res;
+}
+
+template<int D, typename T> T length( const T* u, const T* v )
+{
+	T res=0.f;
+	for( int i=0; i < D; i++ )
+		res += (u[i]-v[i])*(u[i]-v[i]);
+	return sqrt(res);
+}
+
 void RenderArea::render( int gltexid ) const
 {
+	// Implement projective mapping for quads
+	// See also http://www.reedbeta.com/blog/2012/05/26/quadrilateral-interpolation-part-1/
+	bool projmap = m_poly.nverts() == 4;
+	float q[4]; // Homogeneous texture coordinate for each vertex
+	if( projmap )
+	{
+		// Normal of diagonal (v0,v2)
+		float n[2];
+		n[0] = -(m_poly.vert(2)[1] - m_poly.vert(0)[1]);
+		n[1] =  m_poly.vert(2)[0] - m_poly.vert(0)[0];
+		// Normalize
+		float nl = sqrt(dotprod<2>(n,n));
+		n[0] /= nl;
+		n[1] /= nl;
+
+		// Direction of second diagonal (v1,v3)
+		float d[2];
+		d[0] = m_poly.vert(3)[0] - m_poly.vert(1)[0];
+		d[1] = m_poly.vert(3)[1] - m_poly.vert(1)[1];
+
+		// Plug parametric form of 2nd into normal form of 1st diagonal
+		float t = 
+			(dotprod<2>( m_poly.vert(0), n ) - dotprod<2>( m_poly.vert(1), n ))
+			/ dotprod<2>( n, d ); // FIXME: Check for colinearity!
+
+		// Get intersection point (evaluate parametric 1st diagonal at t)
+		float p[2];
+		p[0] = m_poly.vert(1)[0] + t * d[0];
+		p[1] = m_poly.vert(1)[1] + t * d[1];
+
+		// Homogeneous weights
+		q[0] = 0.5* length<2>( m_poly.vert(0), m_poly.vert(2) ) / length<2>( p, m_poly.vert(2) );
+		q[1] = 0.5* length<2>( m_poly.vert(1), m_poly.vert(3) ) / length<2>( p, m_poly.vert(3) );
+		q[2] = 0.5* length<2>( m_poly.vert(0), m_poly.vert(2) ) / length<2>( p, m_poly.vert(0) );
+		q[3] = 0.5* length<2>( m_poly.vert(1), m_poly.vert(3) ) / length<2>( p, m_poly.vert(1) );
+	}
+
+	// Render polygon in OpenGL immediate mode
 	glBindTexture( GL_TEXTURE_2D, gltexid );
 	glBegin( (m_poly.nverts()==4) ? GL_QUADS : GL_POLYGON );
 	for( int i=0; i < m_poly.nverts(); i++ )
 	{
-		glTexCoord2fv( m_poly.texcoord(i) );
+		if( projmap )
+			// Projective mapping using GL homogeneous 4th texture coordinate
+			glTexCoord4f( m_poly.texcoord(i)[0], m_poly.texcoord(i)[1], 0.f, q[i] );
+		else
+			glTexCoord2fv( m_poly.texcoord(i) );
 		glVertex2fv  ( m_poly.vert(i) );
 	}
-	glEnd();	
+	glEnd();
 }
 
 //-----------------------------------------------------------------------------
