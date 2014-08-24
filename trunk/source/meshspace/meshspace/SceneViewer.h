@@ -91,6 +91,7 @@ protected slots:
 	void computeCrossValidation();
 	void computeClustering();
 	void computeCovarianceEmbedding();
+	void computeEigenmodes();
 
 	void loadCovariance();
 	void exportCovariance();

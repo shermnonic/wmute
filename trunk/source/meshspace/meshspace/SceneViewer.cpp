@@ -78,6 +78,7 @@ SceneViewer::SceneViewer( QWidget* parent )
 	QAction* actLoadCovariance = new QAction(tr("Load covariance tensor field from disk"),this);
 	QAction* actExportCovariance = new QAction(tr("Export covariance tensor field to Nrrd"),this);
 	QAction* actCrossvalidate = new QAction(tr("Cross-validate gamma on current PCA model"),this);
+	QAction* actComputeEigenmodes = new QAction(tr("Compute eigenmodes"),this);
 
 	QAction* actExportMatrix = new QAction(tr("Export current mesh vertex matrix as text file"),this);
 	QAction* actImportMatrix = new QAction(tr("Import mesh vertex matrix, replacing vertices of current mesh"),this);
@@ -97,6 +98,7 @@ SceneViewer::SceneViewer( QWidget* parent )
 	connect( actCrossvalidate, SIGNAL(triggered()), this, SLOT(computeCrossValidation()) );
 	connect( actExportMatrix, SIGNAL(triggered()), this, SLOT(exportMatrix()) );
 	connect( actImportMatrix, SIGNAL(triggered()), this, SLOT(importMatrix()) );	
+	connect( actComputeEigenmodes, SIGNAL(triggered()), this, SLOT(computeEigenmodes()) );
 
 	m_actions.push_back( actSelectNone );
 	m_actions.push_back( actSelectFrontFaces );
@@ -108,6 +110,7 @@ SceneViewer::SceneViewer( QWidget* parent )
 	m_actions.push_back( actReloadShaders );
 	m_actions.push_back( genSeparator(this) );
 	m_actions.push_back( actComputeDistance );
+	m_actions.push_back( actComputeEigenmodes );
 	m_actions.push_back( actExportMatrix );	
 	m_actions.push_back( actImportMatrix );
 	m_actions.push_back( genSeparator(this) );
@@ -953,6 +956,29 @@ void SceneViewer::importMatrix()
 //----------------------------------------------------------------------------
 
 #include "filters.h"
+
+#include "MeshLaplacian.h"
+void SceneViewer::computeEigenmodes()
+{
+	using meshtools::Mesh;
+	using scene::MeshObject;
+	
+	MeshObject* mo = currentMeshObject();
+	if( !mo )
+		return;
+
+	Mesh* mesh = mo->createMesh();
+
+	MeshLaplacian ml;
+	ml.compute( *mesh );
+
+	std::vector<float> eigenmode;	
+	ml.getMode( 0, eigenmode );
+
+	mo->setScalars( eigenmode );
+
+	delete mesh;
+}
 
 void SceneViewer::computeDistance()
 {
