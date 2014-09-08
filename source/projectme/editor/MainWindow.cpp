@@ -3,6 +3,7 @@
 #include "glbase.h"
 #include "MainWindow.h"
 #include "ShaderModule.h"
+#include "ParticleModule.h"
 #include "RenderSetWidget.h"
 #include "ModuleManagerWidget.h"
 #include "ProjectMe.h"
@@ -110,9 +111,9 @@ void MainWindow::createRenderSet()
 {
 	// Create hard-coded setup of 3 render areas with 3 ShaderModules
 
-	m_moduleManager.addModule( new ShaderModule );
-	m_moduleManager.addModule( new ShaderModule );
-	m_moduleManager.addModule( new ShaderModule );
+	m_moduleManager.addModule( new ParticleModule );
+	m_moduleManager.addModule( new ParticleModule );
+	m_moduleManager.addModule( new ParticleModule );
 
 	RenderSet* set = m_renderSetManager.getActiveRenderSet();
 	if( set )
