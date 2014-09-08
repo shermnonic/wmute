@@ -97,6 +97,7 @@ bool ShaderModule::init()
 //----------------------------------------------------------------------------
 void ShaderModule::destroy()
 {
+	delete m_shader; m_shader = 0;
 	m_r2t.deinit();
 	m_target.Destroy();
 }

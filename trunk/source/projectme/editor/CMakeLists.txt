@@ -60,6 +60,10 @@ set( engine_SRCS
 	RenderSet.cpp
 	ShaderModule.h
 	ShaderModule.cpp
+	ParticleModule.h
+	ParticleModule.cpp
+	ParticleSystem.h
+	ParticleSystem.cpp
 	ProjectMe.h
 	ProjectMe.cpp
 )
