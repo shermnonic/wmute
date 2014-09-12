@@ -464,7 +464,7 @@ void render()
 	glFogi( GL_FOG_MODE, GL_LINEAR );
 	glFogf( GL_FOG_DENSITY, 1.0 );
 	glFogf( GL_FOG_START, 0.7f );
-	glFogf( GL_FOG_END, 1.0f );
+	glFogf( GL_FOG_END, 2.0f );
 
 	if( fog )
 		glEnable( GL_FOG );
@@ -1186,14 +1186,16 @@ int main( int argc, char* argv[] )
 	
 	/* activate opengl fog */	
 	
+#if 0 // This is set on-line in each render call
 	GLfloat fogcolor[4] = { 1, 1, 1, 0.5 };
 	glFogfv( GL_FOG_COLOR, fogcolor );
 	glFogi( GL_FOG_MODE, GL_EXP );
-	glFogf( GL_FOG_DENSITY, 1.0 );
+	glFogf( GL_FOG_DENSITY, 10.1 );
 	glFogf( GL_FOG_START, 0.3f );
 	glFogf( GL_FOG_END, 1.0f );
 	glEnable( GL_FOG );
-	
+#endif
+
 	/* prepare display list for cube */
 	dl_cube = glGenLists( 1 );
 	
