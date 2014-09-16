@@ -110,16 +110,19 @@ MainWindow::~MainWindow()
 void MainWindow::createRenderSet()
 {
 	// Create hard-coded setup of 3 render areas with 3 ShaderModules
-
+#if 1
+    m_moduleManager.addModule( new ShaderModule );
+#else
 	m_moduleManager.addModule( new ParticleModule );
 	m_moduleManager.addModule( new ParticleModule );
 	m_moduleManager.addModule( new ParticleModule );
-
+#endif
 	RenderSet* set = m_renderSetManager.getActiveRenderSet();
+    int n = m_moduleManager.modules().size();
 	if( set )
 	{
 		set->clear();
-		for( int i=0; i < 3; i++ )
+        for( int i=0; i < n; i++ )
 		{
 			float w = 2.f/3.f; // width
 			RenderArea ra( (float)i*w+.1f-1.f, -.9f, (float)(i+1)*w-.1f-1.f, .9f );

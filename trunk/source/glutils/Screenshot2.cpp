@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <ctime>
+#include <cstring> // memcpy()
 #include <exception>
 
 //-----------------------------------------------------------------------------

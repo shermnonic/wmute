@@ -2,6 +2,7 @@
 #define GEOMETRY_H
 
 #include <vector>
+#include <cmath> // for sqrt()
 
 /// Geometry utilities for \a RenderArea
 namespace Geometry {
@@ -100,4 +101,4 @@ private:
 
 }; // namespace Geometry
 
-#endif GEOMETRY_H
+#endif // GEOMETRY_H

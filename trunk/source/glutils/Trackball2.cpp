@@ -90,9 +90,10 @@ void Trackball2::update( float ax, float ay, float bx, float by, int mode )
 		
 		// Rotation axis c
 		glm::vec3 R = glm::normalize( glm::cross(a,b) );
+        R *=sin(theta/2.f); // FIX: Inline multiplication below does not compile with gcc!
 		
 		// Unit quaternion for this rotation
-		glm::fquat q( cos(theta/2.f), R*sin(theta/2.f) );
+        glm::fquat q( cos(theta/2.f), R /*sin(theta/2.f)*/ );
 		
 		if( m_immediateUpdate )
 		{
