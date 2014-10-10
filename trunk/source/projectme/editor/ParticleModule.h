@@ -28,6 +28,7 @@ public:
 	void render();
 	int  target() const { return m_target.GetID(); }
 	void destroy() { m_ps.destroy(); }
+	void touch() { m_ps.touch(); m_update=true; }
 	///@}
 	
 	/// @name Serialization
@@ -38,6 +39,7 @@ public:
 	
 private:
 	bool            m_initialized;
+	bool            m_update;
 	int             m_width, m_height;
 	GLTexture       m_target;
 	RenderToTexture m_r2t;

@@ -29,6 +29,7 @@ public:
 	void render();
 	int  target() const { return m_target.GetID(); }	
 	void destroy();
+	void touch() { compile(); }
 	///@}
 
 	///@name Shader management

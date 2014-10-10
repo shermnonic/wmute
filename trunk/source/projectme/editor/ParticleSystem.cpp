@@ -27,16 +27,21 @@ float frand()
 // GLSL 110 / GLSL ES 2.0 shader 
 //----------------------------------------------------------------------------
 const std::string particleShaderPreamble =
-"#version 110\n"
+"#version 120\n"
 "uniform sampler2D iPos;\n"
 "uniform sampler2D iVel;\n"
+"varying vec2 vTexCoord;\n"
+"varying vec4 vColor;\n"
 "\n";
 
 const std::string particleVertexShader =
 particleShaderPreamble + 
 "void main(void)\n"
 "{\n"
-"    gl_TexCoord[0] = gl_MultiTexCoord0;\n"
+//"    vTexCoord = gl_MultiTexCoord0.xy;\n"
+//"    gl_TexCoord[0] = gl_MultiTexCoord0;\n"
+"    vTexCoord = gl_Vertex.xy;\n"
+"    vColor = gl_Color;\n"
 "    gl_Position = gl_Vertex;\n"
 "}\n";
 
@@ -44,13 +49,37 @@ const std::string particleFragmentShader =
 particleShaderPreamble + 
 "void main(void)\n"
 "{\n"
-"   vec2 tc = gl_TexCoord[0].xy;\n"
-"   vec4 pos = texture2D( iPos, tc );\n"
-"   vec4 vel = texture2D( iVel, tc );\n"
-"   gl_FragData[0] = vec4( pos.xyz, 1.0 );\n"
-"   gl_FragData[1] = vec4( vel.xyz, 1.0 );\n"
+//"   vec2 tc = gl_TexCoord[0].xy;\n"
+"   vec2 tc = vColor.xy;\n"//"vTexCoord;\n" 
+//"   vec2 uv = gl_FragCoord.xy / vec2(256.0,256.0);\n"
+//"   vec4 pos = texture2D( iPos, tc );\n"
+//"   vec4 vel = texture2D( iVel, tc );\n"
+"   gl_FragData[0] = vColor;\n"//vec4( tc.x, tc.y, 1.0, 1.0 );\n" //"vec4( pos.xyz, 1.0 );\n"
+"   gl_FragData[1] = vec4( tc.x, tc.y, 0.0, 1.0 );\n" //"vec4( vel.xyz, 1.0 );\n"
 "}";
 
+
+//----------------------------------------------------------------------------
+#include <fstream>
+#include <sstream>
+bool loadShader( const char* filename, std::string& source )
+{
+	using namespace std;
+
+	ifstream f( filename );
+	if( !f.good() )
+		return false;
+
+	stringstream ss;
+	string line;
+	while( getline(f,line) )
+		ss << line << "\n";
+	f.close();
+
+	source = ss.str();
+
+	return true;
+}
 
 //----------------------------------------------------------------------------
 ParticleSystem::ParticleSystem()
@@ -88,6 +117,37 @@ bool ParticleSystem::compile( std::string vshader, std::string fshader )
 		return false;
 	}	
 	return checkGLError( "ParticleSystem::compile()" );
+}
+
+//----------------------------------------------------------------------------
+void ParticleSystem::reloadShaderFromDiskHack()
+{
+	// Load from disk (hardcoded paths!)
+	std::string vs, fs;
+	if( !loadShader( "shader/particle.vs", vs ) ||
+	    !loadShader( "shader/particle.fs", fs ) )
+	{
+		std::cerr << "ParticleSystem::reloadShaderFromDiskHack() : "
+			<< "Could not load particle shaders!" << std::endl;
+		return;
+	}
+
+	// Test compile
+	if( !compile( vs, fs ) )
+	{
+		// Compilation failed, switch back to last working configuration
+		std::cerr << "ParticleSystem::reloadShaderFromDiskHack() : "
+			<< "Compilation failed, switching back to last working version!" << std::endl;
+
+		compile();
+		return;
+	}
+	else
+	{
+		// Success! Replace working shader set.
+		m_vshader = vs;
+		m_fshader = fs;
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -148,8 +208,8 @@ bool ParticleSystem::initGL()
 	glBindFramebuffer( GL_FRAMEBUFFER, m_fbo );	
 	
 	// Attach textures
-	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texPos[1], 0 );
-	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_texVel[1], 0 );	
+	glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_texPos[1], 0 );
+	glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, m_texVel[1], 0 );	
 	
 	GLenum status = glCheckFramebufferStatus( GL_FRAMEBUFFER );
 	if( status != GL_FRAMEBUFFER_COMPLETE )
@@ -180,41 +240,12 @@ void ParticleSystem::swapParticleBuffers()
 //----------------------------------------------------------------------------
 void ParticleSystem::advectParticles()
 {
-	glPushAttrib( GL_VIEWPORT_BIT | GL_COLOR_BUFFER_BIT );
+	glPushAttrib( GL_VIEWPORT_BIT );
 	checkGLError("ParticleSystem::advectParticles() : initial glPushAttrib() at the beginning");
-
-	// Bind FBO
-	glBindFramebuffer( GL_FRAMEBUFFER, 0 ); // Unbind first (sanity)
-	glBindFramebuffer( GL_FRAMEBUFFER, m_fbo );
-	checkGLError("ParticleSystem::advectParticles() : After glBindFramebuffer()");
-
-	// NOTE: 
-	// Can we do this somehow with out re-attaching the textures?
-	// Does re-attaching have relevant impact on the performance?
-	
-	// Attach textures
-	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texPos[m_curTargetBuf], 0 );
-	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_texVel[m_curTargetBuf], 0 );
-	checkGLError("ParticleSystem::advectParticles() : After glFramebufferTexture2D()");
-	
-	// NOTE on render targets:
-	// (See http://zach.in.tu-clausthal.de/teaching/cg_literatur/frame_buffer_objects.html)
-	// "An FBO remembers the last render target it was told to use, as such by 
-	// doing this while the FBO is bound we can set this at startup and not have 
-	// to worry about doing so during the main rendering loop."
-	GLenum mrt[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-	glDrawBuffers( 2, mrt );
-	checkGLError("ParticleSystem::advectParticles() : After glDrawBuffers()");
-	
-	glViewport( 0,0, m_width,m_height );
-
-	// Bind textures
-	unsigned srcBuf = (m_curTargetBuf+1)%2;
-	glActiveTexture( GL_TEXTURE0 + 0 );
-	glBindTexture( GL_TEXTURE_2D, m_texVel[srcBuf] );
-	glActiveTexture( GL_TEXTURE0 + 1 );
-	glBindTexture( GL_TEXTURE_2D, m_texPos[srcBuf] );
-	checkGLError("ParticleSystem::advectParticles() : After texture bind");
+	// NOTE:
+	// glPushAttrib() can not be called here with GL_COLOR_BUFFER_BIT and will
+	// cause an GL_INVALID_OPERATION on the glPopAttrib(). Maybe the buffer
+	// pointers can not be restored correctly when rendering to a framebuffer?
 
 	// Bind shader
 	m_shader->bind();
@@ -226,6 +257,48 @@ void ParticleSystem::advectParticles()
 	glUniform1i( iPos, 0 ); // Texture unit 0
 	glUniform1i( iVel, 1 ); // Texture unit 1
 	checkGLError("ParticleSystem::advectParticles() : After setting shader uniforms");
+
+
+	// Bind FBO
+	glBindFramebuffer( GL_FRAMEBUFFER, 0 ); // Unbind first (sanity)
+	glBindFramebuffer( GL_FRAMEBUFFER, m_fbo );
+	checkGLError("ParticleSystem::advectParticles() : After glBindFramebuffer()");
+
+	// NOTE: 
+	// Can we do this somehow with out re-attaching the textures?
+	// Does re-attaching have relevant impact on the performance?
+	
+	// Attach textures
+	glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_texPos[m_curTargetBuf], 0 );
+	glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, m_texVel[m_curTargetBuf], 0 );
+	checkGLError("ParticleSystem::advectParticles() : After glFramebufferTexture()");
+	
+	// NOTE on render targets:
+	// (See http://zach.in.tu-clausthal.de/teaching/cg_literatur/frame_buffer_objects.html)
+	// "An FBO remembers the last render target it was told to use, as such by 
+	// doing this while the FBO is bound we can set this at startup and not have 
+	// to worry about doing so during the main rendering loop."
+	GLenum mrt[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+	glDrawBuffers( 2, mrt );
+	checkGLError("ParticleSystem::advectParticles() : After glDrawBuffers()");	
+
+	// SANITY
+	if( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE )
+	{
+		std::cerr << "ParticleSystem::advectParticles() : Framebuffer incomplete!" << std::endl;
+		glPopAttrib();
+		return;
+	}
+
+
+	// Bind textures
+	unsigned srcBuf = (m_curTargetBuf+1)%2;
+	glActiveTexture( GL_TEXTURE0 + 0 );
+	glBindTexture( GL_TEXTURE_2D, m_texVel[srcBuf] );
+	glActiveTexture( GL_TEXTURE0 + 1 );
+	glBindTexture( GL_TEXTURE_2D, m_texPos[srcBuf] );
+	checkGLError("ParticleSystem::advectParticles() : After texture bind");
+
 	
 	// Generate fragment stream for whole particle buffer
 	glMatrixMode( GL_PROJECTION );
@@ -234,16 +307,21 @@ void ParticleSystem::advectParticles()
 	glMatrixMode( GL_MODELVIEW );
 	glPushMatrix();
 	glLoadIdentity();
+	
+	glViewport( 0,0, m_width,m_height );
+	//glClearColor( 0.f,0.f,0.f,1.f );
+	//glClear( GL_COLOR_BUFFER_BIT ); // Clear should not be required?
 
-	glBegin(GL_QUADS );
-	glTexCoord2f( 0, 0 );	glVertex3i(-1, -1, 0);
-	glTexCoord2f( 1, 0 );	glVertex3i(1, -1, 0);
-	glTexCoord2f( 1, 1 );	glVertex3i(1, 1, 0);
-	glTexCoord2f( 0, 1 );	glVertex3i(-1, 1, 0);
+	glBegin( GL_QUADS );
+	glColor3f( 1,1,1 );
+	glMultiTexCoord2f( GL_TEXTURE0, 0.f, 0.f );	glVertex3i(-1, -1, 0);
+	glColor3f( 0,1,0 );
+	glMultiTexCoord2f( GL_TEXTURE0, 1.f, 0.f );	glVertex3i(1, -1, 0);
+	glColor3f( 0,0,1 );
+	glMultiTexCoord2f( GL_TEXTURE0, 1.f, 1.f );	glVertex3i(1, 1, 0);
+	glColor3f( 1,0,0 );
+	glMultiTexCoord2f( GL_TEXTURE0, 0.f, 1.f );	glVertex3i(-1, 1, 0);
 	glEnd();
-
-	m_shader->release();
-	checkGLError("ParticleSystem::advectParticles() : releasing shader at the end");
 	
 	glPopMatrix();
 	glMatrixMode( GL_PROJECTION );
@@ -252,6 +330,9 @@ void ParticleSystem::advectParticles()
 	
 	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 	checkGLError("ParticleSystem::advectParticles() : undbinding framebuffer at the end");
+
+	m_shader->release();
+	checkGLError("ParticleSystem::advectParticles() : releasing shader at the end");
 
 	glPopAttrib();
 	checkGLError("ParticleSystem::advectParticles() : final glPopAttrib() at the end");
