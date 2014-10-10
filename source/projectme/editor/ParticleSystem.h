@@ -26,10 +26,16 @@ public:
 	}
 	
 	GLuint getPositions() { return m_texPos[0]; }
+
+	void touch()
+	{
+		reloadShaderFromDiskHack();
+	}
 	
-protected:
+protected:	
 	///@name Shader management
 	///@{
+	void reloadShaderFromDiskHack();
 	/// Re-compile current shader
 	bool compile();
 	/// Compile new shader

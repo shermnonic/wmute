@@ -110,12 +110,12 @@ MainWindow::~MainWindow()
 void MainWindow::createRenderSet()
 {
 	// Create hard-coded setup of 3 render areas with 3 ShaderModules
-#if 1
+#if 0
     m_moduleManager.addModule( new ShaderModule );
 #else
 	m_moduleManager.addModule( new ParticleModule );
-	m_moduleManager.addModule( new ParticleModule );
-	m_moduleManager.addModule( new ParticleModule );
+	//m_moduleManager.addModule( new ParticleModule );
+	//m_moduleManager.addModule( new ParticleModule );
 #endif
 	RenderSet* set = m_renderSetManager.getActiveRenderSet();
     int n = m_moduleManager.modules().size();
@@ -379,21 +379,28 @@ void MainWindow::loadShader()
 
 void MainWindow::reloadShader()
 {
-	if( m_shaderFilename.isEmpty() )
-		return;
-
+#if 1
+	// Get module index
 	int idx = m_moduleWidget->getActiveModuleIndex();
 	if( idx < 0 ) 
 	{
 		QMessageBox::warning( this, tr("Warning"), tr("No module selected!") );
 		return;
 	}
-
 	if( idx >= m_moduleManager.modules().size() )
 	{
 		QMessageBox::warning( this, tr("Error"), tr("Selection out of range?!") );
 		return;
 	}
+
+	// "Touch" module
+	m_sharedGLWidget->makeCurrent();
+	m_moduleManager.modules().at( idx )->touch();
+
+#else
+	// Manually reload shader from disk (only for a ShaderModule!)
+	if( m_shaderFilename.isEmpty() )
+		return;
 
 	ShaderModule* sm = dynamic_cast<ShaderModule*>(	m_moduleManager.modules().at( idx ) );
 	if( !sm )
@@ -405,7 +412,7 @@ void MainWindow::reloadShader()
 	m_sharedGLWidget->makeCurrent();
 	if( !sm->loadShader( m_shaderFilename.toStdString().c_str() ) )
 		QMessageBox::warning( this, tr("Error"), tr("Failed to load and/or compile shader!") );
-
+#endif
 	// Was:
 	//if( !m_shaderModule->loadShader( m_shaderFilename.toStdString().c_str() ) )
 	//	QMessageBox::warning( this, tr("Error"), tr("Failed to load and/or compile shader!") );

@@ -75,6 +75,8 @@ public:
 	/// Return type of module as string
 	std::string getModuleType() const { return m_moduleTypeName; }
 
+	virtual void touch() {}
+
 private:
 	std::string m_moduleTypeName;
 };

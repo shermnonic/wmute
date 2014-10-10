@@ -9,6 +9,7 @@ using GL::checkGLError;
 ParticleModule::ParticleModule()
 : ModuleRenderer( "ParticleModule" ),
   m_initialized( false ),
+  m_update( true ),
   m_width(512), m_height(512)
 {
 }
@@ -53,8 +54,11 @@ void ParticleModule::render()
 
 	if( m_r2t.bind( m_target.GetID() ) )
 	{
+		glColor4f( 1.f,1.f,1.f,1.f );
+
 		// Simply render position texture (for debugging)
 		glEnable( GL_TEXTURE_2D );
+		glActiveTexture( GL_TEXTURE0 );
 		glBindTexture( GL_TEXTURE_2D, m_ps.getPositions() );
 
 		// Render target resolution sized quad
