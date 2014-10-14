@@ -19,13 +19,10 @@ public:
 	void setup();
 	void destroy() { destroyGL(); }
 
-	void update()
-	{
-		advectParticles();
-		swapParticleBuffers();
-	}
+	void update();
 	
-	GLuint getPositions() { return m_texPos[0]; }
+	GLuint getPositions () { return m_texPos[m_curTargetBuf]; }
+	GLuint getVelocities() { return m_texVel[m_curTargetBuf]; }
 
 	void touch()
 	{

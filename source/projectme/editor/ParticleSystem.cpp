@@ -168,6 +168,8 @@ bool ParticleSystem::initGL()
 		cerr << "ParticleSystem::init() : Creation of GLSL shader failed!" << endl;
 		return false;
 	}
+
+	reloadShaderFromDiskHack();
 	
 	// Compile shader
 	if( !compile() )
@@ -232,6 +234,13 @@ void ParticleSystem::destroyGL()
 }
 
 //----------------------------------------------------------------------------
+void ParticleSystem::update()
+{
+	advectParticles();
+//	swapParticleBuffers();
+}
+
+//----------------------------------------------------------------------------
 void ParticleSystem::swapParticleBuffers()
 {
 	m_curTargetBuf = (m_curTargetBuf+1)%2;
@@ -247,6 +256,7 @@ void ParticleSystem::advectParticles()
 	// cause an GL_INVALID_OPERATION on the glPopAttrib(). Maybe the buffer
 	// pointers can not be restored correctly when rendering to a framebuffer?
 
+	
 	// Bind shader
 	m_shader->bind();
 	checkGLError("ParticleSystem::advectParticles() : After shader->bind()");
@@ -258,17 +268,15 @@ void ParticleSystem::advectParticles()
 	glUniform1i( iVel, 1 ); // Texture unit 1
 	checkGLError("ParticleSystem::advectParticles() : After setting shader uniforms");
 
-
+	
 	// Bind FBO
 	glBindFramebuffer( GL_FRAMEBUFFER, 0 ); // Unbind first (sanity)
 	glBindFramebuffer( GL_FRAMEBUFFER, m_fbo );
 	checkGLError("ParticleSystem::advectParticles() : After glBindFramebuffer()");
-
-	// NOTE: 
-	// Can we do this somehow with out re-attaching the textures?
-	// Does re-attaching have relevant impact on the performance?
 	
 	// Attach textures
+	// NOTE: Can we avoid re-attaching the textures?
+	//       Does re-attaching has relevant impact on the performance?
 	glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_texPos[m_curTargetBuf], 0 );
 	glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, m_texVel[m_curTargetBuf], 0 );
 	checkGLError("ParticleSystem::advectParticles() : After glFramebufferTexture()");
@@ -294,11 +302,11 @@ void ParticleSystem::advectParticles()
 	// Bind textures
 	unsigned srcBuf = (m_curTargetBuf+1)%2;
 	glActiveTexture( GL_TEXTURE0 + 0 );
-	glBindTexture( GL_TEXTURE_2D, m_texVel[srcBuf] );
-	glActiveTexture( GL_TEXTURE0 + 1 );
 	glBindTexture( GL_TEXTURE_2D, m_texPos[srcBuf] );
+	glActiveTexture( GL_TEXTURE0 + 1 );
+	glBindTexture( GL_TEXTURE_2D, m_texVel[srcBuf] );
+	glActiveTexture( GL_TEXTURE0 + 0 );
 	checkGLError("ParticleSystem::advectParticles() : After texture bind");
-
 	
 	// Generate fragment stream for whole particle buffer
 	glMatrixMode( GL_PROJECTION );
@@ -309,17 +317,15 @@ void ParticleSystem::advectParticles()
 	glLoadIdentity();
 	
 	glViewport( 0,0, m_width,m_height );
-	//glClearColor( 0.f,0.f,0.f,1.f );
-	//glClear( GL_COLOR_BUFFER_BIT ); // Clear should not be required?
 
 	glBegin( GL_QUADS );
-	glColor3f( 1,1,1 );
+	glColor3f( 0,0,0 );
 	glMultiTexCoord2f( GL_TEXTURE0, 0.f, 0.f );	glVertex3i(-1, -1, 0);
-	glColor3f( 0,1,0 );
-	glMultiTexCoord2f( GL_TEXTURE0, 1.f, 0.f );	glVertex3i(1, -1, 0);
-	glColor3f( 0,0,1 );
-	glMultiTexCoord2f( GL_TEXTURE0, 1.f, 1.f );	glVertex3i(1, 1, 0);
 	glColor3f( 1,0,0 );
+	glMultiTexCoord2f( GL_TEXTURE0, 1.f, 0.f );	glVertex3i(1, -1, 0);
+	glColor3f( 1,1,0 );
+	glMultiTexCoord2f( GL_TEXTURE0, 1.f, 1.f );	glVertex3i(1, 1, 0);
+	glColor3f( 0,1,0 );
 	glMultiTexCoord2f( GL_TEXTURE0, 0.f, 1.f );	glVertex3i(-1, 1, 0);
 	glEnd();
 	
@@ -327,7 +333,12 @@ void ParticleSystem::advectParticles()
 	glMatrixMode( GL_PROJECTION );
 	glPopMatrix();
 	glMatrixMode( GL_MODELVIEW );	
-	
+
+	checkGLError("ParticleSystem::advectParticles() : after fragment stream generation");
+
+
+	// Tidy up
+
 	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 	checkGLError("ParticleSystem::advectParticles() : undbinding framebuffer at the end");
 
