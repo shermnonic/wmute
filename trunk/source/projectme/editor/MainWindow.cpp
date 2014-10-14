@@ -100,6 +100,10 @@ MainWindow::MainWindow()
 	// Setup render set
 	createRenderSet();
 
+	// Default startup
+	newPreview();
+	m_moduleWidget->show();
+
 	statusBar()->showMessage( tr("Ready.") );
 }
 
@@ -159,6 +163,10 @@ void MainWindow::createUI()
 	m_moduleWidget->setWindowTitle(tr("Module Manager"));
 
 	// --- dock widgets ---
+
+	QDockWidget* dock = new QDockWidget(tr("Module Manager"),this);
+	dock->setWidget( m_moduleWidget );
+	addDockWidget( Qt::RightDockWidgetArea, dock );	
 	
 	// --- actions ---
 
@@ -205,7 +213,7 @@ void MainWindow::createUI()
 	menuFile->addAction( actQuit );
 
 	menuWindows = menuBar()->addMenu( tr("&Windows") );
-	menuWindows->addAction( actShowModuleManager );
+	menuWindows->addAction( dock->toggleViewAction() );
 	menuWindows->addSeparator();
 	menuWindows->addAction( actNewPreview );
 	menuWindows->addAction( actNewScreen );
@@ -223,8 +231,6 @@ void MainWindow::createUI()
 	connect( actOpen, SIGNAL(triggered()), this, SLOT(open() ) );
 	connect( actSave, SIGNAL(triggered()), this, SLOT(save() ) );
 	connect( actQuit, SIGNAL(triggered()), qApp, SLOT(closeAllWindows()) );
-
-	connect( actShowModuleManager, SIGNAL(triggered()), m_moduleWidget, SLOT(show()) );
 
 	connect( actNewPreview, SIGNAL(triggered()), this, SLOT(newPreview()) );
 	connect( actNewScreen,  SIGNAL(triggered()), this, SLOT(newScreen ()) );
