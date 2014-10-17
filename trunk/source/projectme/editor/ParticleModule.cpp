@@ -44,6 +44,13 @@ bool ParticleModule::init()
 }
 
 //----------------------------------------------------------------------------
+void ParticleModule::touch() 
+{
+	m_ps.touch(); 
+	m_update=true; 
+}
+
+//----------------------------------------------------------------------------
 
 void draw_debug_tex( int pos, GLuint texid )
 {
@@ -71,7 +78,8 @@ void ParticleModule::render()
 
 	if( m_r2t.bind( m_target.GetID() ) )
 	{
-		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+		glDisable( GL_DEPTH_TEST );
+
 		glColor4f( 1.f,1.f,1.f,1.f );
 
 		// Target resolution sized quad
@@ -82,9 +90,33 @@ void ParticleModule::render()
 		glMatrixMode( GL_PROJECTION );
 		glLoadIdentity();
 		glMatrixMode( GL_MODELVIEW );
-		glTranslatef( 0.0, 0.0, -5.0 );
-		glLoadIdentity();		
+		glLoadIdentity();
 
+		// Clear
+#if 0
+		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+#else
+		if( m_update )
+		{
+			glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+			m_update = false;
+		}
+		else
+		{
+			//glEnable( GL_BLEND );
+			//glBlendFunc( GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA );
+			//glColor4f( 0.f, 0.f, 0.f, 0.01f );
+
+			//glBegin( GL_QUADS );
+			//glVertex3i(-1, -1, 0);			
+			//glVertex3i(1, -1, 0);
+			//glVertex3i(1, 1, 0);
+			//glVertex3i(-1, 1, 0);
+			//glEnd();
+
+			//glDisable( GL_BLEND );
+		}
+#endif
 		// Render particles
 		glPointSize( 0.5 );
 		glEnable( GL_POINT_SMOOTH );

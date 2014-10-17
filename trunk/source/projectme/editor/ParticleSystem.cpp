@@ -4,9 +4,14 @@
 #include <glutils/GLError.h>
 #include <cstdlib> // rand(), srand(), RAND_MAX
 #include <ctime>   // time() to initialize srand()
+#include <cmath>
 using std::cerr;
 using std::endl;
 using GL::checkGLError;
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 //----------------------------------------------------------------------------
 // Random numbers
@@ -22,28 +27,6 @@ void seed( int n=-1 )
 float frand()
 {
 	return (rand() / (float)RAND_MAX);
-}
-
-//----------------------------------------------------------------------------
-#include <fstream>
-#include <sstream>
-bool loadShader( const char* filename, std::string& source )
-{
-	using namespace std;
-
-	ifstream f( filename );
-	if( !f.good() )
-		return false;
-
-	stringstream ss;
-	string line;
-	while( getline(f,line) )
-		ss << line << "\n";
-	f.close();
-
-	source = ss.str();
-
-	return true;
 }
 
 //----------------------------------------------------------------------------
@@ -67,6 +50,7 @@ void ParticleSystem::reseed()
 {
 	seedParticlePositions();
 	seedParticleVelocities();	
+	//setSyntheticForceField();
 }
 
 //----------------------------------------------------------------------------
@@ -438,28 +422,22 @@ void ParticleSystem::seedParticleVelocities()
 
 	// Temporary RGBA buffer
 	float* buf = new float[ N*4 ];
-
-	// Seed random number generator
-	seed();
-
-	float* ptr = &buf[0];
-#if 1
-	memset( (void*)ptr, 0, N*4*sizeof(float) );
+#if 0
+	// Zero velocity
+	memset( (void*)but, 0, N*4*sizeof(float) );
 #else
+	// Random velocity	
+	seed(); // Seed random number generator
+	float* ptr = &buf[0];
 	for( unsigned i=0; i < N; i++ )
 	{
-		// Relative position in [0,1]
-		float dy = (i/m_width) / (float)(m_height-1),
-			  dx = (i%m_width) / (float)(m_width-1);
+		float scale = .2f + frand();
+		float theta = frand() * 2.f* M_PI;
 
-		float scale = 5.f;
-
-		// Some angular velocity in (x,y) around center of rotation at (.5,.5)
-		*ptr = -scale*(dy-.5f); ptr++;
-		*ptr =  scale*(dx-.5f); ptr++;
-		// z = 0, alpha = 1
-		*ptr = 0.f; ptr++;
-		*ptr = 1.f; ptr++;
+		*ptr = scale*cos(theta); ptr++;
+		*ptr = scale*sin(theta); ptr++;		
+		*ptr = 0.f; ptr++; // z = 0
+		*ptr = 1.f; ptr++; // w = 1
 	}
 #endif
 
@@ -470,6 +448,53 @@ void ParticleSystem::seedParticleVelocities()
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, m_width,m_height, 0, 
 					  GL_RGBA, GL_FLOAT, (void*)buf );
 	}
+
+	// Free temporary buffer
+	delete [] buf;
+}
+
+//-----------------------------------------------------------------------------
+void ParticleSystem::setSyntheticForceField()
+{
+	// Discretizatino of force field domain (not related to FBO size!)
+	unsigned width = 1024, height = 1024;
+
+	// Temporary RGBA buffer
+	float* buf = new float[ width*height*4 ];
+
+	// Seed random number generator
+	seed();
+
+	float* ptr = &buf[0];
+	for( unsigned i=0; i < width*height; i++ )
+	{
+		// Relative position in [0,1]
+		float dy = (i/width) / (float)(height-1),
+			  dx = (i%width) / (float)(width-1);
+
+		dx -= .5f;
+		dy -= .5f;
+
+		float scale = .2f + sqrt(dx*dx + dy*dy);
+
+	  #if 1
+		// Rotational field
+		*ptr = -scale*dy; ptr++;
+		*ptr =  scale*dx; ptr++;
+	  #else
+		// Central field
+		*ptr = scale*dx; ptr++;
+		*ptr = scale*dy; ptr++;
+	  #endif
+		// z = 0, alpha = 1
+		*ptr = 0.f; ptr++;
+		*ptr = 1.f; ptr++;
+	}
+
+	// Download to GPU
+	glBindTexture( GL_TEXTURE_2D, m_texForce );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, width,height, 0, 
+					GL_RGBA, GL_FLOAT, (void*)buf );
 
 	// Free temporary buffer
 	delete [] buf;

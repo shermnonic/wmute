@@ -28,7 +28,7 @@ public:
 	void render();
 	int  target() const { return m_target.GetID(); }
 	void destroy() { m_ps.destroy(); }
-	void touch() { m_ps.touch(); m_update=true; }
+	void touch();
 	///@}
 	
 	/// @name Serialization
