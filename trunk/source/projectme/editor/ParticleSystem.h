@@ -10,6 +10,16 @@ using GL::GLSLProgram;
 	\class ParticleSystem
 
 	Simple GPU based state-preserving particle system.
+	
+	This class is responsible for particle advection and rendering.
+	
+	Advection is performed on the GPU using a ping-pong	technique updating 
+	position and velocity buffers using Euler steps based on a given 
+	acceleration field (i.e. force field for constant mass particles).
+
+	Rendering is done in a second pass, generating a vertex for each particle.
+
+	The implementation is uses only OpenGL 2.1 functionality.
 */
 class ParticleSystem
 {
@@ -19,25 +29,24 @@ public:
 	void setup();
 	void destroy() { destroyGL(); }
 
+	void reseed();
+
 	void update();
+	void render();
 	
 	GLuint getPositions () { return m_texPos[m_curTargetBuf]; }
 	GLuint getVelocities() { return m_texVel[m_curTargetBuf]; }
+	GLuint getForces    () { return m_texForce; }
 
 	void touch()
 	{
-		reloadShaderFromDiskHack();
+		loadShadersFromDisk();
+		reseed();
 	}
 	
 protected:	
-	///@name Shader management
-	///@{
-	void reloadShaderFromDiskHack();
-	/// Re-compile current shader
-	bool compile();
-	/// Compile new shader
-	bool compile( std::string vshader, std::string fshader );
-	///@}	
+	void loadShadersFromDisk();
+	void loadForceTexture( const char* filename );
 
 	///@{ OpenGL setup
 	bool initGL();
@@ -55,15 +64,21 @@ protected:
 private:
 	bool m_initialized;
 	
-	GLSLProgram* m_shader;
-	std::string  m_vshader, // Store source of vertex/fragment shader locally
-	             m_fshader;
+	GLSLProgram *m_advectShader,
+	            *m_renderShader;
 
-	GLuint m_width,  // All FBO attachements have to have the same size
+	// Width and height of FBO, total count is the max. number of particles.
+	// Note that all FBO attachements have to have the same size.
+	GLuint m_width,  
            m_height;
+
+	GLuint m_texForce;  ///< Force / acceleration texture
+
 	GLuint m_texPos[2], ///< Particle position double-buffer
 	       m_texVel[2]; ///< Particle velocity double-buffer
-	GLuint m_fbo;       ///< Frame buffer object (FBO)
+	GLuint m_fbo;       ///< Frame buffer object (FBO) for advection
+	GLuint m_vbo;       ///< Vertex buffer object (VBO) for rendering
+	
 	int m_curTargetBuf;	
 };
 
