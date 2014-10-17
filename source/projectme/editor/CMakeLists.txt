@@ -66,6 +66,8 @@ set( engine_SRCS
 	ParticleSystem.cpp
 	ProjectMe.h
 	ProjectMe.cpp
+	hraw.h	
+	hraw.cpp	
 )
 source_group("engine" FILES ${engine_SRCS})
 

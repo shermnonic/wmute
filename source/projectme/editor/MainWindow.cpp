@@ -122,13 +122,13 @@ void MainWindow::createRenderSet()
 	//m_moduleManager.addModule( new ParticleModule );
 #endif
 	RenderSet* set = m_renderSetManager.getActiveRenderSet();
-    int n = m_moduleManager.modules().size();
+    unsigned n = (unsigned)m_moduleManager.modules().size();
 	if( set )
 	{
 		set->clear();
-        for( int i=0; i < n; i++ )
+        for( unsigned i=0; i < n; i++ )
 		{
-			float w = 2.f/3.f; // width
+			float w = 2.f/ (float)n; // width
 			RenderArea ra( (float)i*w+.1f-1.f, -.9f, (float)(i+1)*w-.1f-1.f, .9f );
 			set->addArea( ra, m_moduleManager.modules().at(i) );
 		}

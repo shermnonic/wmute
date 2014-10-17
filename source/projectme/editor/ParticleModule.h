@@ -35,7 +35,7 @@ public:
 	///@{
 	PropertyTree& serialize() const;
 	void deserialize( Serializable::PropertyTree& pt );
-	///@}	
+	///@}
 	
 private:
 	bool            m_initialized;

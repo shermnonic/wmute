@@ -1,4 +1,5 @@
 #include "ParticleSystem.h"
+#include "hraw.h"
 
 #include <glutils/GLError.h>
 #include <cstdlib> // rand(), srand(), RAND_MAX
@@ -22,42 +23,6 @@ float frand()
 {
 	return (rand() / (float)RAND_MAX);
 }
-
-//----------------------------------------------------------------------------
-// GLSL 110 / GLSL ES 2.0 shader 
-//----------------------------------------------------------------------------
-const std::string particleShaderPreamble =
-"#version 120\n"
-"uniform sampler2D iPos;\n"
-"uniform sampler2D iVel;\n"
-"varying vec2 vTexCoord;\n"
-"varying vec4 vColor;\n"
-"\n";
-
-const std::string particleVertexShader =
-particleShaderPreamble + 
-"void main(void)\n"
-"{\n"
-//"    vTexCoord = gl_MultiTexCoord0.xy;\n"
-//"    gl_TexCoord[0] = gl_MultiTexCoord0;\n"
-"    vTexCoord = gl_Vertex.xy;\n"
-"    vColor = gl_Color;\n"
-"    gl_Position = gl_Vertex;\n"
-"}\n";
-
-const std::string particleFragmentShader =
-particleShaderPreamble + 
-"void main(void)\n"
-"{\n"
-//"   vec2 tc = gl_TexCoord[0].xy;\n"
-"   vec2 tc = vColor.xy;\n"//"vTexCoord;\n" 
-//"   vec2 uv = gl_FragCoord.xy / vec2(256.0,256.0);\n"
-//"   vec4 pos = texture2D( iPos, tc );\n"
-//"   vec4 vel = texture2D( iVel, tc );\n"
-"   gl_FragData[0] = vColor;\n"//vec4( tc.x, tc.y, 1.0, 1.0 );\n" //"vec4( pos.xyz, 1.0 );\n"
-"   gl_FragData[1] = vec4( tc.x, tc.y, 0.0, 1.0 );\n" //"vec4( vel.xyz, 1.0 );\n"
-"}";
-
 
 //----------------------------------------------------------------------------
 #include <fstream>
@@ -84,9 +49,7 @@ bool loadShader( const char* filename, std::string& source )
 //----------------------------------------------------------------------------
 ParticleSystem::ParticleSystem()
 : m_initialized( false ),
-  m_shader( NULL ),
-  m_vshader( particleVertexShader ),
-  m_fshader( particleFragmentShader ),
+  m_advectShader( NULL ),
   m_width ( 256 ),
   m_height( 256 ),
   m_curTargetBuf( 1 )
@@ -97,56 +60,76 @@ ParticleSystem::ParticleSystem()
 void ParticleSystem::setup()
 {
 	initGL();
+}
+
+//----------------------------------------------------------------------------
+void ParticleSystem::reseed()
+{
 	seedParticlePositions();
 	seedParticleVelocities();	
 }
 
 //----------------------------------------------------------------------------
-bool ParticleSystem::compile()
+void ParticleSystem::loadForceTexture( const char* filename )
 {
-	return compile( m_vshader, m_fshader );
-}
-
-//----------------------------------------------------------------------------
-bool ParticleSystem::compile( std::string vshader, std::string fshader )
-{
-	if( !m_shader ) return false;
-	if( !m_shader->load( vshader, fshader ) )
+	// Read raw buffer
+	float* buffer = NULL;
+	unsigned size[3];
+	if( !read_hraw( filename, buffer, size ) )
 	{
-		cerr << "ParticleSystem::compile() : Compilation of shaders failed!" << endl;
-		return false;
-	}	
-	return checkGLError( "ParticleSystem::compile()" );
+		std::cerr << "ParticleSystem::loadForceTexture() : "
+			<< "Could not load texture from \"" << filename << "\"!" << std::endl;
+		return;
+	}
+	if( size[2] < 2 )
+	{
+		std::cerr << "ParticleSystem::loadForceTexture() : "
+			<< "Raw data has too few dimensions, at least 2 are required!" << std::endl;
+		return;
+	}
+
+	// Convert Matlab 3D array into 4-channel texture data
+	unsigned stride = size[0]*size[1];
+	float* data = new float[ stride * 4 ];
+	for( unsigned p=0; p < stride; p++ )
+	{
+		data[ p*4 + 0 ] = buffer[ p ];        // x
+		data[ p*4 + 1 ] = buffer[ p+stride ]; // y
+		data[ p*4 + 2 ] = 0.0;                // z
+		data[ p*4 + 3 ] = 1.0;                // w
+	}
+
+	// Download to GPU
+	glBindTexture( GL_TEXTURE_2D, m_texForce );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, size[0],size[1], 0, 
+					GL_RGBA, GL_FLOAT, (void*)data );
+
+	// Free buffers
+	delete [] data;
+	delete [] buffer;
 }
 
 //----------------------------------------------------------------------------
-void ParticleSystem::reloadShaderFromDiskHack()
+void ParticleSystem::loadShadersFromDisk()
 {
 	// Load from disk (hardcoded paths!)
-	std::string vs, fs;
-	if( !loadShader( "shader/particle.vs", vs ) ||
-	    !loadShader( "shader/particle.fs", fs ) )
+
+	if( !m_advectShader->load_from_disk( 
+		"shader/particle_advect.vs", 
+		"shader/particle_advect.fs" ) )
 	{
-		std::cerr << "ParticleSystem::reloadShaderFromDiskHack() : "
-			<< "Could not load particle shaders!" << std::endl;
+		std::cerr << "ParticleSystem::loadShadersFromDisk() : "
+			<< "Could not link particle advection shader!" << std::endl;
 		return;
 	}
 
-	// Test compile
-	if( !compile( vs, fs ) )
+	if( !m_renderShader->load_from_disk(
+		"shader/particle_render.vs",
+		"shader/particle_render.fs" ) )
 	{
-		// Compilation failed, switch back to last working configuration
-		std::cerr << "ParticleSystem::reloadShaderFromDiskHack() : "
-			<< "Compilation failed, switching back to last working version!" << std::endl;
-
-		compile();
+		std::cerr << "ParticleSystem::loadShadersFromDisk() : "
+			<< "Could not link particle render shader!" << std::endl;
 		return;
-	}
-	else
-	{
-		// Success! Replace working shader set.
-		m_vshader = vs;
-		m_fshader = fs;
 	}
 }
 
@@ -158,34 +141,52 @@ bool ParticleSystem::initGL()
 	// - GLSL 101
 	// - Framebuffer object
 	// - Multiple render targets
+
+	//........................................................................
+	
+	// Init Force texture
+	glGenTextures( 1, &m_texForce );
+	glBindTexture( GL_TEXTURE_2D, m_texForce );
+
+	// Default RO parameters (no restrictions on filtering)
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+
+	if(	!checkGLError( "ParticleSystem::init() : GL error after force texture setup!" ) )
+		return false;
+
+	//........................................................................
+
+	loadForceTexture("shader/gradient.hraw");
+
+	if(	!checkGLError( "ParticleSystem::init() : GL error after loading force texture!" ) )
+		return false;
 	
 	//........................................................................
 	
 	// Create shader
-	m_shader = new GLSLProgram();
-	if( !m_shader )
+	m_advectShader = new GLSLProgram();
+	m_renderShader = new GLSLProgram();
+	if( !m_advectShader || !m_renderShader )
 	{
 		cerr << "ParticleSystem::init() : Creation of GLSL shader failed!" << endl;
 		return false;
 	}
+	
+	loadShadersFromDisk();	
 
-	reloadShaderFromDiskHack();
-	
-	// Compile shader
-	if( !compile() )
-		// On this call we currently require the shader to compile correctly!
-		return false;	
-	
 	if(	!checkGLError( "ParticleSystem::init() : GL error after shader setup!" ) )
 		return false;	
 
 	//........................................................................
 
-	// Init textures
+	// Init FBO textures
 	glGenTextures( 2, m_texPos );
 	glGenTextures( 2, m_texVel );	
 	
-	// Setup textures
+	// Setup FBO textures
 	GLuint tex[4] = { m_texPos[0], m_texPos[1], m_texVel[0], m_texVel[1] };
 	for( int i=0; i < 4; i++ )
 	{
@@ -193,14 +194,14 @@ bool ParticleSystem::initGL()
 		glBindTexture( GL_TEXTURE_2D, tex[i] );
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, m_width,m_height, 0, GL_RGBA, GL_FLOAT, NULL );
 		
-		// Default parameters
+		// Default FBO parameters (only nearest filtering allowed!)
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 	}
 	
-	if(	!checkGLError( "ParticleSystem::init() : GL error after texture setup!" ) )
+	if(	!checkGLError( "ParticleSystem::init() : GL error after FBO textures setup!" ) )
 		return false;
 
 	//........................................................................
@@ -220,6 +221,19 @@ bool ParticleSystem::initGL()
 		return false;
 	}
 
+	//........................................................................
+
+	// Setup vertex buffer
+	unsigned n = m_width*m_height;
+	glGenBuffers( 1, &m_vbo );
+	glBindBuffer( GL_ARRAY_BUFFER, m_vbo );
+	glBufferData( GL_ARRAY_BUFFER, 3*sizeof(float)*n, NULL, GL_STATIC_DRAW );
+	glBindBuffer( GL_ARRAY_BUFFER, 0 );
+
+	if(	!checkGLError( "ParticleSystem::init() : GL error after VBO setup!" ) )
+		return false;
+
+
 	m_initialized = checkGLError( "ParticleSystem::init() : GL error at exit!" );
 	return m_initialized;
 }
@@ -227,7 +241,8 @@ bool ParticleSystem::initGL()
 //----------------------------------------------------------------------------
 void ParticleSystem::destroyGL()
 {
-	delete m_shader; m_shader=NULL;
+	delete m_advectShader; m_advectShader=NULL;
+	delete m_renderShader; m_renderShader=NULL;
 	glDeleteFramebuffers( 1, &m_fbo );
 	glDeleteTextures( 2, m_texPos );
 	glDeleteTextures( 2, m_texVel );
@@ -237,7 +252,34 @@ void ParticleSystem::destroyGL()
 void ParticleSystem::update()
 {
 	advectParticles();
-//	swapParticleBuffers();
+	swapParticleBuffers();
+}
+
+//----------------------------------------------------------------------------
+void ParticleSystem::render()
+{
+	m_renderShader->bind();
+	checkGLError("ParticleSystem::render() : After shader bind");
+
+	// Bind position and velocity texture
+	GLint bufid = m_curTargetBuf;
+	glActiveTexture( GL_TEXTURE0 + 0 );
+	glBindTexture( GL_TEXTURE_2D, m_texPos[bufid] );
+	glActiveTexture( GL_TEXTURE0 + 1 );
+	glBindTexture( GL_TEXTURE_2D, m_texVel[bufid] );
+	glActiveTexture( GL_TEXTURE0 + 0 );
+	checkGLError("ParticleSystem::render() : After texture bind");
+
+	// Generate vertex stream, position data will be replaced in shader
+	glBindBuffer( GL_ARRAY_BUFFER, m_vbo );
+	glVertexPointer( 3, GL_FLOAT, 0, NULL );
+	glEnableClientState( GL_VERTEX_ARRAY );
+	glDrawArrays( GL_POINTS, 0, m_width*m_height ); // number of vertices
+
+	glFlush(); // FIXME
+
+	m_renderShader->release();
+	checkGLError("ParticleSystem::render() : After shader release");
 }
 
 //----------------------------------------------------------------------------
@@ -258,14 +300,16 @@ void ParticleSystem::advectParticles()
 
 	
 	// Bind shader
-	m_shader->bind();
+	m_advectShader->bind();
 	checkGLError("ParticleSystem::advectParticles() : After shader->bind()");
 
 	// Set shader uniforms / samplers	
-	GLint iPos = m_shader->getUniformLocation("iPos");
-	GLint iVel = m_shader->getUniformLocation("iVel");
-	glUniform1i( iPos, 0 ); // Texture unit 0
-	glUniform1i( iVel, 1 ); // Texture unit 1
+	GLint iPos   = m_advectShader->getUniformLocation("iPos");
+	GLint iVel   = m_advectShader->getUniformLocation("iVel");
+	GLint iForce = m_advectShader->getUniformLocation("iForce");
+	glUniform1i( iPos,   0 ); // Texture unit 0 - Position
+	glUniform1i( iVel,   1 ); // Texture unit 1 - Velocity
+	glUniform1i( iForce, 2 ); // Texture unit 2 - Force
 	checkGLError("ParticleSystem::advectParticles() : After setting shader uniforms");
 
 	
@@ -305,7 +349,9 @@ void ParticleSystem::advectParticles()
 	glBindTexture( GL_TEXTURE_2D, m_texPos[srcBuf] );
 	glActiveTexture( GL_TEXTURE0 + 1 );
 	glBindTexture( GL_TEXTURE_2D, m_texVel[srcBuf] );
-	glActiveTexture( GL_TEXTURE0 + 0 );
+	glActiveTexture( GL_TEXTURE0 + 2 );
+	glBindTexture( GL_TEXTURE_2D, m_texForce );
+	glActiveTexture( GL_TEXTURE0 + 0 ); // Reset to active texture unit 0!
 	checkGLError("ParticleSystem::advectParticles() : After texture bind");
 	
 	// Generate fragment stream for whole particle buffer
@@ -342,7 +388,7 @@ void ParticleSystem::advectParticles()
 	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 	checkGLError("ParticleSystem::advectParticles() : undbinding framebuffer at the end");
 
-	m_shader->release();
+	m_advectShader->release();
 	checkGLError("ParticleSystem::advectParticles() : releasing shader at the end");
 
 	glPopAttrib();
@@ -364,9 +410,9 @@ void ParticleSystem::seedParticlePositions()
 	float* ptr = &buf[0];
 	for( unsigned i=0; i < N; i++ )
 	{
-		// Random (x,y) position in [0,1]
-		*ptr = frand(); ptr++;
-		*ptr = frand(); ptr++;
+		// Random (x,y) position in [-1,1]
+		*ptr = 2.f*frand()-1.f; ptr++;
+		*ptr = 2.f*frand()-1.f; ptr++;
 		// z = 0, alpha = 1
 		*ptr = 0.f; ptr++;
 		*ptr = 1.f; ptr++;
@@ -397,6 +443,9 @@ void ParticleSystem::seedParticleVelocities()
 	seed();
 
 	float* ptr = &buf[0];
+#if 1
+	memset( (void*)ptr, 0, N*4*sizeof(float) );
+#else
 	for( unsigned i=0; i < N; i++ )
 	{
 		// Relative position in [0,1]
@@ -412,6 +461,7 @@ void ParticleSystem::seedParticleVelocities()
 		*ptr = 0.f; ptr++;
 		*ptr = 1.f; ptr++;
 	}
+#endif
 
 	// Download to GPU
 	for( int i=0; i < 2; i++ )

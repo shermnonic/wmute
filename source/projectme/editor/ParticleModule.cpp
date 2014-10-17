@@ -10,7 +10,7 @@ ParticleModule::ParticleModule()
 : ModuleRenderer( "ParticleModule" ),
   m_initialized( false ),
   m_update( true ),
-  m_width(512), m_height(512)
+  m_width(1024), m_height(1024)
 {
 }
 
@@ -37,12 +37,29 @@ bool ParticleModule::init()
 
 	// Setup particle system
 	m_ps.setup();
+	m_ps.reseed();
 
 	m_initialized = true;
 	return true;
 }
 
 //----------------------------------------------------------------------------
+
+void draw_debug_tex( int pos, GLuint texid )
+{
+	const GLfloat width = .35f;
+	GLfloat ofs = pos*width;
+
+	glBindTexture( GL_TEXTURE_2D, texid );
+
+	glBegin( GL_QUADS );
+	glTexCoord2f( 0, 0 );	glVertex3f( -1.f+ofs, -1.f, 0 );
+	glTexCoord2f( 1, 0 );	glVertex3f( -1.f+ofs+width, -1.f, 0 );
+	glTexCoord2f( 1, 1 );	glVertex3f( -1.f+ofs+width, -1.f+width, 0 );
+	glTexCoord2f( 0, 1 );	glVertex3f( -1.f+ofs, -1.f+width, 0 );
+	glEnd();
+}
+
 void ParticleModule::render() 
 { 
 	if( !m_initialized ) 	
@@ -54,30 +71,41 @@ void ParticleModule::render()
 
 	if( m_r2t.bind( m_target.GetID() ) )
 	{
+		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 		glColor4f( 1.f,1.f,1.f,1.f );
 
-		// Simply render position texture (for debugging)
-		glEnable( GL_TEXTURE_2D );
-		glActiveTexture( GL_TEXTURE0 );
-		glBindTexture( GL_TEXTURE_2D, m_ps.getPositions() );
-
-		// Render target resolution sized quad
+		// Target resolution sized quad
 		int viewport[4];
 		glGetIntegerv( GL_VIEWPORT, viewport );
 		glViewport( 0,0, m_width,m_height );
-		
+
+		glMatrixMode( GL_PROJECTION );
+		glLoadIdentity();
+		glMatrixMode( GL_MODELVIEW );
+		glTranslatef( 0.0, 0.0, -5.0 );
+		glLoadIdentity();		
+
+		// Render particles
+		glPointSize( 0.5 );
+		glEnable( GL_POINT_SMOOTH );
+		glDisable( GL_TEXTURE_2D );
+		m_ps.render();
+
+		// Debug overlays
 		glMatrixMode( GL_PROJECTION );
 		glLoadIdentity();
 		glMatrixMode( GL_MODELVIEW );
 		glLoadIdentity();
-		
-		glBegin(GL_QUADS );
-		glTexCoord2f( 0, 0 );	glVertex3i(-1, -1, 0);			
-		glTexCoord2f( 1, 0 );	glVertex3i(1, -1, 0);
-		glTexCoord2f( 1, 1 );	glVertex3i(1, 1, 0);
-		glTexCoord2f( 0, 1 );	glVertex3i(-1, 1, 0);
-		glEnd();
 
+		// Overlay position texture (for debugging)
+		glEnable( GL_TEXTURE_2D );
+		glActiveTexture( GL_TEXTURE0 );
+
+		draw_debug_tex( 0, m_ps.getPositions() );
+		draw_debug_tex( 1, m_ps.getVelocities() );
+		draw_debug_tex( 2, m_ps.getForces() );
+
+		// Reset viewport
 		glViewport( viewport[0], viewport[1], viewport[2], viewport[3] );
 	}
 	else
