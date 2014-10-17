@@ -59,6 +59,7 @@ protected:
 	///@{ Generate some test data
 	void seedParticlePositions();
 	void seedParticleVelocities();
+	void setSyntheticForceField();
 	///@}
 
 private:

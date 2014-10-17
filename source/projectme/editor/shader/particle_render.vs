@@ -18,5 +18,5 @@ void main(void)
 	gl_Position = gl_ModelViewProjectionMatrix * pos;
 	
 	// Color (pass through)
-	gl_FrontColor = gl_Color;
+	gl_FrontColor = gl_Color * tc.x;
 }
