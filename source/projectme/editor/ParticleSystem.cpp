@@ -48,6 +48,7 @@ void ParticleSystem::setup()
 //----------------------------------------------------------------------------
 void ParticleSystem::reseed()
 {
+	killAllParticles();
 	seedParticlePositions();
 	seedParticleVelocities();	
 	//setSyntheticForceField();
@@ -72,14 +73,14 @@ void ParticleSystem::loadForceTexture( const char* filename )
 		return;
 	}
 
-	// Convert Matlab 3D array into 4-channel texture data
+	// Convert Matlab 3D array into 4-channel texture data and flip xy
 	unsigned stride = size[0]*size[1];
 	float* data = new float[ stride * 4 ];
 	for( unsigned p=0; p < stride; p++ )
 	{
-		data[ p*4 + 0 ] = buffer[ p ];        // x
-		data[ p*4 + 1 ] = buffer[ p+stride ]; // y
-		data[ p*4 + 2 ] = 0.0;                // z
+		data[ p*4 + 0 ] = buffer[ p ];        // Fx
+		data[ p*4 + 1 ] = buffer[ p+stride ]; // Fy
+		data[ p*4 + 2 ] = 0.0;                // Fz
 		data[ p*4 + 3 ] = 1.0;                // w
 	}
 
@@ -143,7 +144,7 @@ bool ParticleSystem::initGL()
 
 	//........................................................................
 
-	loadForceTexture("shader/gradient.hraw");
+	loadForceTexture("shader/gradient3.hraw");
 
 	if(	!checkGLError( "ParticleSystem::init() : GL error after loading force texture!" ) )
 		return false;
@@ -166,13 +167,16 @@ bool ParticleSystem::initGL()
 
 	//........................................................................
 
-	// Init FBO textures
+	// Init FBO and seed textures
 	glGenTextures( 2, m_texPos );
 	glGenTextures( 2, m_texVel );	
+	glGenTextures( 1, &m_texBirthPos );
+	glGenTextures( 1, &m_texBirthVel );
 	
 	// Setup FBO textures
-	GLuint tex[4] = { m_texPos[0], m_texPos[1], m_texVel[0], m_texVel[1] };
-	for( int i=0; i < 4; i++ )
+	GLuint tex[6] = { m_texPos[0], m_texPos[1], m_texVel[0], m_texVel[1],
+	                  m_texBirthPos, m_texBirthVel };
+	for( int i=0; i < 6; i++ )
 	{
 		// Allocate
 		glBindTexture( GL_TEXTURE_2D, tex[i] );
@@ -230,6 +234,9 @@ void ParticleSystem::destroyGL()
 	glDeleteFramebuffers( 1, &m_fbo );
 	glDeleteTextures( 2, m_texPos );
 	glDeleteTextures( 2, m_texVel );
+	glDeleteTextures( 1, &m_texForce );
+	glDeleteTextures( 1, &m_texBirthPos );
+	glDeleteTextures( 1, &m_texBirthVel );
 }
 
 //----------------------------------------------------------------------------
@@ -245,12 +252,17 @@ void ParticleSystem::render()
 	m_renderShader->bind();
 	checkGLError("ParticleSystem::render() : After shader bind");
 
+	// Uniforms
+	GLint iPos = m_renderShader->getUniformLocation("iPos");
+	GLint iVel = m_renderShader->getUniformLocation("iVel");
+	glUniform1i( iPos,   0 ); // Texture unit 0 - Position
+	glUniform1i( iVel,   1 ); // Texture unit 1 - Velocity	
+	checkGLError("ParticleSystem::render() : After setting shader uniforms");
+
 	// Bind position and velocity texture
 	GLint bufid = m_curTargetBuf;
-	glActiveTexture( GL_TEXTURE0 + 0 );
-	glBindTexture( GL_TEXTURE_2D, m_texPos[bufid] );
-	glActiveTexture( GL_TEXTURE0 + 1 );
-	glBindTexture( GL_TEXTURE_2D, m_texVel[bufid] );
+	glActiveTexture( GL_TEXTURE0 + 0 );	glBindTexture( GL_TEXTURE_2D, m_texPos[bufid] );
+	glActiveTexture( GL_TEXTURE0 + 1 );	glBindTexture( GL_TEXTURE_2D, m_texVel[bufid] );
 	glActiveTexture( GL_TEXTURE0 + 0 );
 	checkGLError("ParticleSystem::render() : After texture bind");
 
@@ -291,9 +303,13 @@ void ParticleSystem::advectParticles()
 	GLint iPos   = m_advectShader->getUniformLocation("iPos");
 	GLint iVel   = m_advectShader->getUniformLocation("iVel");
 	GLint iForce = m_advectShader->getUniformLocation("iForce");
+	GLint iPos0  = m_advectShader->getUniformLocation("iBirthPos");
+	GLint iVel0  = m_advectShader->getUniformLocation("iBirthVel");
 	glUniform1i( iPos,   0 ); // Texture unit 0 - Position
 	glUniform1i( iVel,   1 ); // Texture unit 1 - Velocity
 	glUniform1i( iForce, 2 ); // Texture unit 2 - Force
+	glUniform1i( iPos0,  3 ); // Texture unit 3 - Birth position (reincarnation)
+	glUniform1i( iVel0,  4 ); // Texture unit 4 - Birth velocity (reincarnation)
 	checkGLError("ParticleSystem::advectParticles() : After setting shader uniforms");
 
 	
@@ -329,12 +345,11 @@ void ParticleSystem::advectParticles()
 
 	// Bind textures
 	unsigned srcBuf = (m_curTargetBuf+1)%2;
-	glActiveTexture( GL_TEXTURE0 + 0 );
-	glBindTexture( GL_TEXTURE_2D, m_texPos[srcBuf] );
-	glActiveTexture( GL_TEXTURE0 + 1 );
-	glBindTexture( GL_TEXTURE_2D, m_texVel[srcBuf] );
-	glActiveTexture( GL_TEXTURE0 + 2 );
-	glBindTexture( GL_TEXTURE_2D, m_texForce );
+	glActiveTexture( GL_TEXTURE0 + 0 );	glBindTexture( GL_TEXTURE_2D, m_texPos[srcBuf] );
+	glActiveTexture( GL_TEXTURE0 + 1 );	glBindTexture( GL_TEXTURE_2D, m_texVel[srcBuf] );
+	glActiveTexture( GL_TEXTURE0 + 2 );	glBindTexture( GL_TEXTURE_2D, m_texForce );
+	glActiveTexture( GL_TEXTURE0 + 3 );	glBindTexture( GL_TEXTURE_2D, m_texBirthPos );
+	glActiveTexture( GL_TEXTURE0 + 4 );	glBindTexture( GL_TEXTURE_2D, m_texBirthVel );
 	glActiveTexture( GL_TEXTURE0 + 0 ); // Reset to active texture unit 0!
 	checkGLError("ParticleSystem::advectParticles() : After texture bind");
 	
@@ -349,13 +364,9 @@ void ParticleSystem::advectParticles()
 	glViewport( 0,0, m_width,m_height );
 
 	glBegin( GL_QUADS );
-	glColor3f( 0,0,0 );
 	glMultiTexCoord2f( GL_TEXTURE0, 0.f, 0.f );	glVertex3i(-1, -1, 0);
-	glColor3f( 1,0,0 );
 	glMultiTexCoord2f( GL_TEXTURE0, 1.f, 0.f );	glVertex3i(1, -1, 0);
-	glColor3f( 1,1,0 );
 	glMultiTexCoord2f( GL_TEXTURE0, 1.f, 1.f );	glVertex3i(1, 1, 0);
-	glColor3f( 0,1,0 );
 	glMultiTexCoord2f( GL_TEXTURE0, 0.f, 1.f );	glVertex3i(-1, 1, 0);
 	glEnd();
 	
@@ -377,6 +388,50 @@ void ParticleSystem::advectParticles()
 
 	glPopAttrib();
 	checkGLError("ParticleSystem::advectParticles() : final glPopAttrib() at the end");
+
+
+	// Unbind textures
+	glActiveTexture( GL_TEXTURE0 + 0 );	glBindTexture( GL_TEXTURE_2D, 0 );
+	glActiveTexture( GL_TEXTURE0 + 1 );	glBindTexture( GL_TEXTURE_2D, 0 );
+	glActiveTexture( GL_TEXTURE0 + 2 );	glBindTexture( GL_TEXTURE_2D, 0 );
+	glActiveTexture( GL_TEXTURE0 + 3 );	glBindTexture( GL_TEXTURE_2D, 0 );
+	glActiveTexture( GL_TEXTURE0 + 4 );	glBindTexture( GL_TEXTURE_2D, 0 );
+	glActiveTexture( GL_TEXTURE0 + 0 ); // Reset to active texture unit 0!
+}
+
+
+//-----------------------------------------------------------------------------
+void ParticleSystem::killAllParticles()
+{
+	// Max. number of particles
+	unsigned N = (unsigned)m_width*m_height;
+
+	// Temporary RGBA buffer
+	float* buf = new float[ N*4 ];
+
+	// Seed random number generator
+	seed();
+
+	float* ptr = &buf[0];
+	for( unsigned i=0; i < N; i++ )
+	{
+		// Random (x,y) position in [-1,1]  (will be ignored for lifetime<=0)
+		*ptr = 2.f*frand()-1.f; ptr++;
+		*ptr = 2.f*frand()-1.f; ptr++;
+		*ptr = 0.f; ptr++;  // z = 0
+		*ptr = -1.f; ptr++;  // w = lifetime
+	}
+
+	// Download to GPU
+	for( int i=0; i < 2; i++ )
+	{
+		glBindTexture( GL_TEXTURE_2D, m_texPos[i] );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, m_width,m_height, 0, 
+					  GL_RGBA, GL_FLOAT, (void*)buf );
+	}
+
+	// Free temporary buffer
+	delete [] buf;
 }
 
 //-----------------------------------------------------------------------------
@@ -397,18 +452,14 @@ void ParticleSystem::seedParticlePositions()
 		// Random (x,y) position in [-1,1]
 		*ptr = 2.f*frand()-1.f; ptr++;
 		*ptr = 2.f*frand()-1.f; ptr++;
-		// z = 0, alpha = 1
-		*ptr = 0.f; ptr++;
-		*ptr = 1.f; ptr++;
+		*ptr = 0.f; ptr++;  // z = 0
+		*ptr = .5f+frand(); ptr++;  // w = lifetime
 	}
 
 	// Download to GPU
-	for( int i=0; i < 2; i++ )
-	{
-		glBindTexture( GL_TEXTURE_2D, m_texPos[i] );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, m_width,m_height, 0, 
-					  GL_RGBA, GL_FLOAT, (void*)buf );
-	}
+	glBindTexture( GL_TEXTURE_2D, m_texBirthPos );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, m_width,m_height, 0, 
+					GL_RGBA, GL_FLOAT, (void*)buf );
 
 	// Free temporary buffer
 	delete [] buf;
@@ -432,7 +483,7 @@ void ParticleSystem::seedParticleVelocities()
 	for( unsigned i=0; i < N; i++ )
 	{
 		float scale = .2f + frand();
-		float theta = frand() * 2.f* M_PI;
+		float theta = frand() * 2.f* (float)M_PI;
 
 		*ptr = scale*cos(theta); ptr++;
 		*ptr = scale*sin(theta); ptr++;		
@@ -442,12 +493,9 @@ void ParticleSystem::seedParticleVelocities()
 #endif
 
 	// Download to GPU
-	for( int i=0; i < 2; i++ )
-	{
-		glBindTexture( GL_TEXTURE_2D, m_texVel[i] );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, m_width,m_height, 0, 
-					  GL_RGBA, GL_FLOAT, (void*)buf );
-	}
+	glBindTexture( GL_TEXTURE_2D, m_texBirthVel );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, m_width,m_height, 0, 
+					GL_RGBA, GL_FLOAT, (void*)buf );
 
 	// Free temporary buffer
 	delete [] buf;

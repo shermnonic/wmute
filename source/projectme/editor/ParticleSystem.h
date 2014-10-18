@@ -35,8 +35,10 @@ public:
 	void render();
 	
 	GLuint getPositions () { return m_texPos[m_curTargetBuf]; }
+	GLuint getPositions2() { return m_texPos[(m_curTargetBuf+1)%2]; }
 	GLuint getVelocities() { return m_texVel[m_curTargetBuf]; }
 	GLuint getForces    () { return m_texForce; }
+	GLuint getBirthPositions() { return m_texBirthPos; }
 
 	void touch()
 	{
@@ -62,6 +64,8 @@ protected:
 	void setSyntheticForceField();
 	///@}
 
+	void killAllParticles();
+
 private:
 	bool m_initialized;
 	
@@ -73,12 +77,13 @@ private:
 	GLuint m_width,  
            m_height;
 
-	GLuint m_texForce;  ///< Force / acceleration texture
-
-	GLuint m_texPos[2], ///< Particle position double-buffer
-	       m_texVel[2]; ///< Particle velocity double-buffer
-	GLuint m_fbo;       ///< Frame buffer object (FBO) for advection
-	GLuint m_vbo;       ///< Vertex buffer object (VBO) for rendering
+	GLuint m_texForce;    ///< Force / acceleration texture
+	GLuint m_texBirthPos, ///< Particle re-incarnation positions
+	       m_texBirthVel; ///< Particle re-incarnation velocities
+	GLuint m_texPos[2],   ///< Particle position double-buffer
+	       m_texVel[2];   ///< Particle velocity double-buffer
+	GLuint m_fbo;         ///< Frame buffer object (FBO) for advection
+	GLuint m_vbo;         ///< Vertex buffer object (VBO) for rendering
 	
 	int m_curTargetBuf;	
 };

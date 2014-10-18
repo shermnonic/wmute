@@ -14,7 +14,7 @@ void main(void)
 	tc /= texSize;
 	
 	// Vertex position
-	vec4 pos = texture2D( iPos, tc );	
+	vec4 pos = vec4( texture2D( iPos, tc ).xyz, 1.0 );	
 	gl_Position = gl_ModelViewProjectionMatrix * pos;
 	
 	// Color (pass through)
