@@ -93,7 +93,7 @@ void ParticleModule::render()
 		glLoadIdentity();
 
 		// Clear
-#if 0
+#if 1
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 #else
 		if( m_update )
@@ -134,8 +134,10 @@ void ParticleModule::render()
 		glActiveTexture( GL_TEXTURE0 );
 
 		draw_debug_tex( 0, m_ps.getPositions() );
-		draw_debug_tex( 1, m_ps.getVelocities() );
-		draw_debug_tex( 2, m_ps.getForces() );
+		draw_debug_tex( 1, m_ps.getPositions2() );
+		draw_debug_tex( 2, m_ps.getVelocities() );
+		draw_debug_tex( 3, m_ps.getForces() );
+		draw_debug_tex( 4, m_ps.getBirthPositions() );
 
 		// Reset viewport
 		glViewport( viewport[0], viewport[1], viewport[2], viewport[3] );
