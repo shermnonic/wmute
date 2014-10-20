@@ -5,7 +5,7 @@ uniform sampler2D iForce;
 uniform sampler2D iBirthPos;
 uniform sampler2D iBirthVel;
 //varying vec2 vTexCoord;
-const float dt = 0.001;
+const float dt = 0.0025;
 
 vec2 getTexCoord()
 {
@@ -17,7 +17,9 @@ vec2 getTexCoord()
 vec4 getForce( vec4 pos )
 {
 	vec2 tc = 0.5*(pos.xy+vec2(1.0,1.0));
-	return texture2D( iForce, tc );
+	vec4 force = texture2D( iForce, tc );
+	
+	return -force;
 }
 
 void main(void)
@@ -49,22 +51,24 @@ void main(void)
 		
 		// Euler step
 		vel.xyz = dt * ( force.xyz*700.0 + rot*0.0 + grav*0.0 );
-		//vel.xyz = force.xyz*0.1; // Alternatively define velocity directly from input
+		//vel.xyz = force.xyz; // Alternatively define velocity directly from input
 		pos.xyz += dt * vel.xyz;
 		
 		// Handle borders
-	  #if 0
+	  #if 1
 		bool borderHit = false;
 		if( pos.x > 1.0 || pos.x < -1.0 ) { vel.x *= -1.0; borderHit=true; }
 		if( pos.y > 1.0 || pos.y < -1.0 ) { vel.y *= -1.0; borderHit=true; }
 		if( pos.z > 1.0 || pos.z < -1.0 ) { vel.z *= -1.0; borderHit=true; }
 		if( borderHit )
-		#if 1 // Reflect
+		{
+		  #if 0 // Reflect
 			pos.xyz += dt * vel.xyz;
-	    #else // Die
+	      #else // Die
 			pos.w = -1.0;
 			pos.xyz = vec3(-2.0,-2.0,0.0);
-		#endif
+		  #endif
+		}
 	  #else // Clamp
 		pos.x = clamp( pos.x, -1.0, 1.0 );
 		pos.y = clamp( pos.y, -1.0, 1.0 );
