@@ -144,7 +144,7 @@ bool ParticleSystem::initGL()
 
 	//........................................................................
 
-	loadForceTexture("shader/gradient3.hraw");
+	loadForceTexture("shader/gradient2.hraw");
 
 	if(	!checkGLError( "ParticleSystem::init() : GL error after loading force texture!" ) )
 		return false;
@@ -449,9 +449,17 @@ void ParticleSystem::seedParticlePositions()
 	float* ptr = &buf[0];
 	for( unsigned i=0; i < N; i++ )
 	{
+	  #if 0
 		// Random (x,y) position in [-1,1]
 		*ptr = 2.f*frand()-1.f; ptr++;
 		*ptr = 2.f*frand()-1.f; ptr++;
+	  #else
+		// Random (x,y) position on a ring
+		float theta = frand()*2.f*(float)M_PI;
+		float r = .8f + frand()*.2f;
+		*ptr = r*sin(theta); ptr++;
+		*ptr = r*cos(theta); ptr++;
+	  #endif
 		*ptr = 0.f; ptr++;  // z = 0
 		*ptr = .5f+frand(); ptr++;  // w = lifetime
 	}
