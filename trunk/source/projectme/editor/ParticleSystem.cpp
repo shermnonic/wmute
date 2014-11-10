@@ -144,7 +144,7 @@ bool ParticleSystem::initGL()
 
 	//........................................................................
 
-	loadForceTexture("shader/gradient2.hraw");
+	loadForceTexture("shader/gradient2b.hraw");
 
 	if(	!checkGLError( "ParticleSystem::init() : GL error after loading force texture!" ) )
 		return false;

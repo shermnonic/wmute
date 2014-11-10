@@ -5,7 +5,7 @@ uniform sampler2D iForce;
 uniform sampler2D iBirthPos;
 uniform sampler2D iBirthVel;
 //varying vec2 vTexCoord;
-const float dt = 0.0025;
+const float dt = 0.0055;
 
 vec2 getTexCoord()
 {
