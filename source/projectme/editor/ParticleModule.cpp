@@ -6,6 +6,12 @@ using std::endl;
 using GL::checkGLError;
 
 //----------------------------------------------------------------------------
+//  Factory registration
+//----------------------------------------------------------------------------
+#include "ModuleFactory.h"
+MODULEFACTORY_REGISTER( ParticleModule, "ParticleModule" )
+
+//----------------------------------------------------------------------------
 ParticleModule::ParticleModule()
 : ModuleRenderer( "ParticleModule" ),
   m_initialized( false ),

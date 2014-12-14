@@ -6,6 +6,7 @@
 #include "ParticleModule.h"
 #include "RenderSetWidget.h"
 #include "ModuleManagerWidget.h"
+#include "ModuleFactory.h"
 #include "ProjectMe.h"
 
 #include <QtGui> // FIXME: Include only required Qt classes
@@ -56,14 +57,14 @@ void SharedGLContextWidget::initializeGL()
 		if( glew_err != GLEW_OK )
 		{
 			cerr << "GLEW Error:\n" << glewGetErrorString(glew_err) << endl;
-			QMessageBox::warning( this, tr("Error"),
+			QMessageBox::warning( this, tr("%1 Error").arg(APP_NAME),
 				tr("Could not setup GLEW OpenGL extension manager!\n") );
 		}
 		cout << "Using GLEW " << glewGetString( GLEW_VERSION ) << endl;
 		if( !glewIsSupported("GL_VERSION_1_3") )
 		{
 			cerr << "GLEW Error:\n" << glewGetErrorString(glew_err) << endl;
-			QMessageBox::warning( this, tr("sdmvis: Warning"),
+			QMessageBox::warning( this, tr("%1 Warning").arg(APP_NAME),
 				tr("OpenGL 1.3 not supported by current graphics hardware/driver!") );
 		}
 
@@ -114,12 +115,12 @@ MainWindow::~MainWindow()
 void MainWindow::createRenderSet()
 {
 	// Create hard-coded setup of 3 render areas with 3 ShaderModules
-#if 0
+#if 1
+    m_moduleManager.addModule( new ShaderModule );
+    m_moduleManager.addModule( new ShaderModule );
     m_moduleManager.addModule( new ShaderModule );
 #else
 	m_moduleManager.addModule( new ParticleModule );
-	//m_moduleManager.addModule( new ParticleModule );
-	//m_moduleManager.addModule( new ParticleModule );
 #endif
 	RenderSet* set = m_renderSetManager.getActiveRenderSet();
     unsigned n = (unsigned)m_moduleManager.modules().size();
@@ -137,9 +138,42 @@ void MainWindow::createRenderSet()
 	// Update UI
 	m_sharedGLWidget->setModuleManager( &m_moduleManager );
 	m_moduleWidget  ->setModuleManager( &m_moduleManager );
+}
 
-	// FIXME: Load shader works only on a single ShaderModule
-	m_shaderModule = dynamic_cast<ShaderModule*>( m_moduleManager.modules()[0] );
+void MainWindow::createModule( int typeId )
+{
+	static ModuleFactory::ModuleTypeList availableModules = 
+		ModuleFactory::ref().getAvailableModules();
+
+	// Sanity 
+	if( typeId < 0 || typeId >= availableModules.size() )
+	{
+		QMessageBox::warning( this, tr("%1 Warning").arg(APP_NAME),
+			tr("Unknown module type!") );
+		return;
+	}
+
+	// Create new module
+	ModuleBase* m = ModuleFactory::ref().createInstance( availableModules[typeId] );
+	if( !m )
+	{
+		QMessageBox::warning( this, tr("%1 Warning").arg(APP_NAME),
+			tr("Could not create %1!").arg(QString::fromStdString(availableModules[typeId])) );
+		return;
+	}
+
+	// So far we only support ModuleRenderer types
+	if( !dynamic_cast<ModuleRenderer*>( m ) )
+	{
+		QMessageBox::warning( this, tr("%1 Warning").arg(APP_NAME),
+			tr("Not a renderer module!") );
+		return;
+	}
+
+	// Add to module manager	
+	m_moduleManager.addModule( dynamic_cast<ModuleRenderer*>(m) );
+
+	m_moduleWidget->updateModuleTable();
 }
 
 void MainWindow::createUI()
@@ -225,6 +259,25 @@ void MainWindow::createUI()
 	menuModules = menuBar()->addMenu( tr("&Modules") );
 	menuModules->addAction( actLoadShader );
 	menuModules->addAction( actReloadShader );
+	menuModules->addSeparator();
+	
+	// "New module" menu entries + connection to signal mapper
+	QSignalMapper* newModuleMapper = new QSignalMapper(this);
+	ModuleFactory::ModuleTypeList availableModules = 
+		ModuleFactory::ref().getAvailableModules();
+	for( int i=0; i < availableModules.size(); i++ )
+	{	
+		// Action
+		QAction* act = new QAction(
+			tr("New %1").arg(
+				QString::fromStdString(availableModules[i])),
+			this );
+		// Menu entry
+		menuModules->addAction( act );
+		// Connection to signal mapper
+		connect( act, SIGNAL(triggered()), newModuleMapper, SLOT(map()) );
+		newModuleMapper->setMapping( act, i );
+	}
 
 	// --- connections ---
 
@@ -237,6 +290,8 @@ void MainWindow::createUI()
 
 	connect( actLoadShader, SIGNAL(triggered()), this, SLOT(loadShader()) );
 	connect( actReloadShader, SIGNAL(triggered()), this, SLOT(reloadShader()) );
+
+	connect( newModuleMapper, SIGNAL(mapped(int)), this, SLOT(createModule(int)) );
 }
 
 void MainWindow::closeEvent( QCloseEvent* event )
@@ -385,7 +440,6 @@ void MainWindow::loadShader()
 
 void MainWindow::reloadShader()
 {
-#if 1
 	// Get module index
 	int idx = m_moduleWidget->getActiveModuleIndex();
 	if( idx < 0 ) 
@@ -399,27 +453,21 @@ void MainWindow::reloadShader()
 		return;
 	}
 
-	// "Touch" module
-	m_sharedGLWidget->makeCurrent();
-	m_moduleManager.modules().at( idx )->touch();
-
-#else
 	// Manually reload shader from disk (only for a ShaderModule!)
-	if( m_shaderFilename.isEmpty() )
-		return;
-
 	ShaderModule* sm = dynamic_cast<ShaderModule*>(	m_moduleManager.modules().at( idx ) );
-	if( !sm )
+	if( sm )
 	{
-		QMessageBox::warning( this, tr("Warning"), tr("Selected module is not a shader module!") );
-		return;
-	}
+		if( m_shaderFilename.isEmpty() )
+			return;
 
-	m_sharedGLWidget->makeCurrent();
-	if( !sm->loadShader( m_shaderFilename.toStdString().c_str() ) )
-		QMessageBox::warning( this, tr("Error"), tr("Failed to load and/or compile shader!") );
-#endif
-	// Was:
-	//if( !m_shaderModule->loadShader( m_shaderFilename.toStdString().c_str() ) )
-	//	QMessageBox::warning( this, tr("Error"), tr("Failed to load and/or compile shader!") );
+		m_sharedGLWidget->makeCurrent();
+		if( !sm->loadShader( m_shaderFilename.toStdString().c_str() ) )
+			QMessageBox::warning( this, tr("Error"), tr("Failed to load and/or compile shader!") );
+	}
+	else
+	{
+		// Just "touch" the module
+		m_sharedGLWidget->makeCurrent();
+		m_moduleManager.modules().at( idx )->touch();
+	}
 }
