@@ -248,6 +248,13 @@ public:
 	void deserialize( Serializable::PropertyTree& pt );
 	///@}
 
+	///@{name Access
+	const RenderAreaCollection& areas() const { return m_areas; }
+	RenderAreaCollection& areas() { return m_areas; }
+	const RenderAreaModuleMapper& mapper() const { return m_mapper; }
+	RenderAreaModuleMapper& mapper() { return m_mapper; }
+	///@}
+
 protected:
 	void beginRendering() const;
 	void endRendering()   const;

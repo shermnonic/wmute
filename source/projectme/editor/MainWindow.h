@@ -16,6 +16,7 @@ class QTimer;
 
 class RenderSetWidget;
 class ModuleManagerWidget;
+class MapperWidget;
 class ShaderModule;
 
 /** @addtogroup editor_grp Editor
@@ -104,6 +105,7 @@ private:
 	QList<RenderSetWidget*> m_screens;
 
 	ModuleManagerWidget* m_moduleWidget;
+	MapperWidget*        m_mapperWidget;
 };
 
 /** @} */ // end group

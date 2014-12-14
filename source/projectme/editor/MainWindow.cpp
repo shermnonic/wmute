@@ -6,6 +6,7 @@
 #include "ParticleModule.h"
 #include "RenderSetWidget.h"
 #include "ModuleManagerWidget.h"
+#include "MapperWidget.h"
 #include "ModuleFactory.h"
 #include "ProjectMe.h"
 
@@ -138,6 +139,7 @@ void MainWindow::createRenderSet()
 	// Update UI
 	m_sharedGLWidget->setModuleManager( &m_moduleManager );
 	m_moduleWidget  ->setModuleManager( &m_moduleManager );
+	m_mapperWidget  ->setRenderSet( set );
 }
 
 void MainWindow::createModule( int typeId )
@@ -196,11 +198,18 @@ void MainWindow::createUI()
 	m_moduleWidget = new ModuleManagerWidget();
 	m_moduleWidget->setWindowTitle(tr("Module Manager"));
 
+	m_mapperWidget = new MapperWidget();
+	m_mapperWidget->setWindowTitle(tr("Area Mapper"));
+
 	// --- dock widgets ---
 
 	QDockWidget* dock = new QDockWidget(tr("Module Manager"),this);
 	dock->setWidget( m_moduleWidget );
-	addDockWidget( Qt::RightDockWidgetArea, dock );	
+	addDockWidget( Qt::RightDockWidgetArea, dock );
+
+	QDockWidget* dock2 = new QDockWidget(tr("Area Mapper"),this);
+	dock2->setWidget( m_mapperWidget );
+	addDockWidget( Qt::RightDockWidgetArea, dock2 );
 	
 	// --- actions ---
 
@@ -208,7 +217,6 @@ void MainWindow::createUI()
 		*actOpen,
 		*actSave,
 		*actQuit,
-		*actShowModuleManager,
 		*actNewPreview,
 		*actNewScreen,
 		*actLoadShader,
@@ -223,8 +231,6 @@ void MainWindow::createUI()
 	actQuit = new QAction( tr("&Quit"), this );
 	actQuit->setStatusTip( tr("Quit application.") );
 	actQuit->setShortcut( tr("Ctrl+Q") );
-
-	actShowModuleManager = new QAction( tr("Show module manager"), this );
 
 	actNewPreview = new QAction( tr("New preview"), this );
 	actNewScreen  = new QAction( tr("New screen"), this );
@@ -248,6 +254,7 @@ void MainWindow::createUI()
 
 	menuWindows = menuBar()->addMenu( tr("&Windows") );
 	menuWindows->addAction( dock->toggleViewAction() );
+	menuWindows->addAction( dock2->toggleViewAction() );
 	menuWindows->addSeparator();
 	menuWindows->addAction( actNewPreview );
 	menuWindows->addAction( actNewScreen );
@@ -425,6 +432,8 @@ void MainWindow::updateViewMenu()
 		a->setText( tr("Toggle fullscreen for screen #%1").arg(i+1) );
 		m_menuView->addAction( a );
 	}
+
+	m_mapperWidget->updateTable();
 }
 
 void MainWindow::loadShader()

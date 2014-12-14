@@ -20,6 +20,7 @@ set( projectme_MOC_HDRS
 	MainWindow.h
 	RenderSetWidget.h
 	ModuleManagerWidget.h
+	MapperWidget.h
 )
 
 # generate rules for building source files from the Qt resources
@@ -52,6 +53,8 @@ set( gui_SRCS
 	RenderSetWidget.cpp
 	ModuleManagerWidget.h
 	ModuleManagerWidget.cpp
+	MapperWidget.h
+	MapperWidget.cpp
 )
 source_group("gui" FILES ${gui_SRCS})
 
