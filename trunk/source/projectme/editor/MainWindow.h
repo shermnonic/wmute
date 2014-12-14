@@ -74,6 +74,8 @@ private slots:
 	void loadShader();
 	void reloadShader();
 
+	void createModule( int typeId );
+
 protected:
 	void createUI();
 	void createRenderSet();
@@ -94,7 +96,6 @@ private:
 	RenderSetManager m_renderSetManager;
 	ModuleManager    m_moduleManager;
 
-	ShaderModule    *m_shaderModule;
 	QString          m_shaderFilename;
 	
 	QMenu* m_menuView;

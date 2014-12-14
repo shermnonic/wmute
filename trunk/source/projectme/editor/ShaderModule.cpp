@@ -7,6 +7,12 @@ using std::endl;
 using GL::checkGLError;
 
 //----------------------------------------------------------------------------
+//  Factory registration
+//----------------------------------------------------------------------------
+#include "ModuleFactory.h"
+MODULEFACTORY_REGISTER( ShaderModule, "ShaderModule" )
+
+//----------------------------------------------------------------------------
 // Default GLSL 120 / GLSL ES 2.0 shader 
 //----------------------------------------------------------------------------
 const std::string defaultUniforms =

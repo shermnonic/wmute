@@ -51,6 +51,32 @@ private:
 };
 
 //=============================================================================
+//  ModuleBase
+//=============================================================================
+/**
+	\class ModuleBase
+
+	- Abstract base class for modules, mainly provides type name.
+*/
+class ModuleBase : public Serializable
+{
+public:
+	ModuleBase( std::string typeName )
+		: m_moduleTypeName( typeName )
+	{}
+
+	/// Return type of module as string
+	std::string getModuleType() const { return m_moduleTypeName; }
+
+	/// Function of touch depends on particular module type
+	virtual void touch() {}
+
+protected:
+	std::string m_moduleTypeName;
+};
+
+
+//=============================================================================
 //  ModuleRenderer
 //=============================================================================
 /**
@@ -58,11 +84,11 @@ private:
 
 	- OpenGL effect which renders into a texture.
 */
-class ModuleRenderer : public Serializable
+class ModuleRenderer : public ModuleBase
 {
 public:
 	ModuleRenderer( std::string typeName )
-		: m_moduleTypeName( typeName )
+		: ModuleBase( typeName )
 	{}
 
 	/// Render the effect into a texture
@@ -71,14 +97,6 @@ public:
 	virtual int  target() const = 0;
 	/// Release any OpenGL resources (assume a valid GL context)
 	virtual void destroy() = 0;
-
-	/// Return type of module as string
-	std::string getModuleType() const { return m_moduleTypeName; }
-
-	virtual void touch() {}
-
-private:
-	std::string m_moduleTypeName;
 };
 
 //=============================================================================

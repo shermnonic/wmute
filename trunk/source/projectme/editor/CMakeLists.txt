@@ -56,6 +56,8 @@ set( gui_SRCS
 source_group("gui" FILES ${gui_SRCS})
 
 set( engine_SRCS
+	ModuleFactory.h
+	ModuleFactory.cpp
 	RenderSet.h
 	RenderSet.cpp
 	ShaderModule.h
