@@ -13,7 +13,7 @@ varying vec3 vViewPos;
 varying vec3 vLightPos;
 
 varying float vScalar;
-flat varying float vScalarFlat;
+/*flat*/ varying float vScalarFlat;
 varying float vSelection;
 
 void main(void)

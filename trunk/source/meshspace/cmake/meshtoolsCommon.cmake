@@ -19,7 +19,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})
 #---- Output paths ------------------------------------------------------------
 
 set(MESHTOOLS_OUTPUT_PATH "${CMAKE_CURRENT_LIST_DIR}/.."
-	CACHE PATH "Wintermute base path for bin and lib outputs.")
+	CACHE PATH "Meshtools base path for bin and lib outputs.")
 
 # Set default output paths
 set(EXECUTABLE_OUTPUT_PATH    ${MESHTOOLS_OUTPUT_PATH}/bin)

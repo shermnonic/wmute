@@ -973,7 +973,7 @@ void SceneViewer::computeEigenmodes()
 	ml.compute( *mesh );
 
 	std::vector<float> eigenmode;	
-	ml.getMode( 0, eigenmode );
+	ml.getMode( 1, eigenmode );
 
 	mo->setScalars( eigenmode );
 
