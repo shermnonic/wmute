@@ -7,6 +7,7 @@
 class QStandardItemModel;
 class QTableView;
 class QItemSelection;
+class QStandardItem;
 // Custom forwards
 class ModuleManager;
 
@@ -18,6 +19,9 @@ class ModuleManager;
 class ModuleManagerWidget : public QWidget
 {
 Q_OBJECT
+
+signals:
+	void moduleNameChanged( int idx );
 	
 public:
 	ModuleManagerWidget( QWidget* parent=0 );
@@ -31,7 +35,8 @@ public slots:
 	void updateModuleTable();
 
 protected slots:
-	void selectionChanged(const QItemSelection&,const QItemSelection&);
+	void onSelectionChanged(const QItemSelection&,const QItemSelection&);
+	void onItemChanged( QStandardItem* );
 
 private:
 	ModuleManager*         m_master;

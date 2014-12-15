@@ -140,6 +140,7 @@ void MainWindow::createRenderSet()
 	m_sharedGLWidget->setModuleManager( &m_moduleManager );
 	m_moduleWidget  ->setModuleManager( &m_moduleManager );
 	m_mapperWidget  ->setRenderSet( set );
+	m_mapperWidget  ->setModuleManager( &m_moduleManager );
 }
 
 void MainWindow::createModule( int typeId )
@@ -175,7 +176,13 @@ void MainWindow::createModule( int typeId )
 	// Add to module manager	
 	m_moduleManager.addModule( dynamic_cast<ModuleRenderer*>(m) );
 
+	updateTables();
+}
+
+void MainWindow::updateTables()
+{
 	m_moduleWidget->updateModuleTable();
+	m_mapperWidget->updateTable();
 }
 
 void MainWindow::createUI()
@@ -299,6 +306,8 @@ void MainWindow::createUI()
 	connect( actReloadShader, SIGNAL(triggered()), this, SLOT(reloadShader()) );
 
 	connect( newModuleMapper, SIGNAL(mapped(int)), this, SLOT(createModule(int)) );
+
+	connect( m_moduleWidget, SIGNAL(moduleNameChanged(int)), m_mapperWidget, SLOT(updateTable()) );
 }
 
 void MainWindow::closeEvent( QCloseEvent* event )

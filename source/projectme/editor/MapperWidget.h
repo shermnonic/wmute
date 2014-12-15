@@ -7,8 +7,11 @@
 class QStandardItemModel;
 class QTableView;
 class QItemSelection;
+class QStandardItem;
 // Custom forwards
+class ComboBoxDelegate;
 class RenderSet;
+class ModuleManager;
 
 /**
 	\class MapperWidget
@@ -18,6 +21,9 @@ class RenderSet;
 class MapperWidget : public QWidget
 {
 Q_OBJECT
+
+signals:
+	void areaNameChanged( int idx );
 	
 public:
 	MapperWidget( QWidget* parent=0 );
@@ -25,18 +31,23 @@ public:
 	void setRenderSet( RenderSet* rs );
 	RenderSet* getRenderSet() { return m_renderSet; }
 
+	void setModuleManager( ModuleManager* mm );
+
 	int getActiveIndex() { return m_activeRow; }
 	
 public slots:
 	void updateTable();
 
 protected slots:
-	void selectionChanged(const QItemSelection&,const QItemSelection&);
+	void onSelectionChanged( const QItemSelection&,const QItemSelection& );
+	void onItemChanged( QStandardItem* item );
 
 private:
 	RenderSet*             m_renderSet;
+	ModuleManager*         m_moduleManager;
 	QStandardItemModel*    m_model;
 	QTableView*            m_tableView;
+	ComboBoxDelegate*      m_delegate;
 	int m_activeRow;
 };
 

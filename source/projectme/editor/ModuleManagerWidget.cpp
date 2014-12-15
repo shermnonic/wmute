@@ -34,7 +34,8 @@ ModuleManagerWidget::ModuleManagerWidget( QWidget* parent )
 void ModuleManagerWidget::setModuleManager( ModuleManager* mm )
 {
 	// Disconnect
-	disconnect( m_tableView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&,const QItemSelection&)), this, SLOT(selectionChanged(const QItemSelection&,const QItemSelection&)) );
+	disconnect( m_tableView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&,const QItemSelection&)), this, SLOT(onSelectionChanged(const QItemSelection&,const QItemSelection&)) );
+	disconnect( m_model, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(onItemChanged(QStandardItem*)) );
 	
 	// Update
 	m_activeRow = -1; // Reset active module
@@ -44,7 +45,40 @@ void ModuleManagerWidget::setModuleManager( ModuleManager* mm )
 	// Re-connect
 	if( m_master )
 	{
-		connect( m_tableView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&,const QItemSelection&)), this, SLOT(selectionChanged(const QItemSelection&,const QItemSelection&)) );
+		connect( m_tableView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&,const QItemSelection&)), this, SLOT(onSelectionChanged(const QItemSelection&,const QItemSelection&)) );
+		connect( m_model, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(onItemChanged(QStandardItem*)) );
+	}
+}
+
+//----------------------------------------------------------------------------
+void ModuleManagerWidget::onItemChanged( QStandardItem* item )
+{
+	// Debug
+	QModelIndex mi = m_model->indexFromItem( item );
+	qDebug() << "ModuleManagerWidget::onItemChanged() : " 
+		<< "(" << mi.row() << "," << mi.column() << ") "
+		<< item->text();
+
+	// Changes can only be applied if master is connected
+	if( !m_master )
+		return;	
+
+	// Changed name in column 1
+	if( mi.column() == 1 )
+	{
+		int idx = mi.row(); // Rows and indices match 1-1
+		if( idx >= 0 && idx < m_master->modules().size() )
+		{
+			m_master->modules().at(idx)->setName( item->text().toStdString() );
+			
+			// Emit signal
+			emit moduleNameChanged( idx );
+		}
+		else
+		{
+			qDebug() << "ModuleManagerWidget::onItemChanged() : "
+				<< "Unexpected module index " << idx << "!";
+		}
 	}
 }
 
@@ -88,7 +122,7 @@ void ModuleManagerWidget::updateModuleTable()
 }
 
 //----------------------------------------------------------------------------
-void ModuleManagerWidget::selectionChanged( const QItemSelection& selected, const QItemSelection& deselected )
+void ModuleManagerWidget::onSelectionChanged( const QItemSelection& selected, const QItemSelection& deselected )
 {
 	if( !m_master || selected.isEmpty() || selected.first().indexes().isEmpty() )
 		return;
