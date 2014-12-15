@@ -4,16 +4,56 @@
 
 //-----------------------------------------------------------------------------
 /// Compute cotangent of non-degenerate triangle abc at vertex b w/o trigonometry.
-/// E.g. see Meyer et al. 2002, "Generalized Barycentric Coordinates on Irregular
-/// Polygons", http://www.geometry.caltech.edu/pubs/MHBD02.pdf
 double cotangent( const MeshLaplacian::Mesh::Point& a, const MeshLaplacian::Mesh::Point& b, const MeshLaplacian::Mesh::Point& c )
 {
 	MeshLaplacian::Mesh::Point 
 	  ba = a - b,
 	  bc = c - b;
-
-	// Divide scalar by cross product
+#if 1
+	// Meyer et al. 2002, "Discrete Differential-Geometry Operators for 
+	// Triangulated 2-Manifolds", Sec.7.1
+	// http://www.multires.caltech.edu/pubs/diffGeoOps.pdf
+	double sp = (bc | ba);
+	return sp / sqrt(bc.sqrnorm()*ba.sqrnorm() - sp*sp);
+#else
+	// Meyer et al. 2002, "Generalized Barycentric Coordinates on Irregular
+	// Polygons", http://www.geometry.caltech.edu/pubs/MHBD02.pdf
 	return (bc | ba) / (bc % ba).length();
+#endif
+}
+
+//-----------------------------------------------------------------------------
+template<typename VALUE_INDEX_PAIR>
+bool indexedValuePairComparator( const VALUE_INDEX_PAIR& lhs, const VALUE_INDEX_PAIR& rhs )
+{
+	// Sort descending
+	//return lhs.first > rhs.first;
+	//*absolute* value
+	return fabs(lhs.first) < fabs(rhs.first);
+}
+
+template<typename Derived, typename DerivedVector>
+void sortEigenvalues( Derived& eigenvectors, DerivedVector& eigenvalues )
+{
+	int n = (int)eigenvalues.size();
+
+	// Duplicate eigenvalues in (value,index) pair structure and sort it
+	typedef std::pair<DerivedVector::Scalar, int> Pair;
+	
+	std::vector<Pair> pairs( n );
+	for( int i=0; i < n; i++ )
+		pairs[i] = Pair( eigenvalues(i), i );
+
+	std::sort( pairs.begin(), pairs.end(), indexedValuePairComparator<Pair> );
+
+	// Setup a permutation matrix
+	Eigen::PermutationMatrix<Eigen::Dynamic,Eigen::Dynamic> perm( n );
+	for( int i=0; i < n; i++ )
+		perm.indices()[i] = pairs[i].second;
+
+	// Apply permutation to eigenvectors matrix and eigenvalues vector
+	eigenvectors = eigenvectors * perm;
+	eigenvalues  = perm * eigenvalues;
 }
 
 //-----------------------------------------------------------------------------
@@ -98,16 +138,35 @@ void MeshLaplacian::solveDense( const Mesh& mesh )
 	Matrix W = Matrix::Zero(n,n);
 	for( TripletArray::iterator it=weights.begin(); it!=weights.end(); ++it )
 		W( it->row(), it->col() ) = it->value();
-	
+
+	// Symmetrize (just to be sure!)
+	//W = .5 * (W.transpose() + W);
+
+#if 1
+	Eigen::SelfAdjointEigenSolver<Matrix> solver;
+	solver.compute( W, Eigen::ComputeEigenvectors );
+#else
 	// 2.Solve generalized eigenvalue problem
 	//    WE = DES  with eigenvectors E and ~values in diagonal matrix S
 	//
 	Eigen::GeneralizedSelfAdjointEigenSolver<Matrix> solver;
 	solver.compute( W, D.asDiagonal(), Eigen::ComputeEigenvectors | Eigen::Ax_lBx );
+#endif
+
+	// Sanity
+	if( solver.info() != Eigen::Success )
+	{
+		std::cerr << "MeshLaplacian::solveDense() : "
+			<< "Eigen::GeneralizedSelfAdjointEigenSolver not succesfully!" 
+			<< std::endl;
+	}
 	
 	// Store decomposition
 	m_eigenvectors = solver.eigenvectors();
 	m_eigenvalues  = solver.eigenvalues();
+
+	// Sort eigenvalues descending
+	sortEigenvalues( m_eigenvectors, m_eigenvalues );
 }
 
 //-----------------------------------------------------------------------------
@@ -153,14 +212,19 @@ void MeshLaplacian::buildSystem( const Mesh& mesh, TripletArray& W, Vector& D )
 				  ha = mesh.to_vertex_handle( mesh.next_halfedge_handle( he ) );
 		
 				// Cotangent weight
-				double cot = cotangent( 
-					mesh.point(hj), mesh.point(ha), mesh.point(hi) );
+				double cot;
+				if( k==0 )
+					cot = cotangent( mesh.point(hj), mesh.point(ha), mesh.point(hi) );
+				else
+					// Consider orientation (is that really required?)
+					cot = cotangent( mesh.point(hi), mesh.point(ha), mesh.point(hj) );					
 
 				// Record into weight matrix (duplicate index entries will
 				// be summed resulting in the end in 
 				//     w_ij = (cot(alpha) + cot(beta)) / 2.
-				double w_ij = .5 * cot;
+				double w_ij = -.5 * cot;
 				W.push_back( Triplet( hi.idx(), hj.idx(), w_ij ) );
+				W.push_back( Triplet( hj.idx(), hi.idx(), w_ij ) ); // Symmetry
 
 				// Compute row sum for diagonal entries
 				w_ii( hi.idx() ) += w_ij;
@@ -206,8 +270,8 @@ void MeshLaplacian::buildSystem( const Mesh& mesh, TripletArray& W, Vector& D )
 	}
 	
 	// Compute w_ii, i.e. negative row sum so far (very inefficient in dense case!)
-	for( int i=0; i < W.size(); i++ )
-		W.push_back( Triplet( i,i, w_ii(i) ) );
+	for( int i=0; i < n; i++ )
+		W.push_back( Triplet( i,i, -w_ii(i) ) );
 	
 	/* Dense equivalent
 	for( int row=0; row < W.rows(); row++ )
@@ -245,10 +309,10 @@ void MeshLaplacian::buildSystem( const Mesh& mesh, TripletArray& W, Vector& D )
 		for( int i=0; i < legs.size(); i++ )
 		{
 			// Cross product is denoted as '%'
-			area += (legs[i] % legs[i==m?0:(i+1)]).length();			
+			area += .5 * (legs[i] % (-legs[i==m?0:(i+1)])).length();			
 		}
 		
 		// Record into D matrix
-		D( v_it->idx() ) = area / 3.0;
+		D( v_it->idx() ) = area; // / 6.0;
 	}
 }

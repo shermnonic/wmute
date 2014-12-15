@@ -14,7 +14,7 @@ varying vec3 vViewPos;
 varying vec3 vLightPos;
 
 varying float vScalar;
-flat varying float vScalarFlat;
+/*flat*/ varying float vScalarFlat;
 varying float vSelection;
 
 // Classical Phong shading
@@ -83,7 +83,7 @@ void main(void)
 	
 	// Apply transfer function to scalar value
 	if( mapScalars )
-	#if 0
+	#if 1
 	{
 		diffuse.rgb = texture1D( lookup, scalarScale*(vScalarFlat+scalarShift) ).rgb;
 	}
