@@ -71,6 +71,8 @@ private slots:
 	void newPreview();
 	void newScreen();
 	void updateViewMenu();
+
+	void updateTables();
 	
 	void loadShader();
 	void reloadShader();

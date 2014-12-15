@@ -21,6 +21,7 @@ set( projectme_MOC_HDRS
 	RenderSetWidget.h
 	ModuleManagerWidget.h
 	MapperWidget.h
+	ComboBoxDelegate.h	
 )
 
 # generate rules for building source files from the Qt resources
@@ -55,6 +56,8 @@ set( gui_SRCS
 	ModuleManagerWidget.cpp
 	MapperWidget.h
 	MapperWidget.cpp
+	ComboBoxDelegate.h
+	ComboBoxDelegate.cpp
 )
 source_group("gui" FILES ${gui_SRCS})
 
