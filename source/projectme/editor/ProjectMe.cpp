@@ -19,7 +19,7 @@ Serializable::PropertyTree& ProjectMe::serialize() const
 		cache.put("ProjectMe.NumModules",modules.size());
 		for( int i=0; i < modules.size(); i++ )
 		{
-			if( modules.at(i) )				
+			if( modules.at(i) )
 				cache.add_child("ProjectMe.Modules.Module",modules.at(i)->serialize());
 			else
 				cerr << "ProjectMe::serialize() : Encountered void module pointer!" << endl;
@@ -46,19 +46,22 @@ void ProjectMe::deserialize( Serializable::PropertyTree& pt )
 	// Deserialize modules
 	if( m_moduleManager )
 	{
-		// TODO: Module loading not supported yet! This makes sense as soon as 
-		//       we have some kind of module factory / plugin system!		
 		int nModules = pt.get("ProjectMe.NumModules",-1);
-		
-		// HACK: Assume that module manager has already the correct module types
-		//       loaded (e.g. for a hard coded RenderSet as used during development).
-		int count=0;
+
+		m_moduleManager->clear();
 		ModuleManager::ModuleArray& modules = m_moduleManager->modules();
+		
+		int count=0;
 		BOOST_FOREACH( PropertyTree::value_type& v, pt.get_child("ProjectMe.Modules") )
 		{
 			if( v.first.compare("Module")==0 && count < modules.size() )
 			{
-				modules.at(count)->deserialize( v.second );
+				// Create module instance of specific type
+				ModuleBase mb("Foo");
+				mb.deserialize( v.second );
+				std::cout << "Module #" << count << " type = " << mb.getModuleType() << std::endl;
+
+				//modules.at(count)->deserialize( v.second );
 				count++;
 			}		
 		}

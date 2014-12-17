@@ -78,6 +78,7 @@ private slots:
 	void reloadShader();
 
 	void createModule( int typeId );
+	void newArea();
 
 protected:
 	void createUI();

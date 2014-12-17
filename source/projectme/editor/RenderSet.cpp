@@ -28,6 +28,26 @@ bool Serializable::deserializeFromDisk( std::string filename )
 }
 
 //=============================================================================
+//  ModuleBase
+//=============================================================================
+
+//-----------------------------------------------------------------------------
+Serializable::PropertyTree& ModuleBase::serialize() const
+{
+	static Serializable::PropertyTree cache;
+	cache.clear();
+	cache.put("ModuleBase.Type",m_moduleTypeName);
+	return cache;
+}
+
+//-----------------------------------------------------------------------------
+void ModuleBase::deserialize( Serializable::PropertyTree& pt )
+{
+	m_moduleTypeName = pt.get("ModuleBase.Type",std::string("<Unknown type>"));
+}
+
+
+//=============================================================================
 //  RenderArea
 //=============================================================================
 

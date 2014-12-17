@@ -71,6 +71,11 @@ public:
 	/// Function of touch depends on particular module type
 	virtual void touch() {}
 
+	///@{ Standard serialization of module type name (must be called explicitly by subclasses!)
+	virtual PropertyTree& serialize() const;
+	virtual void deserialize( PropertyTree& pt );
+	///@}
+
 protected:
 	std::string m_moduleTypeName;
 };
@@ -296,6 +301,14 @@ public:
 		if( m_active >= 0 && m_active < m_set.size() )
 			return &m_set.at(m_active);
 		return 0; 
+	}
+
+	void clear()
+	{
+		std::vector<RenderSet>::iterator it = m_set.begin();
+		for( ; it != m_set.end(); ++it )
+			it->clear();
+		m_set.clear();
 	}
 
 private:
