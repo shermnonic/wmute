@@ -179,6 +179,12 @@ void MainWindow::createModule( int typeId )
 	updateTables();
 }
 
+void MainWindow::newArea()
+{
+	m_renderSetManager.getActiveRenderSet()->addArea( RenderArea() );	
+	m_mapperWidget->updateTable(); // was: updateTables()
+}
+
 void MainWindow::updateTables()
 {
 	m_moduleWidget->updateModuleTable();
@@ -227,7 +233,8 @@ void MainWindow::createUI()
 		*actNewPreview,
 		*actNewScreen,
 		*actLoadShader,
-		*actReloadShader;
+		*actReloadShader,
+		*actNewArea;
 	
 	actOpen = new QAction( tr("&Open project..."), this );
 	actOpen->setShortcut( tr("Ctrl+O") );
@@ -246,12 +253,15 @@ void MainWindow::createUI()
 	actReloadShader = new QAction( tr("&Reload shader"), this );
 	actReloadShader->setShortcut( tr("Ctrl+R") );
 
+	actNewArea  = new QAction( tr("New area"), this );
+
 	// --- build menu ---
 
 	QMenu
 		*menuFile,
 		*menuWindows,
-		*menuModules;
+		*menuModules,
+		*menuAreas;
 
 	menuFile = menuBar()->addMenu( tr("&File") );
 	menuFile->addAction( actOpen );
@@ -293,6 +303,10 @@ void MainWindow::createUI()
 		newModuleMapper->setMapping( act, i );
 	}
 
+	menuAreas = menuBar()->addMenu( tr("Areas") );
+	menuAreas->addAction( actNewArea );
+
+
 	// --- connections ---
 
 	connect( actOpen, SIGNAL(triggered()), this, SLOT(open() ) );
@@ -308,6 +322,8 @@ void MainWindow::createUI()
 	connect( newModuleMapper, SIGNAL(mapped(int)), this, SLOT(createModule(int)) );
 
 	connect( m_moduleWidget, SIGNAL(moduleNameChanged(int)), m_mapperWidget, SLOT(updateTable()) );
+
+	connect( actNewArea, SIGNAL(triggered()), this, SLOT(newArea()) );
 }
 
 void MainWindow::closeEvent( QCloseEvent* event )
@@ -360,6 +376,12 @@ void MainWindow::open()
 	QFileInfo info( filename );
 	m_baseDir = info.absolutePath();
 
+#if 0
+	// clear modules and areas
+	m_moduleManager.clear();
+	m_renderSetManager.clear();
+#endif
+
 	// TBD: More general load code!
 	ProjectMe pm;
 	pm.setModuleManager( &m_moduleManager );
@@ -377,6 +399,8 @@ void MainWindow::open()
 		// failure
 		statusBar()->showMessage( tr("Failed to load %1!").arg( filename ) );
 	}
+
+	updateTables();
 }
 
 void MainWindow::save()

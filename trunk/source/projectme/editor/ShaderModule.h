@@ -22,6 +22,8 @@ using GL::GLSLProgram;
 class ShaderModule : public ModuleRenderer
 {
 public:
+	typedef ModuleRenderer Super;
+
 	ShaderModule();
 
 	///@name ModuleRenderer implementation

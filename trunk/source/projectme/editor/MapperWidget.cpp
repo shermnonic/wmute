@@ -101,11 +101,14 @@ void MapperWidget::onItemChanged( QStandardItem* item )
 
 		// Get pointer to newly mapped module renderer
 		int moduleIdx = m_delegate->getIndex( text );
-		assert( moduleIdx >= 0 && moduleIdx < m_moduleManager->modules().size() );
-		ModuleRenderer* mr = m_moduleManager->modules()[moduleIdx];
+		// It may happen that no module is set and we get an invalid index
+		if( moduleIdx >= 0 && moduleIdx < m_moduleManager->modules().size() )
+		{
+			ModuleRenderer* mr = m_moduleManager->modules()[moduleIdx];
 
-		// Set mapping
-		m_renderSet->mapper().at(idx) = mr;
+			// Set mapping
+			m_renderSet->mapper().at(idx) = mr;
+		}
 	}
 }
 
@@ -170,7 +173,7 @@ void MapperWidget::updateTable()
 			
 			QStandardItem 
 				*itemArea = new QStandardItem( QString::fromStdString(area.getName()) ),
-				*itemMod  = new QStandardItem( mod ? QString::fromStdString(mod->getName()) : tr("(Invalid module pointer)") );
+				*itemMod  = new QStandardItem( mod ? QString::fromStdString(mod->getName()) : tr("(No module set)") );
 			itemArea->setEditable( true );
 			itemMod ->setEditable( m_moduleManager ? true : false );
 			
