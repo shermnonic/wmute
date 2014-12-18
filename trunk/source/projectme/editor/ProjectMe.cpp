@@ -1,4 +1,5 @@
 #include "ProjectMe.h"
+#include "ModuleFactory.h"
 #include <iostream>
 #include <boost/foreach.hpp>
 using std::cerr;
@@ -54,14 +55,39 @@ void ProjectMe::deserialize( Serializable::PropertyTree& pt )
 		int count=0;
 		BOOST_FOREACH( PropertyTree::value_type& v, pt.get_child("ProjectMe.Modules") )
 		{
-			if( v.first.compare("Module")==0 && count < modules.size() )
+			// Create module instance of specific type
+			if( v.first.compare("Module")==0 )
 			{
-				// Create module instance of specific type
-				ModuleBase mb("Foo");
-				mb.deserialize( v.second );
-				std::cout << "Module #" << count << " type = " << mb.getModuleType() << std::endl;
+				// Get type name
+				ModuleBase base("Foo");
+				base.deserialize( v.second );
+				std::cout << "Module #" << count 
+					      << " type = " << base.getModuleType() << std::endl;
 
-				//modules.at(count)->deserialize( v.second );
+				// Try to create a module with specified type
+				ModuleBase* mod =
+				  ModuleFactory::ref().createInstance( base.getModuleType() );
+
+				if( mod )
+				{
+					// Module succesfully created!
+
+					// So far, we only support descendent of ModuleRenderer
+					ModuleRenderer* mr = dynamic_cast<ModuleRenderer*>(mod);
+					if( mr )
+					{
+						m_moduleManager->addModule( mr );
+						mr->deserialize( v.second );
+					}
+				}
+				else
+				{
+					// Module not available in factory :-(
+					std::cerr << "ProjectMe::deserialize() : "
+						<< "Could not instantiate module of type \"" 
+						<< base.getModuleType() << "\"!" << std::endl;
+				}
+				
 				count++;
 			}		
 		}
@@ -73,6 +99,10 @@ void ProjectMe::deserialize( Serializable::PropertyTree& pt )
 		int nSets = pt.get("ProjectMe.NumRenderSets",-1);
 
 		RenderSet* set = m_renderSetManager->getActiveRenderSet();
+
+		// WORKAROUND: RenderSet requires pointer to ModuleManager for mapping
+		set->setModuleManager( m_moduleManager );
+
 		BOOST_FOREACH( PropertyTree::value_type& v, pt.get_child("ProjectMe.RenderSets") )
 		{
 			if( v.first.compare("RenderSet")==0 )

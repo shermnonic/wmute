@@ -36,7 +36,7 @@ void main(void)
 	a = iResolution.x / iResolution.y;
 	
 	// Knot numbers
-	vec2 mn = vec2(5.0,2.0);
+	vec2 mn = vec2(3.0,4.0);
 	
 	// Superposition coefficients
 	float alpha = iGlobalTime;
@@ -49,13 +49,28 @@ void main(void)
 	
 	// Shift-scale from [-1,+1] to [0,1]		
 	u = (0.5+u/2.0);
-	
+
+  #if 0
 	// Visualize knot lines (i.e. zero-crossings)
-	//u = step( abs(u-0.3), 0.13 );
+	float iso = iGlobalTime / 10.0;//0.3;
+	const int isoSteps = 10;
+	float isoStepSize = 2.0 / float(isoSteps);
+	float mix = 0.0;
+	for( int i=0; i < isoSteps; ++i )
+	{
+		float isoTemp = mod(iso+float(i)*isoStepSize,2.0);
+		mix += step( abs(u-isoTemp), 0.015 );
+	}
+	u = mix;
+  #endif 
 	
+  #if 1
 	// Smooth radial border blend out
 	float r = length(2.0*uv - vec2(1.0,1.0));
 	float border = 1.0 - smoothstep( 0.8, 1.1, r );
+  #else
+	float border = 1.0;
+  #endif
 	
-	gl_FragColor = vec4(border*u*vec3(0.5),1.0);
+	gl_FragColor = vec4(border*u*vec3(1.0),1.0);
 }

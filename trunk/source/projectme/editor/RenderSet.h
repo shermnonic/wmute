@@ -128,14 +128,33 @@ public:
 		m_modules.clear();
 	}
 
-	ModuleArray& modules() { return m_modules; }
-	const ModuleArray& modules() const { return m_modules; }
-
 	void addModule( ModuleRenderer* module )
 	{
 		m_modules.push_back( module );
 	}
 
+	///@{ Direct access to module pointers (take care!)
+	ModuleArray& modules() { return m_modules; }
+	const ModuleArray& modules() const { return m_modules; }
+	///@}
+
+	/// Returns pointer to first module matching given name and type, else NULL.
+	ModuleRenderer* findModule( std::string name, std::string type )
+	{
+		// Linear search
+		ModuleArray::iterator it = m_modules.begin();
+		for( ; it != m_modules.end(); ++it )
+		{
+			if( name.compare( (*it)->getName() )       == 0 &&
+				type.compare( (*it)->getModuleType() ) == 0 )
+			{
+				return *it;
+			}
+		}
+		return NULL;
+	}
+
+	/// Trigger rendering for *all* modules
 	void render()
 	{
 		for( int i=0; i < m_modules.size(); i++ )
@@ -260,6 +279,9 @@ public:
 	RenderAreaModuleMapper& mapper() { return m_mapper; }
 	///@}
 
+	// WORKAROUND: Module manager is required for deserialization!
+	void setModuleManager( ModuleManager* mm ) { m_moduleManager = mm; }
+
 protected:
 	void beginRendering() const;
 	void endRendering()   const;
@@ -268,6 +290,8 @@ private:
 	//Rect                   m_screenRect;
 	RenderAreaCollection   m_areas;
 	RenderAreaModuleMapper m_mapper;
+
+	ModuleManager* m_moduleManager;
 
 	int m_activeArea;
 	int m_pickedVertex;

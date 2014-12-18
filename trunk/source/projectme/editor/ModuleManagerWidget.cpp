@@ -32,22 +32,11 @@ ModuleManagerWidget::ModuleManagerWidget( QWidget* parent )
 
 //----------------------------------------------------------------------------
 void ModuleManagerWidget::setModuleManager( ModuleManager* mm )
-{
-	// Disconnect
-	disconnect( m_tableView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&,const QItemSelection&)), this, SLOT(onSelectionChanged(const QItemSelection&,const QItemSelection&)) );
-	disconnect( m_model, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(onItemChanged(QStandardItem*)) );
-	
+{	
 	// Update
 	m_activeRow = -1; // Reset active module
 	m_master = mm;	
 	updateModuleTable();
-
-	// Re-connect
-	if( m_master )
-	{
-		connect( m_tableView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&,const QItemSelection&)), this, SLOT(onSelectionChanged(const QItemSelection&,const QItemSelection&)) );
-		connect( m_model, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(onItemChanged(QStandardItem*)) );
-	}
 }
 
 //----------------------------------------------------------------------------
@@ -85,6 +74,10 @@ void ModuleManagerWidget::onItemChanged( QStandardItem* item )
 //----------------------------------------------------------------------------
 void ModuleManagerWidget::updateModuleTable()
 {
+	// Disconnect
+	disconnect( m_tableView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&,const QItemSelection&)), this, SLOT(onSelectionChanged(const QItemSelection&,const QItemSelection&)) );
+	disconnect( m_model, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(onItemChanged(QStandardItem*)) );
+
 	// Clear table
 	m_model->clear();
 	m_model->setHorizontalHeaderLabels( 
@@ -119,6 +112,13 @@ void ModuleManagerWidget::updateModuleTable()
 	// Resize table view
 	m_tableView->resizeColumnsToContents();
 	m_tableView->resizeRowsToContents();
+
+	// Re-connect
+	if( m_master )
+	{
+		connect( m_tableView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&,const QItemSelection&)), this, SLOT(onSelectionChanged(const QItemSelection&,const QItemSelection&)) );
+		connect( m_model, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(onItemChanged(QStandardItem*)) );
+	}
 }
 
 //----------------------------------------------------------------------------

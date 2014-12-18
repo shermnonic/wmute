@@ -114,24 +114,18 @@ void MapperWidget::onItemChanged( QStandardItem* item )
 
 //----------------------------------------------------------------------------
 void MapperWidget::setModuleManager( ModuleManager* mm )
-{
-	// Disconnect
-	disconnect( m_tableView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&,const QItemSelection&)), this, SLOT(onSelectionChanged(const QItemSelection&,const QItemSelection&)) );
-	
+{	
 	// Update
 	m_moduleManager = mm;
 	updateTable();
-
-	// Re-connect
-	if( m_renderSet )
-	{
-		connect( m_tableView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&,const QItemSelection&)), this, SLOT(onSelectionChanged(const QItemSelection&,const QItemSelection&)) );
-	}
 }
 
 //----------------------------------------------------------------------------
 void MapperWidget::updateTable()
 {
+	// Disconnect
+	disconnect( m_tableView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&,const QItemSelection&)), this, SLOT(onSelectionChanged(const QItemSelection&,const QItemSelection&)) );
+
 	// Set module list
 	if( m_moduleManager )
 	{
@@ -194,6 +188,12 @@ void MapperWidget::updateTable()
 		m_tableView->openPersistentEditor( m_model->index(i, 1) );
 	}
 #endif
+
+	// Re-connect
+	if( m_renderSet )
+	{
+		connect( m_tableView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&,const QItemSelection&)), this, SLOT(onSelectionChanged(const QItemSelection&,const QItemSelection&)) );
+	}
 }
 
 //----------------------------------------------------------------------------
