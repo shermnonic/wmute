@@ -10,6 +10,7 @@ class QItemSelection;
 class QStandardItem;
 // Custom forwards
 class ModuleManager;
+class ModuleRenderer;
 
 /**
 	\class ModuleManagerWidget
@@ -22,6 +23,7 @@ Q_OBJECT
 
 signals:
 	void moduleNameChanged( int idx );
+	void moduleChanged( ModuleRenderer* mod );
 	
 public:
 	ModuleManagerWidget( QWidget* parent=0 );

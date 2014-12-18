@@ -60,7 +60,7 @@ void ModuleManagerWidget::onItemChanged( QStandardItem* item )
 		{
 			m_master->modules().at(idx)->setName( item->text().toStdString() );
 			
-			// Emit signal
+			// Emit signals
 			emit moduleNameChanged( idx );
 		}
 		else
@@ -133,5 +133,8 @@ void ModuleManagerWidget::onSelectionChanged( const QItemSelection& selected, co
 	if( mi.row() >=0 && mi.row() < modules.size() )
 	{
 		m_activeRow = mi.row();
+		emit moduleChanged( m_master->modules()[m_activeRow] );
 	}
+	else
+		emit moduleChanged( NULL );
 }

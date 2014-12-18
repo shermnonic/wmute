@@ -16,6 +16,7 @@ class QTimer;
 
 class RenderSetWidget;
 class ModuleManagerWidget;
+class ModuleRendererWidget;
 class MapperWidget;
 class ShaderModule;
 
@@ -107,8 +108,9 @@ private:
 	QList<RenderSetWidget*> m_previews;
 	QList<RenderSetWidget*> m_screens;
 
-	ModuleManagerWidget* m_moduleWidget;
-	MapperWidget*        m_mapperWidget;
+	ModuleManagerWidget*  m_moduleWidget;
+	MapperWidget*         m_mapperWidget;
+	ModuleRendererWidget* m_moduleRendererWidget;
 };
 
 /** @} */ // end group

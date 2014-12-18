@@ -20,6 +20,7 @@ set( projectme_MOC_HDRS
 	MainWindow.h
 	RenderSetWidget.h
 	ModuleManagerWidget.h
+	ModuleRendererWidget.h
 	MapperWidget.h
 	ComboBoxDelegate.h	
 )
@@ -54,6 +55,8 @@ set( gui_SRCS
 	RenderSetWidget.cpp
 	ModuleManagerWidget.h
 	ModuleManagerWidget.cpp
+	ModuleRendererWidget.h
+	ModuleRendererWidget.cpp
 	MapperWidget.h
 	MapperWidget.cpp
 	ComboBoxDelegate.h

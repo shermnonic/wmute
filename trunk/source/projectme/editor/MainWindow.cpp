@@ -6,6 +6,7 @@
 #include "ParticleModule.h"
 #include "RenderSetWidget.h"
 #include "ModuleManagerWidget.h"
+#include "ModuleRendererWidget.h"
 #include "MapperWidget.h"
 #include "ModuleFactory.h"
 #include "ProjectMe.h"
@@ -214,15 +215,23 @@ void MainWindow::createUI()
 	m_mapperWidget = new MapperWidget();
 	m_mapperWidget->setWindowTitle(tr("Area Mapper"));
 
+	m_moduleRendererWidget = new ModuleRendererWidget( this, m_sharedGLWidget );
+	m_moduleRendererWidget->setWindowTitle(tr("Module Renderer"));
+
 	// --- dock widgets ---
 
-	QDockWidget* dock = new QDockWidget(tr("Module Manager"),this);
-	dock->setWidget( m_moduleWidget );
-	addDockWidget( Qt::RightDockWidgetArea, dock );
+	QDockWidget* dockModuleManager = new QDockWidget(tr("Module Manager"),this);
+	dockModuleManager->setWidget( m_moduleWidget );
 
-	QDockWidget* dock2 = new QDockWidget(tr("Area Mapper"),this);
-	dock2->setWidget( m_mapperWidget );
-	addDockWidget( Qt::RightDockWidgetArea, dock2 );
+	QDockWidget* dockAreaMapper = new QDockWidget(tr("Area Mapper"),this);
+	dockAreaMapper->setWidget( m_mapperWidget );
+
+	QDockWidget* dockModuleRenderer = new QDockWidget(tr("Module Renderer"),this);
+	dockModuleRenderer->setWidget( m_moduleRendererWidget );
+
+	addDockWidget( Qt::RightDockWidgetArea, dockModuleRenderer );
+	addDockWidget( Qt::RightDockWidgetArea, dockModuleManager );
+	addDockWidget( Qt::RightDockWidgetArea, dockAreaMapper );
 	
 	// --- actions ---
 
@@ -270,8 +279,9 @@ void MainWindow::createUI()
 	menuFile->addAction( actQuit );
 
 	menuWindows = menuBar()->addMenu( tr("&Windows") );
-	menuWindows->addAction( dock->toggleViewAction() );
-	menuWindows->addAction( dock2->toggleViewAction() );
+	menuWindows->addAction( dockModuleRenderer->toggleViewAction() );
+	menuWindows->addAction( dockModuleManager ->toggleViewAction() );
+	menuWindows->addAction( dockAreaMapper    ->toggleViewAction() );
 	menuWindows->addSeparator();
 	menuWindows->addAction( actNewPreview );
 	menuWindows->addAction( actNewScreen );
@@ -322,6 +332,7 @@ void MainWindow::createUI()
 	connect( newModuleMapper, SIGNAL(mapped(int)), this, SLOT(createModule(int)) );
 
 	connect( m_moduleWidget, SIGNAL(moduleNameChanged(int)), m_mapperWidget, SLOT(updateTable()) );
+	connect( m_moduleWidget, SIGNAL(moduleChanged(ModuleRenderer*)), m_moduleRendererWidget, SLOT(setModuleRenderer(ModuleRenderer*)) );
 
 	connect( actNewArea, SIGNAL(triggered()), this, SLOT(newArea()) );
 }
