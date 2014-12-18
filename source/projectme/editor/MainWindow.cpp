@@ -118,9 +118,10 @@ void MainWindow::createRenderSet()
 {
 	// Create hard-coded setup of 3 render areas with 3 ShaderModules
 #if 1
-    m_moduleManager.addModule( new ShaderModule );
-    m_moduleManager.addModule( new ShaderModule );
-    m_moduleManager.addModule( new ShaderModule );
+	for( int i=0; i < 1; i++ )
+	{
+		m_moduleManager.addModule( new ShaderModule );
+	}
 #else
 	m_moduleManager.addModule( new ParticleModule );
 #endif
