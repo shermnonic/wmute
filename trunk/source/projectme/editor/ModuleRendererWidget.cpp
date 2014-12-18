@@ -8,6 +8,8 @@ ModuleRendererWidget::ModuleRendererWidget( QWidget *parent, QGLWidget *share )
 : QGLWidget( parent, share ),  
   m_moduleRenderer( 0 )
 {
+	setMinimumSize( 256, 180 );
+
 	// Render update timer
 	m_renderUpdateTimer = new QTimer( this );
 	connect( m_renderUpdateTimer, SIGNAL(timeout()), this, SLOT(updateGL()) );

@@ -40,7 +40,7 @@ MapperWidget::MapperWidget( QWidget* parent )
 void MapperWidget::setRenderSet( RenderSet* rs )
 {
 	// Disconnect
-	disconnect( m_tableView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&,const QItemSelection&)), this, SLOT(selectionChanged(const QItemSelection&,const QItemSelection&)) );
+	disconnect( m_tableView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&,const QItemSelection&)), this, SLOT(onSelectionChanged(const QItemSelection&,const QItemSelection&)) );
 	disconnect( m_model, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(onItemChanged(QStandardItem*)) );
 	
 	// Update
@@ -51,7 +51,7 @@ void MapperWidget::setRenderSet( RenderSet* rs )
 	// Re-connect
 	if( m_renderSet )
 	{
-		connect( m_tableView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&,const QItemSelection&)), this, SLOT(selectionChanged(const QItemSelection&,const QItemSelection&)) );
+		connect( m_tableView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&,const QItemSelection&)), this, SLOT(onSelectionChanged(const QItemSelection&,const QItemSelection&)) );
 		connect( m_model, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(onItemChanged(QStandardItem*)) );
 	}
 }

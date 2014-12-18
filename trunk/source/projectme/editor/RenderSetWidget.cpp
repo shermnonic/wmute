@@ -80,7 +80,7 @@ void RenderSetWidget::paintGL()
 			if( m_flags & RenderDebug )
 			{
 				GLuint texid = 
-					bindTexture( QPixmap(":/projectme.png"), GL_TEXTURE_2D, GL_RGBA );
+					bindTexture( QPixmap(":/grid.png"), GL_TEXTURE_2D, GL_RGBA );
 				m_set->render( texid );
 			}
 			else
