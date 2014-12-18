@@ -6,20 +6,21 @@
 using std::cout;
 using std::cerr;
 using std::endl;
+using std::string;
 
 //=============================================================================
 //  Serializable
 //=============================================================================
 
 //-----------------------------------------------------------------------------
-void Serializable::serializeToDisk( std::string filename )
+void Serializable::serializeToDisk( string filename )
 {
 	PropertyTree pt = serialize();
 	write_xml( filename, pt );
 }
 
 //-----------------------------------------------------------------------------
-bool Serializable::deserializeFromDisk( std::string filename )
+bool Serializable::deserializeFromDisk( string filename )
 {
 	PropertyTree pt;
 	read_xml( filename, pt );
@@ -43,7 +44,7 @@ Serializable::PropertyTree& ModuleBase::serialize() const
 //-----------------------------------------------------------------------------
 void ModuleBase::deserialize( Serializable::PropertyTree& pt )
 {
-	m_moduleTypeName = pt.get("ModuleBase.Type",std::string("<Unknown type>"));
+	m_moduleTypeName = pt.get("ModuleBase.Type",string("<Unknown type>"));
 }
 
 
@@ -228,7 +229,8 @@ void RenderArea::deserialize( Serializable::PropertyTree& pt )
 
 //-----------------------------------------------------------------------------
 RenderSet::RenderSet()
-: m_areaMode( AreaOutline )
+: m_areaMode( AreaOutline ),
+  m_moduleManager( NULL )
 {
 	addArea( RenderArea(), 0 );
 }
@@ -419,8 +421,32 @@ Serializable::PropertyTree& RenderSet::serialize() const
 	
 	cache.put("RenderSet.Name",getName());
 	cache.put("RenderSet.NumAreas",m_areas.size());
+
+	// Write render area configuration
 	for( int i=0; i < m_areas.size(); i++ )
 		cache.add_child( "RenderSet.RenderArea", m_areas[i].serialize() );
+
+	// Write mapping area to module
+	for( int i=0; i < m_mapper.size(); i++ )
+	{
+		Serializable::PropertyTree t;
+		ModuleRenderer* mod = m_mapper[i];
+		t.put( "AreaIndex", i );
+		if( mod )
+		{
+			// Use module name to later re-establish mapping on deserialization
+			t.put( "ModuleName", mod->getName() );
+			t.put( "ModuleType", mod->getModuleType() );
+		}
+		else
+		{
+			// Use empty strings to indicate non-set mapping
+			t.put( "ModuleName", "" );
+			t.put( "ModuleType", "" );
+		}
+
+		cache.add_child( "RenderSet.ModuleMapper", t );
+	}
 
 	return cache;
 }
@@ -428,28 +454,54 @@ Serializable::PropertyTree& RenderSet::serialize() const
 //-----------------------------------------------------------------------------
 void RenderSet::deserialize( Serializable::PropertyTree& pt )
 {
-	//clear();
-	// WORKAROUND: Re-use module mapper for now!
-	m_areas.clear();
+	// WORKAROUND: Pointer to already deserialized module manager is required!
+	if( !m_moduleManager )
+	{
+		cerr << "RenderSet::deserialize() : Pointer to module manager not set!" << endl;
+		return;
+	}
 
-	std::string name = pt.get("RenderSet.Name",getDefaultName());
+	string name = pt.get("RenderSet.Name",getDefaultName());
 	int numAreas = pt.get<int>("RenderSet.NumAreas",0);
 
+	clear();
+	m_mapper.resize( numAreas, NULL );
+	
 	BOOST_FOREACH( PropertyTree::value_type& v, pt.get_child("RenderSet") )
 	{		
+		// Read render area configuration
 		if( v.first.compare("RenderArea")==0 )
 		{
 			RenderArea area;
 			area.deserialize( v.second );
 			m_areas.push_back( area );
+		}
+		else
+		// Read mapping area to module
+		if( v.first.compare("ModuleMapper")==0 )
+		{
+			int    idx  = v.second.get<int>("AreaIndex");
+			string name = v.second.get("ModuleName",string("")),
+			       type = v.second.get("ModuleType",string(""));
 
-			// WORKAROUND: See above
-			while( m_areas.size() > m_mapper.size() )
-				m_mapper.push_back( 0 );				
+			ModuleRenderer* mod =
+				m_moduleManager->findModule( name, type );
+			if( mod && (idx>=0) && (idx<m_mapper.size()) )
+			{
+				// Set mapping
+				m_mapper[idx] = mod;
+			}
+			else
+			{
+				if( !mod )
+					cerr << "RenderSet::deserialize() : Module not found!" << endl;
+				else
+					cerr << "RenderSet::deserialize() : Invalid mapping index!" << endl;
+			}
 		}
 	}
 
 	if( m_areas.size() != numAreas )
-		cerr << "RenderSet::deserialize() : Mismatching number of areas!" << endl;
+		cerr << "RenderSet::deserialize() : Mismatching number of areas!" << endl;	
 }
 
