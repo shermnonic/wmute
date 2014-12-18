@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ProjectMe><Name>unnamed9</Name><NumModules>4</NumModules><Modules><Module><ModuleBase><Type>ShaderModule</Type></ModuleBase><ShaderModule><Name>Chladni</Name><FragmentShader>/*	2D Chladni patterns, see for instance:
+	http://paulbourke.net/geometry/chladni/
+	www.386dx25.de 
+*/
+uniform vec3 iResolution;
+uniform float iGlobalTime;
+
+const float pi = 3.1415926535897932384;
+
+// Edge lengths of the rectunglar plate. Note that in reality only 
+// for the case a=b degenerate eigenmodes appear, leading to the 
+// superimposition as implemented here.
+float a;
+float b = 1.0;
+
+// Chladni eigenmodes
+float chladni( float m, float n, vec2 uv )
+{	
+	// cos()*cos() for modes of a plate fixed at its center
+	// sin()*sin() for modes of a plate fixed at its border (boring)
+	return cos(n*pi*uv.x/a)*cos(m*pi*uv.y/b);
+}
+
+// Eigenfrequencies (not used)
+float omega( float m, float n )
+{
+	const float rho = 1.0;
+	const float eta = 1.0;	
+	return pi * sqrt( (rho/eta) * (m/a)*(m/a) + (n/b)*(n/b) );
+}
+
+void main(void)
+{
+	// Domain [0,1]x[0,1]
+	vec2 uv = gl_FragCoord.xy / iResolution.y;
+	a = iResolution.x / iResolution.y;
+	
+	// Knot numbers
+	vec2 mn = vec2(3.0,4.0);
+	
+	// Superposition coefficients
+	float alpha = iGlobalTime;
+	mat2 R = mat2( cos(alpha), sin(alpha), -sin(alpha), cos(alpha) );
+	vec2 c = R * vec2(1.0,-1.0);	
+	//c = vec2(1.0,-1.0); // Default coefficients
+	
+	// Superposition of eigenmodes
+	float u = c.x*chladni(mn.x,mn.y,uv) + c.y*chladni(mn.y,mn.x,uv);
+	
+	// Shift-scale from [-1,+1] to [0,1]		
+	u = (0.5+u/2.0);
+
+  #if 0
+	// Visualize knot lines (i.e. zero-crossings)
+	float iso = iGlobalTime / 10.0;//0.3;
+	const int isoSteps = 10;
+	float isoStepSize = 2.0 / float(isoSteps);
+	float mix = 0.0;
+	for( int i=0; i &lt; isoSteps; ++i )
+	{
+		float isoTemp = mod(iso+float(i)*isoStepSize,2.0);
+		mix += step( abs(u-isoTemp), 0.015 );
+	}
+	u = mix;
+  #endif 
+	
+  #if 1
+	// Smooth radial border blend out
+	float r = length(2.0*uv - vec2(1.0,1.0));
+	float border = 1.0 - smoothstep( 0.8, 1.1, r );
+  #else
+	float border = 1.0;
+  #endif
+	
+	gl_FragColor = vec4(border*u*vec3(1.0),1.0);
+}
+</FragmentShader></ShaderModule></Module><Module><ModuleBase><Type>ShaderModule</Type></ModuleBase><ShaderModule><Name>Chladni2</Name><FragmentShader>/*	2D Chladni patterns, see for instance:
+	http://paulbourke.net/geometry/chladni/
+	www.386dx25.de 
+*/
+uniform vec3 iResolution;
+uniform float iGlobalTime;
+
+const float pi = 3.1415926535897932384;
+
+// Edge lengths of the rectunglar plate. Note that in reality only 
+// for the case a=b degenerate eigenmodes appear, leading to the 
+// superimposition as implemented here.
+float a;
+float b = 1.0;
+
+// Chladni eigenmodes
+float chladni( float m, float n, vec2 uv )
+{	
+	// cos()*cos() for modes of a plate fixed at its center
+	// sin()*sin() for modes of a plate fixed at its border (boring)
+	return cos(n*pi*uv.x/a)*cos(m*pi*uv.y/b);
+}
+
+// Eigenfrequencies (not used)
+float omega( float m, float n )
+{
+	const float rho = 1.0;
+	const float eta = 1.0;	
+	return pi * sqrt( (rho/eta) * (m/a)*(m/a) + (n/b)*(n/b) );
+}
+
+void main(void)
+{
+	// Domain [0,1]x[0,1]
+	vec2 uv = gl_FragCoord.xy / iResolution.y;
+	a = iResolution.x / iResolution.y;
+	
+	// Knot numbers
+	vec2 mn = vec2(3.0,4.0);
+	
+	// Superposition coefficients
+	float alpha = iGlobalTime;
+	mat2 R = mat2( cos(alpha), sin(alpha), -sin(alpha), cos(alpha) );
+	vec2 c = R * vec2(1.0,-1.0);	
+	//c = vec2(1.0,-1.0); // Default coefficients
+	
+	// Superposition of eigenmodes
+	float u = c.x*chladni(mn.x,mn.y,uv) + c.y*chladni(mn.y,mn.x,uv);
+	
+	// Shift-scale from [-1,+1] to [0,1]		
+	u = (0.5+u/2.0);
+
+  #if 1
+	// Visualize knot lines (i.e. zero-crossings)
+	float iso = iGlobalTime / 10.0;//0.3;
+	const int isoSteps = 10;
+	float isoStepSize = 2.0 / float(isoSteps);
+	float mix = 0.0;
+	for( int i=0; i &lt; isoSteps; ++i )
+	{
+		float isoTemp = mod(iso+float(i)*isoStepSize,2.0);
+		mix += step( abs(u-isoTemp), 0.015 );
+	}
+	u = mix;
+  #endif 
+	
+  #if 1
+	// Smooth radial border blend out
+	float r = length(2.0*uv - vec2(1.0,1.0));
+	float border = 1.0 - smoothstep( 0.8, 1.1, r );
+  #else
+	float border = 1.0;
+  #endif
+	
+	gl_FragColor = vec4(border*u*vec3(1.0),1.0);
+}
+</FragmentShader></ShaderModule></Module><Module><ModuleBase><Type>ShaderModule</Type></ModuleBase><ShaderModule><Name>unnamed4</Name><FragmentShader>uniform vec3      iResolution;
+uniform float     iGlobalTime;
+
+void main(void)
+{
+	vec2 uv = gl_FragCoord.xy / iResolution.xy;
+	gl_FragColor = vec4(uv,0.5+0.5*sin(iGlobalTime),1.0);
+}</FragmentShader></ShaderModule></Module><Module><ParticleModule><Name>Particles</Name></ParticleModule></Module></Modules><NumRenderSets>1</NumRenderSets><RenderSets><RenderSet><Name>unnamed0</Name><NumAreas>3</NumAreas><RenderArea><Name>Left</Name><NumVertices>4</NumVertices><Vertices><Vertex><Pos><x>-0.9</x><y>-0.9</y></Pos><TexCoord><u>0</u><v>0</v></TexCoord></Vertex><Vertex><Pos><x>-0.9</x><y>0.9</y></Pos><TexCoord><u>0</u><v>1</v></TexCoord></Vertex><Vertex><Pos><x>-0.4333333</x><y>0.9</y></Pos><TexCoord><u>1</u><v>1</v></TexCoord></Vertex><Vertex><Pos><x>-0.4333333</x><y>-0.9</y></Pos><TexCoord><u>1</u><v>0</v></TexCoord></Vertex></Vertices></RenderArea><RenderArea><Name>Center</Name><NumVertices>4</NumVertices><Vertices><Vertex><Pos><x>-0.2333333</x><y>-0.9</y></Pos><TexCoord><u>0</u><v>0</v></TexCoord></Vertex><Vertex><Pos><x>-0.2333333</x><y>0.9</y></Pos><TexCoord><u>0</u><v>1</v></TexCoord></Vertex><Vertex><Pos><x>0.2333333</x><y>0.9</y></Pos><TexCoord><u>1</u><v>1</v></TexCoord></Vertex><Vertex><Pos><x>0.2333333</x><y>-0.9</y></Pos><TexCoord><u>1</u><v>0</v></TexCoord></Vertex></Vertices></RenderArea><RenderArea><Name>Right</Name><NumVertices>4</NumVertices><Vertices><Vertex><Pos><x>0.4333334</x><y>-0.9</y></Pos><TexCoord><u>0</u><v>0</v></TexCoord></Vertex><Vertex><Pos><x>0.4114413</x><y>0.8447396</y></Pos><TexCoord><u>0</u><v>1</v></TexCoord></Vertex><Vertex><Pos><x>0.8687255</x><y>0.8404888</y></Pos><TexCoord><u>1</u><v>1</v></TexCoord></Vertex><Vertex><Pos><x>0.8628878</x><y>-0.8992804</y></Pos><TexCoord><u>1</u><v>0</v></TexCoord></Vertex></Vertices></RenderArea><ModuleMapper><AreaIndex>0</AreaIndex><ModuleName>Chladni</ModuleName><ModuleType>ShaderModule</ModuleType></ModuleMapper><ModuleMapper><AreaIndex>1</AreaIndex><ModuleName>Chladni2</ModuleName><ModuleType>ShaderModule</ModuleType></ModuleMapper><ModuleMapper><AreaIndex>2</AreaIndex><ModuleName>Particles</ModuleName><ModuleType>ParticleModule</ModuleType></ModuleMapper></RenderSet></RenderSets></ProjectMe>

@@ -50,7 +50,7 @@ void main(void)
 	// Shift-scale from [-1,+1] to [0,1]		
 	u = (0.5+u/2.0);
 
-  #if 0
+  #if 1
 	// Visualize knot lines (i.e. zero-crossings)
 	float iso = iGlobalTime / 10.0;//0.3;
 	const int isoSteps = 10;
