@@ -129,6 +129,7 @@ void ParticleModule::render()
 		glDisable( GL_TEXTURE_2D );
 		m_ps.render();
 
+	  #if 0
 		// Debug overlays
 		glMatrixMode( GL_PROJECTION );
 		glLoadIdentity();
@@ -144,6 +145,7 @@ void ParticleModule::render()
 		draw_debug_tex( 2, m_ps.getVelocities() );
 		draw_debug_tex( 3, m_ps.getForces() );
 		draw_debug_tex( 4, m_ps.getBirthPositions() );
+	  #endif
 
 		// Reset viewport
 		glViewport( viewport[0], viewport[1], viewport[2], viewport[3] );
