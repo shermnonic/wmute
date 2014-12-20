@@ -116,22 +116,24 @@ MainWindow::~MainWindow()
 
 void MainWindow::createRenderSet()
 {
-#if 0
+	RenderSet* set = m_renderSetManager.getActiveRenderSet();
+
+#if 0 // PREDEFINED mappers and areas
+  #if 0
 	// Create hard-coded setup of N render areas with N ShaderModules
 	const int N = 1;
 	for( int i=0; i < N; i++ )
 	{
 		m_moduleManager.addModule( new ShaderModule );
 	}
-#else
+  #else
 	// Create a particle system and a shader module
 	ShaderModule* sm = new ShaderModule;
 	ParticleModule* pm = new ParticleModule;
 	//pm->setForceTexture( sm->target() ); // texture not created yet!
 	m_moduleManager.addModule( sm );
 	m_moduleManager.addModule( pm );
-#endif
-	RenderSet* set = m_renderSetManager.getActiveRenderSet();
+  #endif	
     unsigned n = (unsigned)m_moduleManager.modules().size();
 	if( set )
 	{
@@ -143,6 +145,7 @@ void MainWindow::createRenderSet()
 			set->addArea( ra, m_moduleManager.modules().at(i) );
 		}
 	}
+#endif
 
 	// Update UI
 	m_sharedGLWidget->setModuleManager( &m_moduleManager );
