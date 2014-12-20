@@ -116,14 +116,20 @@ MainWindow::~MainWindow()
 
 void MainWindow::createRenderSet()
 {
-	// Create hard-coded setup of 3 render areas with 3 ShaderModules
-#if 1
-	for( int i=0; i < 1; i++ )
+#if 0
+	// Create hard-coded setup of N render areas with N ShaderModules
+	const int N = 1;
+	for( int i=0; i < N; i++ )
 	{
 		m_moduleManager.addModule( new ShaderModule );
 	}
 #else
-	m_moduleManager.addModule( new ParticleModule );
+	// Create a particle system and a shader module
+	ShaderModule* sm = new ShaderModule;
+	ParticleModule* pm = new ParticleModule;
+	//pm->setForceTexture( sm->target() ); // texture not created yet!
+	m_moduleManager.addModule( sm );
+	m_moduleManager.addModule( pm );
 #endif
 	RenderSet* set = m_renderSetManager.getActiveRenderSet();
     unsigned n = (unsigned)m_moduleManager.modules().size();
@@ -524,4 +530,28 @@ void MainWindow::reloadShader()
 		m_sharedGLWidget->makeCurrent();
 		m_moduleManager.modules().at( idx )->touch();
 	}
+
+#if 1
+	// TEST PARTICLE MODULE FORCE TEXTURE FROM SHADER MODULE
+	ParticleModule* pm(0);
+	if( sm ) // Use selected shader module
+	{
+		// Find first particle module
+		for( int i=0; i < m_moduleManager.modules().size(); i++ )
+		{
+			ModuleRenderer* mr = m_moduleManager.modules()[i];
+			if( dynamic_cast<ParticleModule*>(mr) )
+			{
+				pm = dynamic_cast<ParticleModule*>(mr);
+				break;
+			}
+		}
+	}
+	if( sm && pm )
+	{
+		std::cout << "Setting particle force for \"" << pm->getName() 
+			<< "\" from shader \"" << sm->getName() << "\"." << std::endl;
+		pm->setForceTexture( sm->target() );
+	}
+#endif
 }

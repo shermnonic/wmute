@@ -37,13 +37,22 @@ public:
 	GLuint getPositions () { return m_texPos[m_curTargetBuf]; }
 	GLuint getPositions2() { return m_texPos[(m_curTargetBuf+1)%2]; }
 	GLuint getVelocities() { return m_texVel[m_curTargetBuf]; }
-	GLuint getForces    () { return m_texForce; }
+	GLuint getForces    () { return m_curTexForce; } // was: m_texForce
 	GLuint getBirthPositions() { return m_texBirthPos; }
 
 	void touch()
 	{
 		loadShadersFromDisk();
 		reseed();
+	}
+
+	// Call with -1 to reset to internal force texture
+	void setForceTexture( int texid )
+	{
+		if( texid >= 0 )
+			m_curTexForce = texid;
+		else
+			m_curTexForce = m_texForce;
 	}
 	
 protected:	
@@ -77,7 +86,8 @@ private:
 	GLuint m_width,  
            m_height;
 
-	GLuint m_texForce;    ///< Force / acceleration texture
+	GLuint m_texForce,    ///< Force / acceleration texture
+	       m_curTexForce; ///< Currently active force texture (maybe set from outside)
 	GLuint m_texBirthPos, ///< Particle re-incarnation positions
 	       m_texBirthVel; ///< Particle re-incarnation velocities
 	GLuint m_texPos[2],   ///< Particle position double-buffer
