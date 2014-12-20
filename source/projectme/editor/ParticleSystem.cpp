@@ -347,7 +347,7 @@ void ParticleSystem::advectParticles()
 	unsigned srcBuf = (m_curTargetBuf+1)%2;
 	glActiveTexture( GL_TEXTURE0 + 0 );	glBindTexture( GL_TEXTURE_2D, m_texPos[srcBuf] );
 	glActiveTexture( GL_TEXTURE0 + 1 );	glBindTexture( GL_TEXTURE_2D, m_texVel[srcBuf] );
-	glActiveTexture( GL_TEXTURE0 + 2 );	glBindTexture( GL_TEXTURE_2D, m_texForce );
+	glActiveTexture( GL_TEXTURE0 + 2 );	glBindTexture( GL_TEXTURE_2D, m_curTexForce ); // was: m_texForce
 	glActiveTexture( GL_TEXTURE0 + 3 );	glBindTexture( GL_TEXTURE_2D, m_texBirthPos );
 	glActiveTexture( GL_TEXTURE0 + 4 );	glBindTexture( GL_TEXTURE_2D, m_texBirthVel );
 	glActiveTexture( GL_TEXTURE0 + 0 ); // Reset to active texture unit 0!
@@ -449,7 +449,7 @@ void ParticleSystem::seedParticlePositions()
 	float* ptr = &buf[0];
 	for( unsigned i=0; i < N; i++ )
 	{
-	  #if 0
+	  #if 1
 		// Random (x,y) position in [-1,1]
 		*ptr = 2.f*frand()-1.f; ptr++;
 		*ptr = 2.f*frand()-1.f; ptr++;
@@ -512,7 +512,7 @@ void ParticleSystem::seedParticleVelocities()
 //-----------------------------------------------------------------------------
 void ParticleSystem::setSyntheticForceField()
 {
-	// Discretizatino of force field domain (not related to FBO size!)
+	// Discretization of force field domain (not related to FBO size!)
 	unsigned width = 1024, height = 1024;
 
 	// Temporary RGBA buffer

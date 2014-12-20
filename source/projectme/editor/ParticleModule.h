@@ -23,6 +23,8 @@ public:
 
 	bool init();
 
+	void setForceTexture( int texid ) { m_ps.setForceTexture(texid); }
+
 	///@name ModuleRenderer implementation
 	///@{
 	void render();
