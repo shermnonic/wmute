@@ -65,6 +65,7 @@ set( gui_SRCS
 source_group("gui" FILES ${gui_SRCS})
 
 set( engine_SRCS
+	DistanceTransformFelzenszwalb.h
 	ModuleFactory.h
 	ModuleFactory.cpp
 	RenderSet.h
@@ -75,6 +76,8 @@ set( engine_SRCS
 	ParticleModule.cpp
 	ParticleSystem.h
 	ParticleSystem.cpp
+	PotentialFromImageModule.h
+	PotentialFromImageModule.cpp
 	ProjectMe.h
 	ProjectMe.cpp
 	hraw.h	

@@ -24,7 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 */
 #include <algorithm>
 
-#define INF 1E20
+#define INF (float)1E20
 
 namespace DistanceTransformFelzenszwalb {
 
@@ -97,10 +97,10 @@ static void dt(float *im,int width,int height) {
 }
 
 /* dt of binary image using squared distance */
-template<InputType>
-float* dt( InputType* im,int width,int height, InputType on=1 )
+template<typename InputType>
+float* dt( InputType* im,int width,int height, InputType on )
 {
-  float* out = new float[width*heigth];
+  float* out = new float[width*height];
 	
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
