@@ -4,6 +4,7 @@
 #include "MainWindow.h"
 #include "ShaderModule.h"
 #include "ParticleModule.h"
+#include "PotentialFromImageModule.h"
 #include "RenderSetWidget.h"
 #include "ModuleManagerWidget.h"
 #include "ModuleRendererWidget.h"
@@ -186,6 +187,44 @@ void MainWindow::createModule( int typeId )
 
 	// Add to module manager	
 	m_moduleManager.addModule( dynamic_cast<ModuleRenderer*>(m) );
+
+#if 1 // SPECIAL ACTIONS FOR SPECIFIC MODULES
+
+	// Input image for potential field
+	if( dynamic_cast<PotentialFromImageModule*>(m) )
+	{
+		PotentialFromImageModule* pfim = dynamic_cast<PotentialFromImageModule*>(m);
+		QString filename = QFileDialog::getOpenFileName( this, tr("Load image"),
+			tr(""), tr("*.png;*.jpg") );
+
+		if( !filename.isEmpty() )
+			pfim->loadImage( filename.toStdString().c_str() );
+	}
+
+	// Velocity texture for particle system
+	if( dynamic_cast<ParticleModule*>(m) )
+	{
+		ParticleModule* pm = dynamic_cast<ParticleModule*>(m);
+
+		// Get list of modules
+		QStringList sl;
+		for( int i=0; i < m_moduleManager.modules().size(); i++ )
+		{
+			const ModuleRenderer* mr = m_moduleManager.modules()[i];
+			sl << (mr ? QString::fromStdString(mr->getName()) : "<Invalid module>");
+		}
+
+		// Let the user select a module
+		bool ok;
+		QString sel = QInputDialog::getItem( this, tr("Select input module"), 
+			tr("Select input module for particle velocities"), sl, 0, false, &ok );
+		if( ok )
+		{
+			int idx = sl.indexOf(sel);			
+			pm->setForceTexture( m_moduleManager.modules()[idx]->target() );
+		}
+	}
+#endif
 
 	updateTables();
 }
@@ -533,28 +572,4 @@ void MainWindow::reloadShader()
 		m_sharedGLWidget->makeCurrent();
 		m_moduleManager.modules().at( idx )->touch();
 	}
-
-#if 1
-	// TEST PARTICLE MODULE FORCE TEXTURE FROM SHADER MODULE
-	ParticleModule* pm(0);
-	if( sm ) // Use selected shader module
-	{
-		// Find first particle module
-		for( int i=0; i < m_moduleManager.modules().size(); i++ )
-		{
-			ModuleRenderer* mr = m_moduleManager.modules()[i];
-			if( dynamic_cast<ParticleModule*>(mr) )
-			{
-				pm = dynamic_cast<ParticleModule*>(mr);
-				break;
-			}
-		}
-	}
-	if( sm && pm )
-	{
-		std::cout << "Setting particle force for \"" << pm->getName() 
-			<< "\" from shader \"" << sm->getName() << "\"." << std::endl;
-		pm->setForceTexture( sm->target() );
-	}
-#endif
 }

@@ -4,7 +4,9 @@
 #include <ctime>
 using std::cerr;
 using std::endl;
+#ifdef GL_NAMESPACE
 using GL::checkGLError;
+#endif
 
 //----------------------------------------------------------------------------
 //  Factory registration
