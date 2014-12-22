@@ -52,6 +52,7 @@ Highlighter::Highlighter(QTextDocument *parent)
      QStringList keywordPatterns;
 	 // C++
      keywordPatterns << "\\bchar\\b" << "\\bclass\\b" << "\\bconst\\b"
+		             << "\\bfloat\\b"
                      << "\\bdouble\\b" << "\\benum\\b" << "\\bexplicit\\b"
                      << "\\bfriend\\b" << "\\binline\\b" << "\\bint\\b"
                      << "\\blong\\b" << "\\bnamespace\\b" << "\\boperator\\b"

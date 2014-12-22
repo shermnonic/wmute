@@ -19,6 +19,8 @@ using GL::GLSLProgram;
 class ParticleModule : public ModuleRenderer
 {
 public:
+	typedef ModuleRenderer Super;
+
 	ParticleModule();
 
 	bool init();
