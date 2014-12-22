@@ -121,11 +121,24 @@ void ParticleSystem::loadShadersFromDisk()
 //----------------------------------------------------------------------------
 bool ParticleSystem::initGL()
 {	
-	// TODO: Sanity checks!
-	// We require
+	using namespace std;
+
+	// Check OpenGL requiremenets:
 	// - GLSL 101
 	// - Framebuffer object
-	// - Multiple render targets
+	// - Multiple render targets (GL_ARB_draw_buffers, core since GL >= 2.0)
+	if( glewIsSupported("GL_VERSION_2_1  GL_ARB_draw_buffers  GL_EXT_framebuffer_object") )
+	{
+		GLint max_color_attachements;
+		glGetIntegerv( GL_MAX_COLOR_ATTACHMENTS, &max_color_attachements );
+		cout << "ParticleSystem::initGL() : " <<
+			"GL_MAX_COLOR_ATTACHMENTS = " << max_color_attachements << endl;
+	}
+	else
+	{
+		cerr << "ParticleSystem::initGL() : " <<
+			"OpenGL minimum requirements not met!" << endl;
+	}
 
 	//........................................................................
 	

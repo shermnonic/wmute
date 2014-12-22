@@ -73,6 +73,15 @@ void SharedGLContextWidget::initializeGL()
 		}
 
 		glewInitialized = true;
+
+		printf("------------\nOpenGL info:\n");
+		printf(" Vendor  : %s\n",glGetString( GL_VENDOR ));
+		printf(" Renderer: %s\n",glGetString( GL_RENDERER ));
+		printf(" Version : %s\n",glGetString( GL_VERSION ));
+		printf(" GLSL    : %s\n",glGetString( GL_SHADING_LANGUAGE_VERSION ));
+		//printf(" Extensions: %s\n",glGetString( GL_EXTENSIONS ));
+		printf("------------\n");
+		
 	}
 
 	// Enable multisampling
