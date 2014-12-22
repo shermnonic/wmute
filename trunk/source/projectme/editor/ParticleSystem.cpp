@@ -152,14 +152,14 @@ bool ParticleSystem::initGL()
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 
-	if(	!checkGLError( "ParticleSystem::init() : GL error after force texture setup!" ) )
+	if(	!checkGLError( "ParticleSystem::initGL() : GL error after force texture setup!" ) )
 		return false;
 
 	//........................................................................
 
 	loadForceTexture("shader/gradient2.hraw");
 
-	if(	!checkGLError( "ParticleSystem::init() : GL error after loading force texture!" ) )
+	if(	!checkGLError( "ParticleSystem::initGL() : GL error after loading force texture!" ) )
 		return false;
 	
 	//........................................................................
@@ -169,13 +169,13 @@ bool ParticleSystem::initGL()
 	m_renderShader = new GLSLProgram();
 	if( !m_advectShader || !m_renderShader )
 	{
-		cerr << "ParticleSystem::init() : Creation of GLSL shader failed!" << endl;
+		cerr << "ParticleSystem::initGL() : Creation of GLSL shader failed!" << endl;
 		return false;
 	}
 	
 	loadShadersFromDisk();	
 
-	if(	!checkGLError( "ParticleSystem::init() : GL error after shader setup!" ) )
+	if(	!checkGLError( "ParticleSystem::initGL() : GL error after shader setup!" ) )
 		return false;	
 
 	//........................................................................
@@ -202,7 +202,7 @@ bool ParticleSystem::initGL()
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 	}
 	
-	if(	!checkGLError( "ParticleSystem::init() : GL error after FBO textures setup!" ) )
+	if(	!checkGLError( "ParticleSystem::initGL() : GL error after FBO textures setup!" ) )
 		return false;
 
 	//........................................................................
@@ -218,7 +218,7 @@ bool ParticleSystem::initGL()
 	GLenum status = glCheckFramebufferStatus( GL_FRAMEBUFFER );
 	if( status != GL_FRAMEBUFFER_COMPLETE )
 	{
-		cerr << "ParticleSystem::init() : Framebuffer status not complete!" << endl;
+		cerr << "ParticleSystem::initGL() : Framebuffer status not complete!" << endl;
 		return false;
 	}
 
@@ -231,11 +231,11 @@ bool ParticleSystem::initGL()
 	glBufferData( GL_ARRAY_BUFFER, 3*sizeof(float)*n, NULL, GL_STATIC_DRAW );
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
 
-	if(	!checkGLError( "ParticleSystem::init() : GL error after VBO setup!" ) )
+	if(	!checkGLError( "ParticleSystem::initGL() : GL error after VBO setup!" ) )
 		return false;
 
 
-	m_initialized = checkGLError( "ParticleSystem::init() : GL error at exit!" );
+	m_initialized = checkGLError( "ParticleSystem::initGL() : GL error at exit!" );
 	return m_initialized;
 }
 
@@ -255,13 +255,18 @@ void ParticleSystem::destroyGL()
 //----------------------------------------------------------------------------
 void ParticleSystem::update()
 {
-	advectParticles();
-	swapParticleBuffers();
+	if( m_initialized )
+	{
+		advectParticles();
+		swapParticleBuffers();
+	}
 }
 
 //----------------------------------------------------------------------------
 void ParticleSystem::render()
 {
+	if( !m_initialized ) return;
+
 	m_renderShader->bind();
 	checkGLError("ParticleSystem::render() : After shader bind");
 
