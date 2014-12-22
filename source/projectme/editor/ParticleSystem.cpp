@@ -252,13 +252,17 @@ bool ParticleSystem::initGL()
 	// Init frame buffer
 	glGenFramebuffers( 1, &m_fbo );
 	glBindFramebuffer( GL_FRAMEBUFFER, m_fbo );	
+
+	if(	!checkGLError( "ParticleSystem::initGL() : GL error after FBO creation!" ) )
+		return false;
 	
 	// Attach textures
 	glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_texPos[1], 0 );
-	glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, m_texVel[1], 0 );	
-	
-	if( !checkGLFramebufferStatus( "ParticleSystem::initGL() : Framebuffer status not complete!" ) )
+	if( !checkGLFramebufferStatus( "ParticleSystem::initGL() : Framebuffer status not complete for GL_COLOR_ATTACHMENT0!" ) )
 		return false;
+	glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, m_texVel[1], 0 );	
+	if( !checkGLFramebufferStatus( "ParticleSystem::initGL() : Framebuffer status not complete for GL_COLOR_ATTACHMENT1!" ) )
+		return false;	
 
 	//........................................................................
 
