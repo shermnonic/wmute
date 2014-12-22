@@ -5,6 +5,7 @@
 #include <cstdlib> // rand(), srand(), RAND_MAX
 #include <ctime>   // time() to initialize srand()
 #include <cmath>
+#include <vector>
 using std::cerr;
 using std::endl;
 using GL::checkGLError;
@@ -187,8 +188,18 @@ bool ParticleSystem::initGL()
 	glGenTextures( 1, &m_texBirthVel );
 	
 	// Setup FBO textures
+#if 0
 	GLuint tex[6] = { m_texPos[0], m_texPos[1], m_texVel[0], m_texVel[1],
 	                  m_texBirthPos, m_texBirthVel };
+#else
+	std::vector<GLuint> tex;
+	tex.push_back( m_texPos[0] );
+	tex.push_back( m_texPos[1] );
+	tex.push_back( m_texVel[0] );
+	tex.push_back( m_texVel[1] );
+	tex.push_back( m_texBirthPos );
+	tex.push_back( m_texBirthVel );
+#endif
 	for( int i=0; i < 6; i++ )
 	{
 		// Allocate
