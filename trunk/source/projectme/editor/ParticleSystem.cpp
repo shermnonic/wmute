@@ -127,7 +127,7 @@ bool ParticleSystem::initGL()
 	// - GLSL 101
 	// - Framebuffer object
 	// - Multiple render targets (GL_ARB_draw_buffers, core since GL >= 2.0)
-	if( glewIsSupported("GL_VERSION_2_1  GL_ARB_draw_buffers  GL_EXT_framebuffer_object") )
+	if( glewIsSupported("GL_VERSION_2_1  GL_ARB_draw_buffers  GL_EXT_framebuffer_object  GL_ARB_texture_float") )
 	{
 		GLint max_color_attachements;
 		glGetIntegerv( GL_MAX_COLOR_ATTACHMENTS, &max_color_attachements );
@@ -218,7 +218,22 @@ bool ParticleSystem::initGL()
 	GLenum status = glCheckFramebufferStatus( GL_FRAMEBUFFER );
 	if( status != GL_FRAMEBUFFER_COMPLETE )
 	{
-		cerr << "ParticleSystem::initGL() : Framebuffer status not complete!" << endl;
+		cerr << "ParticleSystem::initGL() : Framebuffer status not complete! ";
+
+		switch( status )
+		{
+		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+			cout << "(GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT)" << endl; break;
+		//case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
+		//	cout << "(GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS)" << endl; break;
+		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+			cout << "(GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT)" << endl; break;
+		case GL_FRAMEBUFFER_UNSUPPORTED:
+			cout << "(GL_FRAMEBUFFER_UNSUPPORTED)" << endl; break;
+		default:
+			cout << "(Unknown error code " << (int)status << "?!)" << endl;
+		};
+
 		return false;
 	}
 
