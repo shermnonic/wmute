@@ -50,6 +50,9 @@ public:
 	void deserialize( Serializable::PropertyTree& pt );
 	///@}
 
+	std::string getShaderSource() const { return m_fshader; }
+	bool setShaderSource( const std::string& shader );
+
 protected:
 	// Invoked once in first render() call
 	bool init();
@@ -61,6 +64,7 @@ private:
 	GLSLProgram*    m_shader;
 	RenderToTexture m_r2t;
 	std::string     m_vshader, m_fshader;
+	std::string     m_lastCompileMessage;
 };
 
 #endif // SHADERMODULE_H

@@ -11,6 +11,7 @@
 #include "MapperWidget.h"
 #include "ModuleFactory.h"
 #include "ProjectMe.h"
+#include "ShaderEditorWidget.h"
 
 #include <QtGui> // FIXME: Include only required Qt classes
 #include <QMdiArea>
@@ -303,6 +304,7 @@ void MainWindow::createUI()
 		*actNewScreen,
 		*actLoadShader,
 		*actReloadShader,
+		*actEditShader,
 		*actModuleInit,
 		*actNewArea;
 	
@@ -322,6 +324,8 @@ void MainWindow::createUI()
 	actLoadShader = new QAction( tr("Load shader..."), this );
 	actReloadShader = new QAction( tr("&Reload shader"), this );
 	actReloadShader->setShortcut( tr("Ctrl+R") );
+
+	actEditShader = new QAction( tr("Edit shader..."), this );	
 
 	actModuleInit = new QAction( tr("Custom module init"), this );
 	actModuleInit->setShortcut( tr("Ctrl+I") );
@@ -357,6 +361,8 @@ void MainWindow::createUI()
 	menuModules = menuBar()->addMenu( tr("&Modules") );
 	menuModules->addAction( actLoadShader );
 	menuModules->addAction( actReloadShader );
+	menuModules->addAction( actEditShader );
+	menuModules->addSeparator();
 	menuModules->addAction( actModuleInit );
 	menuModules->addSeparator();
 	
@@ -391,8 +397,9 @@ void MainWindow::createUI()
 	connect( actNewPreview, SIGNAL(triggered()), this, SLOT(newPreview()) );
 	connect( actNewScreen,  SIGNAL(triggered()), this, SLOT(newScreen ()) );
 
-	connect( actLoadShader, SIGNAL(triggered()), this, SLOT(loadShader()) );
+	connect( actLoadShader,   SIGNAL(triggered()), this, SLOT(loadShader())   );
 	connect( actReloadShader, SIGNAL(triggered()), this, SLOT(reloadShader()) );
+	connect( actEditShader,   SIGNAL(triggered()), this, SLOT(editShader())   );
 
 	connect( newModuleMapper, SIGNAL(mapped(int)), this, SLOT(createModule(int)) );
 
@@ -500,8 +507,25 @@ void MainWindow::save()
 	pm.serializeToDisk( filename.toStdString() );
 }
 
-#include "RenderSetWidget.h"
-#include <QTextEdit>
+void MainWindow::editShader()
+{
+	ModuleBase* m = getActiveModule();
+	if( dynamic_cast<ShaderModule*>(m) )
+	{
+		// Get shader source
+		ShaderModule* sm = dynamic_cast<ShaderModule*>(m);
+		QString source = QString::fromStdString( sm->getShaderSource() );
+		QString name = QString::fromStdString(sm->getName());
+
+		// Create new editor widget with source as document text
+		ShaderEditorWidget* w = new ShaderEditorWidget( m_mdiArea );
+		QMdiSubWindow* sub = m_mdiArea->addSubWindow( w );
+		w->setShaderModule( sm );
+		
+		//w->setWindowTitle(tr("Editor %1").arg( name ));
+		w->show();
+	}
+}
 
 void MainWindow::newPreview()
 {
