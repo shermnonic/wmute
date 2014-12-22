@@ -19,6 +19,7 @@ class ModuleManagerWidget;
 class ModuleRendererWidget;
 class MapperWidget;
 class ShaderModule;
+class ModuleBase;
 
 /** @addtogroup editor_grp Editor
   * @{ */
@@ -79,6 +80,8 @@ private slots:
 	void reloadShader();
 
 	void createModule( int typeId );
+	void customModuleInit();
+	void customModuleInit( ModuleBase* m );
 	void newArea();
 
 protected:
@@ -93,6 +96,8 @@ protected:
 	QString m_baseDir; ///< directory of last successfully opened file
 	///@}
 	
+	ModuleBase* getActiveModule();
+
 private:
 	QMdiArea        *m_mdiArea;
 	SharedGLContextWidget

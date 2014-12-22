@@ -188,7 +188,21 @@ void MainWindow::createModule( int typeId )
 	// Add to module manager	
 	m_moduleManager.addModule( dynamic_cast<ModuleRenderer*>(m) );
 
-#if 1 // SPECIAL ACTIONS FOR SPECIFIC MODULES
+	// Custom init
+	customModuleInit( m );
+
+	updateTables();
+}
+
+void MainWindow::customModuleInit()
+{
+	customModuleInit( getActiveModule() );
+}
+
+void MainWindow::customModuleInit( ModuleBase* m )
+{
+	// Sanity
+	if( !m ) return;
 
 	// Input image for potential field
 	if( dynamic_cast<PotentialFromImageModule*>(m) )
@@ -224,9 +238,6 @@ void MainWindow::createModule( int typeId )
 			pm->setForceTexture( m_moduleManager.modules()[idx]->target() );
 		}
 	}
-#endif
-
-	updateTables();
 }
 
 void MainWindow::newArea()
@@ -292,6 +303,7 @@ void MainWindow::createUI()
 		*actNewScreen,
 		*actLoadShader,
 		*actReloadShader,
+		*actModuleInit,
 		*actNewArea;
 	
 	actOpen = new QAction( tr("&Open project..."), this );
@@ -310,6 +322,9 @@ void MainWindow::createUI()
 	actLoadShader = new QAction( tr("Load shader..."), this );
 	actReloadShader = new QAction( tr("&Reload shader"), this );
 	actReloadShader->setShortcut( tr("Ctrl+R") );
+
+	actModuleInit = new QAction( tr("Custom module init"), this );
+	actModuleInit->setShortcut( tr("Ctrl+I") );
 
 	actNewArea  = new QAction( tr("New area"), this );
 
@@ -342,6 +357,7 @@ void MainWindow::createUI()
 	menuModules = menuBar()->addMenu( tr("&Modules") );
 	menuModules->addAction( actLoadShader );
 	menuModules->addAction( actReloadShader );
+	menuModules->addAction( actModuleInit );
 	menuModules->addSeparator();
 	
 	// "New module" menu entries + connection to signal mapper
@@ -384,6 +400,8 @@ void MainWindow::createUI()
 	connect( m_moduleWidget, SIGNAL(moduleChanged(ModuleRenderer*)), m_moduleRendererWidget, SLOT(setModuleRenderer(ModuleRenderer*)) );
 
 	connect( actNewArea, SIGNAL(triggered()), this, SLOT(newArea()) );
+
+	connect( actModuleInit, SIGNAL(triggered()), this, SLOT(customModuleInit()) );
 }
 
 void MainWindow::closeEvent( QCloseEvent* event )
@@ -540,23 +558,31 @@ void MainWindow::loadShader()
 	reloadShader();
 }
 
-void MainWindow::reloadShader()
+ModuleBase* MainWindow::getActiveModule()
 {
 	// Get module index
 	int idx = m_moduleWidget->getActiveModuleIndex();
 	if( idx < 0 ) 
 	{
 		QMessageBox::warning( this, tr("Warning"), tr("No module selected!") );
-		return;
+		return NULL;
 	}
 	if( idx >= m_moduleManager.modules().size() )
 	{
 		QMessageBox::warning( this, tr("Error"), tr("Selection out of range?!") );
-		return;
+		return NULL;
 	}
 
+	return (ModuleBase*)m_moduleManager.modules().at( idx );
+}
+
+void MainWindow::reloadShader()
+{
+	ModuleBase* mod = getActiveModule();
+	if( !mod ) return;
+
 	// Manually reload shader from disk (only for a ShaderModule!)
-	ShaderModule* sm = dynamic_cast<ShaderModule*>(	m_moduleManager.modules().at( idx ) );
+	ShaderModule* sm = dynamic_cast<ShaderModule*>(	mod );
 	if( sm )
 	{
 		if( m_shaderFilename.isEmpty() )
@@ -570,6 +596,6 @@ void MainWindow::reloadShader()
 	{
 		// Just "touch" the module
 		m_sharedGLWidget->makeCurrent();
-		m_moduleManager.modules().at( idx )->touch();
+		mod->touch();		
 	}
 }
