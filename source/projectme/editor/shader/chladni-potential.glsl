@@ -69,8 +69,8 @@ void main(void)
   #if 0
 	float u = potential( uv );
   #else
-	vec2 dx = vec2(1.0,0.0) / iResolution;
-	vec2 dy = vec2(0.0,1.0) / iResolution;
+	vec2 dx = vec2(1.0,0.0) / iResolution.xy;
+	vec2 dy = vec2(0.0,1.0) / iResolution.xy;
 	vec2 grad;
 	grad.x = 0.5*(potential( uv + dx ) - potential( uv - dx ));
 	grad.y = 0.5*(potential( uv + dy ) - potential( uv - dy ));
