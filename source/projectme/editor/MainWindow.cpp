@@ -292,12 +292,15 @@ void MainWindow::createUI()
 
 	QDockWidget* dockModuleManager = new QDockWidget(tr("Module Manager"),this);
 	dockModuleManager->setWidget( m_moduleWidget );
+	dockModuleManager->setObjectName("Dock Module Manager");
 
 	QDockWidget* dockAreaMapper = new QDockWidget(tr("Area Mapper"),this);
 	dockAreaMapper->setWidget( m_mapperWidget );
+	dockAreaMapper->setObjectName("Dock Area Mapper");
 
 	QDockWidget* dockModuleRenderer = new QDockWidget(tr("Module Renderer"),this);
 	dockModuleRenderer->setWidget( m_moduleRendererWidget );
+	dockModuleRenderer->setObjectName("Dock Module Renderer");
 
 	addDockWidget( Qt::RightDockWidgetArea, dockModuleRenderer );
 	addDockWidget( Qt::RightDockWidgetArea, dockModuleManager );
