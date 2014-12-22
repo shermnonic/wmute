@@ -44,9 +44,11 @@ void ModuleManagerWidget::onItemChanged( QStandardItem* item )
 {
 	// Debug
 	QModelIndex mi = m_model->indexFromItem( item );
+#if 0
 	qDebug() << "ModuleManagerWidget::onItemChanged() : " 
 		<< "(" << mi.row() << "," << mi.column() << ") "
 		<< item->text();
+#endif
 
 	// Changes can only be applied if master is connected
 	if( !m_master )

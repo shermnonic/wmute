@@ -6,12 +6,13 @@ h3. Sprint Dec2014
 
 TODO
 * Simplified (non MDI?) interface, main preview window
-* UI to assign modules to render areas (RA property widget?)
 * Special UI for shader modules (SM property widget?)
 	* Parse inputs, add controls for (specific) inputs
 	* Shader editor
 * Spectrum analyzer module
-* Module viewer (render only the output of a single module)
 
 DONE
 * Dynamic module creation (factory pattern)
+* UI to assign modules to render areas ("Mapper widget")
+* Module viewer (render only the output of a single module)
+

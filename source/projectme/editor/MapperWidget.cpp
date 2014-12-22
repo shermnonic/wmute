@@ -61,9 +61,11 @@ void MapperWidget::onItemChanged( QStandardItem* item )
 {
 	// Debug
 	QModelIndex mi = m_model->indexFromItem( item );
+#if 0
 	qDebug() << "MapperWidget::onItemChanged() : " 
 		<< "(" << mi.row() << "," << mi.column() << ") "
 		<< item->text();
+#endif
 
 	// Changes can only be applied if a master RenderSet is connected
 	if( !m_renderSet )
