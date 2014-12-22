@@ -5,6 +5,7 @@
 #include <QToolBar>
 #include <QVBoxLayout>
 #include <QAction>
+#include <QFileDialog>
 
 ShaderEditorWidget::ShaderEditorWidget( QWidget* parent )
 : QWidget( parent ),
@@ -30,10 +31,13 @@ ShaderEditorWidget::ShaderEditorWidget( QWidget* parent )
 	m_actReset  = new QAction( tr("Reset"), this );
 	m_actUpdate = new QAction( tr("Update"), this );
 	m_actUpdate->setShortcut( tr("Ctrl+U") );
+
+	QAction* actExport = new QAction( tr("Export"), this );
 	
 	QToolBar* toolbar = new QToolBar( tr("Actions"), this );
 	toolbar->addAction( m_actReset );
 	toolbar->addAction( m_actUpdate );	
+	toolbar->addAction( actExport );
 	
 	QVBoxLayout* l = new QVBoxLayout();
 	l->addWidget( toolbar );
@@ -42,6 +46,7 @@ ShaderEditorWidget::ShaderEditorWidget( QWidget* parent )
 	
 	connect( m_actReset,  SIGNAL(triggered()), this, SLOT(resetShader()) );
 	connect( m_actUpdate, SIGNAL(triggered()), this, SLOT(updateShader()) );
+	connect( actExport,   SIGNAL(triggered()), this, SLOT(exportShader()) );
 }
 
 void ShaderEditorWidget::setDirty( bool b )
@@ -74,6 +79,20 @@ void ShaderEditorWidget::updateShader()
 	{
 		setDirty( false );
 	}
+}
+
+void ShaderEditorWidget::exportShader()
+{
+	if( !m_shaderModule )
+		return;
+
+	QString filename = QFileDialog::getSaveFileName( this, tr("Save shader source"),
+		"", tr("Shader source file (*.fs)") );
+
+	if( filename.isEmpty() )
+		return;
+
+	m_shaderModule->saveShader( filename.toStdString().c_str() );
 }
 
 QString ShaderEditorWidget::getShaderSource() const

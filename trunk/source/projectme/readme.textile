@@ -5,6 +5,10 @@ Projection mapping to several rectangular surfaces.
 h3. Sprint Dec2014
 
 TODO
+* ModuleRenderer shader	(e.g. intensity scaling)
+* Scripting
+* Log window
+* PotentialFromImageModule serializer
 * Special UI for shader modules (SM property widget?)
 	* Parse inputs, add controls for (specific) inputs
 * Spectrum analyzer module

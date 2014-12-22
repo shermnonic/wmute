@@ -20,6 +20,7 @@ public:
 protected slots:
 	void resetShader();
 	void updateShader();
+	void exportShader();
 
 protected:
 	void setDirty( bool b );

@@ -145,6 +145,25 @@ bool ShaderModule::loadShader( const char* filename )
 }
 
 //----------------------------------------------------------------------------
+#include <fstream>
+bool ShaderModule::saveShader( const char* filename ) const
+{
+	std::ofstream f(filename);
+	if( f.good() )
+	{
+		f << m_fshader;
+		f.close();
+	}
+	else
+	{
+		std::cerr << "ShaderModule::saveShader() : "
+			<< "Could not save shader source to \"" << filename << "\"!" << std::endl;
+		return false;
+	}
+	return true;
+}
+
+//----------------------------------------------------------------------------
 void ShaderModule::render()
 {
 	// Initialized on first render() call; by then we should have a valid 

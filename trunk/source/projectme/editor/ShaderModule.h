@@ -42,6 +42,7 @@ public:
 	bool compile( std::string vshader, std::string fshader );
 	/// Load fragment shader from disk, implicitly compiles the shader
 	bool loadShader( const char* filename );
+	bool saveShader( const char* filename ) const;
 	///@}
 
 	/// @name Serialization
