@@ -78,6 +78,7 @@ private slots:
 	
 	void loadShader();
 	void reloadShader();
+	void editShader();
 
 	void createModule( int typeId );
 	void customModuleInit();

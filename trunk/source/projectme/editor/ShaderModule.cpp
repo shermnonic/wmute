@@ -237,3 +237,10 @@ void ShaderModule::deserialize( Serializable::PropertyTree& pt )
 
 	compile();
 }
+
+//-----------------------------------------------------------------------------
+bool ShaderModule::setShaderSource( const std::string& shader )
+{
+	m_fshader = shader;
+	return compile();
+}
