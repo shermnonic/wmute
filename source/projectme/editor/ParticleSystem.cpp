@@ -31,6 +31,37 @@ float frand()
 }
 
 //----------------------------------------------------------------------------
+// GL helpers
+//----------------------------------------------------------------------------
+bool checkGLFramebufferStatus( const char* msg )
+{
+	using namespace std;
+	GLenum status = glCheckFramebufferStatus( GL_FRAMEBUFFER );
+	if( status != GL_FRAMEBUFFER_COMPLETE )
+	{
+		cerr << msg << " ";
+
+		switch( status )
+		{
+		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+			cout << "(GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT)" << endl; break;
+		//case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
+		//	cout << "(GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS)" << endl; break;
+		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+			cout << "(GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT)" << endl; break;
+		case GL_FRAMEBUFFER_UNSUPPORTED:
+			cout << "(GL_FRAMEBUFFER_UNSUPPORTED)" << endl; break;
+		default:
+			cout << "(Unknown error code " << (int)status << "?!)" << endl;
+		};
+
+		return false;
+	}
+
+	return true;
+}
+
+//----------------------------------------------------------------------------
 ParticleSystem::ParticleSystem()
 : m_initialized( false ),
   m_advectShader( NULL ),
@@ -226,27 +257,8 @@ bool ParticleSystem::initGL()
 	glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_texPos[1], 0 );
 	glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, m_texVel[1], 0 );	
 	
-	GLenum status = glCheckFramebufferStatus( GL_FRAMEBUFFER );
-	if( status != GL_FRAMEBUFFER_COMPLETE )
-	{
-		cerr << "ParticleSystem::initGL() : Framebuffer status not complete! ";
-
-		switch( status )
-		{
-		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-			cout << "(GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT)" << endl; break;
-		//case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
-		//	cout << "(GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS)" << endl; break;
-		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-			cout << "(GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT)" << endl; break;
-		case GL_FRAMEBUFFER_UNSUPPORTED:
-			cout << "(GL_FRAMEBUFFER_UNSUPPORTED)" << endl; break;
-		default:
-			cout << "(Unknown error code " << (int)status << "?!)" << endl;
-		};
-
+	if( !checkGLFramebufferStatus( "ParticleSystem::initGL() : Framebuffer status not complete!" ) )
 		return false;
-	}
 
 	//........................................................................
 
