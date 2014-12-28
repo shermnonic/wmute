@@ -54,6 +54,10 @@ public:
 		else
 			m_curTexForce = m_texForce;
 	}
+	int getForceTexture() const
+	{
+		return m_curTexForce;
+	}
 	
 protected:	
 	void loadShadersFromDisk();

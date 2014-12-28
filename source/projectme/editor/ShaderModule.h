@@ -34,6 +34,13 @@ public:
 	void touch() { compile(); }
 	///@}
 
+	///@name ModuleRenderer channels implementation
+	///@{
+	void setChannel( int idx, int texId );
+	int  channel( int idx ) const;
+	int  numChannels() const;
+	///@}
+
 	///@name Shader management
 	///@{
 	/// Re-compile current shader
@@ -66,6 +73,7 @@ private:
 	RenderToTexture m_r2t;
 	std::string     m_vshader, m_fshader;
 	std::string     m_lastCompileMessage;
+	std::vector<int> m_channels;
 };
 
 #endif // SHADERMODULE_H

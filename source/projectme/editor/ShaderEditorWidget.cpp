@@ -42,6 +42,7 @@ ShaderEditorWidget::ShaderEditorWidget( QWidget* parent )
 	QVBoxLayout* l = new QVBoxLayout();
 	l->addWidget( toolbar );
 	l->addWidget( m_codeEditor );
+	l->setContentsMargins( 0,0,0,0 );
 	setLayout( l );
 	
 	connect( m_actReset,  SIGNAL(triggered()), this, SLOT(resetShader()) );

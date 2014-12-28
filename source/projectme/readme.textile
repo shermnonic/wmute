@@ -5,6 +5,8 @@ Projection mapping to several rectangular surfaces.
 h3. Sprint Dec2014
 
 TODO
+* Texture multiplexer
+* Node editor (texture channel flow)
 * ModuleRenderer shader	(e.g. intensity scaling)
 * Scripting
 * Log window

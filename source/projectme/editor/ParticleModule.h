@@ -34,6 +34,13 @@ public:
 	void destroy() { m_ps.destroy(); }
 	void touch();
 	///@}
+
+	///@name ModuleRenderer channels implementation
+	///@{
+	void setChannel( int idx, int texId ) { m_ps.setForceTexture(texId); }
+	int  channel( int idx ) const { return m_ps.getForceTexture(); }
+	int  numChannels() const { return 1; }
+	///@}
 	
 	/// @name Serialization
 	///@{
