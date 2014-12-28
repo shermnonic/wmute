@@ -18,7 +18,7 @@ class RenderSetWidget;
 class ModuleManagerWidget;
 class ModuleRendererWidget;
 class MapperWidget;
-class ShaderModule;
+class NodeEditorWidget;
 class ModuleBase;
 
 /** @addtogroup editor_grp Editor
@@ -117,6 +117,7 @@ private:
 	ModuleManagerWidget*  m_moduleWidget;
 	MapperWidget*         m_mapperWidget;
 	ModuleRendererWidget* m_moduleRendererWidget;
+	NodeEditorWidget*     m_nodeEditorWidget;
 };
 
 /** @} */ // end group

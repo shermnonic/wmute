@@ -102,6 +102,13 @@ public:
 	virtual int  target() const = 0;
 	/// Release any OpenGL resources (assume a valid GL context)
 	virtual void destroy() = 0;
+
+	/// @name Input channels
+	///@{
+	virtual void setChannel( int idx, int texId ) {}
+	virtual int  channel( int idx ) const { return -1; }
+	virtual int  numChannels() const { return 0; }
+	///@}
 };
 
 //=============================================================================

@@ -12,6 +12,7 @@
 #include "ModuleFactory.h"
 #include "ProjectMe.h"
 #include "ShaderEditorWidget.h"
+#include "NodeEditorWidget.h"
 
 #include <QtGui> // FIXME: Include only required Qt classes
 #include <QMdiArea>
@@ -202,6 +203,7 @@ void MainWindow::createModule( int typeId )
 	customModuleInit( m );
 
 	updateTables();
+	m_nodeEditorWidget->setModuleManager( &m_moduleManager );
 }
 
 void MainWindow::customModuleInit()
@@ -288,6 +290,9 @@ void MainWindow::createUI()
 	m_moduleRendererWidget = new ModuleRendererWidget( this, m_sharedGLWidget );
 	m_moduleRendererWidget->setWindowTitle(tr("Module Renderer"));
 
+	m_nodeEditorWidget = new NodeEditorWidget( this );
+	m_nodeEditorWidget->setWindowTitle(tr("Node Editor"));
+
 	// --- dock widgets ---
 
 	QDockWidget* dockModuleManager = new QDockWidget(tr("Module Manager"),this);
@@ -302,9 +307,14 @@ void MainWindow::createUI()
 	dockModuleRenderer->setWidget( m_moduleRendererWidget );
 	dockModuleRenderer->setObjectName("Dock Module Renderer");
 
+	QDockWidget* dockNodeEditor = new QDockWidget(tr("Node Editor"),this);
+	dockNodeEditor->setWidget( m_nodeEditorWidget );
+	dockNodeEditor->setObjectName("Dock Node Editor");
+
 	addDockWidget( Qt::RightDockWidgetArea, dockModuleRenderer );
 	addDockWidget( Qt::RightDockWidgetArea, dockModuleManager );
 	addDockWidget( Qt::RightDockWidgetArea, dockAreaMapper );
+	addDockWidget( Qt::BottomDockWidgetArea, dockNodeEditor );
 	
 	// --- actions ---
 
@@ -416,6 +426,7 @@ void MainWindow::createUI()
 	connect( newModuleMapper, SIGNAL(mapped(int)), this, SLOT(createModule(int)) );
 
 	connect( m_moduleWidget, SIGNAL(moduleNameChanged(int)), m_mapperWidget, SLOT(updateTable()) );
+	connect( m_moduleWidget, SIGNAL(moduleNameChanged(int)), m_nodeEditorWidget, SLOT(updateNodes()) );
 	connect( m_moduleWidget, SIGNAL(moduleChanged(ModuleRenderer*)), m_moduleRendererWidget, SLOT(setModuleRenderer(ModuleRenderer*)) );
 
 	connect( actNewArea, SIGNAL(triggered()), this, SLOT(newArea()) );

@@ -10,6 +10,20 @@
 
 # --> Boost and Qt4 already configures in main CMakeList
 
+#---- qne Qt Node Editor  -----------------------------------------------------
+
+set( qne_SRCS
+	qneblock.h
+	qneconnection.h
+	qneport.h
+	qnodeseditor.h
+	qneblock.cpp
+	qneconnection.cpp
+	qneport.cpp
+	qnodeseditor.cpp
+)
+source_group("qne" FILES ${qne_SRCS})
+
 #---- Qt4 resources & moc -----------------------------------------------------
 
 # Qt4 resource files
@@ -26,6 +40,9 @@ set( projectme_MOC_HDRS
 	CodeEditor.h
 	ShaderEditorWidget.h
 	Highlighter.h
+	NodeEditorWidget.h
+#	${qne_SRCS}
+	qnodeseditor.h
 )
 
 # generate rules for building source files from the Qt resources
@@ -70,6 +87,8 @@ set( gui_SRCS
 	Highlighter.cpp
 	ShaderEditorWidget.h
 	ShaderEditorWidget.cpp
+	NodeEditorWidget.h
+	NodeEditorWidget.cpp
 )
 source_group("gui" FILES ${gui_SRCS})
 
@@ -97,6 +116,7 @@ source_group("engine" FILES ${engine_SRCS})
 add_executable( projectme
 	${scene_SRCS}
 	${gui_SRCS}
+	${qne_SRCS}
 	${engine_SRCS}
 	${projectme_MOC_SRCS}
 	${projectme_RCC_SRCS}

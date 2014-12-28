@@ -18,6 +18,7 @@ ModuleManagerWidget::ModuleManagerWidget( QWidget* parent )
 	m_model = new QStandardItemModel;
 	m_tableView = new QTableView;
 	m_tableView->setModel( m_model );
+	m_tableView->setAlternatingRowColors( true );
 	
 	// Single row selection
 	m_tableView->setSelectionBehavior( QAbstractItemView::SelectRows );

@@ -54,7 +54,8 @@ ShaderModule::ShaderModule()
   m_width(512), m_height(512),
   m_shader(0),
   m_vshader( defaultVertexShader ),
-  m_fshader( defaultFragmentShader )
+  m_fshader( defaultFragmentShader ),
+  m_channels(4,-1)
 {
 }
 
@@ -262,4 +263,25 @@ bool ShaderModule::setShaderSource( const std::string& shader )
 {
 	m_fshader = shader;
 	return compile();
+}
+
+//-----------------------------------------------------------------------------
+void ShaderModule::setChannel( int idx, int texId ) 
+{ 
+	if(idx>=0&&idx<m_channels.size()) 
+		m_channels[idx]=texId;  
+}
+
+//-----------------------------------------------------------------------------
+int ShaderModule::channel( int idx ) const 
+{ 
+	if(idx>=0&&idx<m_channels.size()) 
+		return m_channels[idx];
+	return -1; 
+}
+
+//-----------------------------------------------------------------------------
+int ShaderModule::numChannels() const 
+{ 
+	return (int)m_channels.size(); 
 }
