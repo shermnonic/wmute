@@ -69,7 +69,8 @@ bool QNodesEditor::eventFilter(QObject *o, QEvent *e)
 		case Qt::LeftButton:
 		{
 			QGraphicsItem *item = itemAt(me->scenePos());
-			if (item && item->type() == QNEPort::Type)
+			if( item && item->type() == QNEPort::Type && 
+				((QNEPort*)item)->isNewConnectionAllowed() )
 			{
 				conn = new QNEConnection(0, scene);
 				conn->setPort1((QNEPort*) item);
@@ -135,7 +136,10 @@ bool QNodesEditor::eventFilter(QObject *o, QEvent *e)
 				QNEPort *port1 = conn->port1();
 				QNEPort *port2 = (QNEPort*) item;
 
-				if (port1->block() != port2->block() && port1->isOutput() != port2->isOutput() && !port1->isConnected(port2))
+				if( port1->block() != port2->block() && 
+					port1->isOutput() != port2->isOutput() && 
+					!port1->isConnected(port2) && 
+					port2->isNewConnectionAllowed() )
 				{
 					conn->setPos2(port2->scenePos());
 					conn->setPort2(port2);

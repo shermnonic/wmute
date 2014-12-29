@@ -7,6 +7,7 @@
 class QGraphicsView;
 
 class QNodesEditor;
+class QNEPort;
 class QNEBlock;
 class QNEConnection;
 
@@ -23,13 +24,17 @@ public:
 	NodeEditorWidget( QWidget* parent=0 );
 
 	void setModuleManager( ModuleManager* mm );
-	void setRenderSet( RenderSet* rs );
+	void setRenderSet( RenderSet* rs );	
 
 public slots:
 	void updateNodes();
 
 protected slots:
 	void onConnectionChanged( QNEConnection* );
+	void onConnectionDeleted( QNEConnection* );
+
+protected:
+	ModuleRenderer* findModule( QNEPort* p );
 
 private:
 	QGraphicsView* m_graphicsView;
