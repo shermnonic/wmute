@@ -175,7 +175,7 @@ void MainWindow::createModule( int typeId )
 	customModuleInit( m );
 
 	updateTables();
-	m_nodeEditorWidget->setModuleManager( &m_projectMe.moduleManager() );
+	m_nodeEditorWidget->setProjectMe( &m_projectMe );
 }
 
 void MainWindow::customModuleInit()
@@ -199,6 +199,7 @@ void MainWindow::customModuleInit( ModuleBase* m )
 			pfim->loadImage( filename.toStdString().c_str() );
 	}
 
+#if 0 // OBSOLETE input texture for particle system can be set via node editor
 	// Velocity texture for particle system
 	if( dynamic_cast<ParticleModule*>(m) )
 	{
@@ -223,6 +224,7 @@ void MainWindow::customModuleInit( ModuleBase* m )
 			pm->setForceTexture( mm.modules()[idx]->target() );
 		}
 	}
+#endif
 }
 
 void MainWindow::newArea()

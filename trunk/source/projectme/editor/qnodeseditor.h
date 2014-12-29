@@ -41,7 +41,7 @@ class QNodesEditor : public QObject
 signals:
 	void nodeDeleted( QNEBlock* );
 	void connectionDeleted( QNEConnection* );
-	void connectionChanged( QNEConnection* );
+	void connectionCreated( QNEConnection* );
 
 public:
 	explicit QNodesEditor(QObject *parent = 0);

@@ -11,11 +11,17 @@ class QNEPort;
 class QNEBlock;
 class QNEConnection;
 
-class ModuleManager;
-class RenderSet;
+#include "RenderSet.h" // for ModuleManager
+class ProjectMe;
 class ModuleRenderer;
 
+/**
+	\class NodeEditorWidget
 
+	Simple node editor to connect ModuleRenderer instances.
+
+	Based on QNodesEditor from Stanislaw Adaszewski.
+*/
 class NodeEditorWidget : public QWidget
 {
 	Q_OBJECT
@@ -23,24 +29,23 @@ class NodeEditorWidget : public QWidget
 public:
 	NodeEditorWidget( QWidget* parent=0 );
 
-	void setModuleManager( ModuleManager* mm );
-	void setRenderSet( RenderSet* rs );	
+	void setProjectMe( ProjectMe* pm );
 
 public slots:
 	void updateNodes();
 
 protected slots:
-	void onConnectionChanged( QNEConnection* );
+	void onConnectionCreated( QNEConnection* );
 	void onConnectionDeleted( QNEConnection* );
 
 protected:
 	ModuleRenderer* findModule( QNEPort* p );
+	void updateNodes( ModuleManager::ModuleArray& ma );
 
 private:
 	QGraphicsView* m_graphicsView;
 	QNodesEditor*  m_nodesEditor;
-	ModuleManager* m_moduleManager;
-	RenderSet*     m_renderSet;
+	ProjectMe*     m_projectMe;
 
 	typedef QMap<ModuleRenderer*,QNEBlock*> ModuleBlockMap;
 	ModuleBlockMap m_moduleBlockMap;

@@ -204,6 +204,28 @@ QVector<QNEPort*> QNEBlock::ports()
 	return res;
 }
 
+QVector<QNEPort*> QNEBlock::inputPorts()
+{
+	QVector<QNEPort*> res;
+	foreach(QGraphicsItem *port_, childItems())
+	{
+		if (port_->type() == QNEPort::Type && !((QNEPort*)port_)->isOutput())
+			res.append((QNEPort*) port_);
+	}
+	return res;
+}
+
+QVector<QNEPort*> QNEBlock::outputPorts()
+{
+	QVector<QNEPort*> res;
+	foreach(QGraphicsItem *port_, childItems())
+	{
+		if (port_->type() == QNEPort::Type && ((QNEPort*)port_)->isOutput())
+			res.append((QNEPort*) port_);
+	}
+	return res;
+}
+
 QVariant QNEBlock::itemChange(GraphicsItemChange change, const QVariant &value)
 {
 	return value;

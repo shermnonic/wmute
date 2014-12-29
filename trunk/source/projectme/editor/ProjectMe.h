@@ -2,6 +2,8 @@
 #define PROJECTME_H
 
 #include "RenderSet.h"
+#include "Connection.h"
+#include <vector>
 
 /**
 	\class ProjectMe
@@ -18,14 +20,18 @@ public:
 	void deserialize( Serializable::PropertyTree& pt );
 	///@}
 
+	void clear();
+
 	ModuleManager&    moduleManager   () { return m_moduleManager; }
 	RenderSetManager& renderSetManager() { return m_renderSetManager; }
 
-	void clear();
+	void addConnection( ModuleRenderer* src, ModuleRenderer* dst, int channel );
+	void delConnection( ModuleRenderer* src, ModuleRenderer* dst, int channel );
 
 private:
-	ModuleManager     m_moduleManager;
-	RenderSetManager  m_renderSetManager;
+	ModuleManager    m_moduleManager;
+	RenderSetManager m_renderSetManager;
+	std::vector<Connection> m_connections;
 };
 
 #endif // PROJECTME_H

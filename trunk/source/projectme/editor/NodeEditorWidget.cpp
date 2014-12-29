@@ -12,6 +12,7 @@
 #include <algorithm> // for find()
 
 #include "RenderSet.h" // for RenderSet, ModuleManager, ModuleBase
+#include "ProjectMe.h"
 
 
 /// Helper function for NodeEditorWidget, create a module node
@@ -40,8 +41,7 @@ QNEBlock* createModuleNode( ModuleRenderer* mod, QGraphicsScene* s )
 
 NodeEditorWidget::NodeEditorWidget( QWidget* parent )
 : QWidget( parent ),
-  m_moduleManager( 0 ),
-  m_renderSet( 0 )
+  m_projectMe( 0 )
 {
 	m_graphicsView = new QGraphicsView();
 	
@@ -58,16 +58,16 @@ NodeEditorWidget::NodeEditorWidget( QWidget* parent )
 	layout->setContentsMargins( 0,0,0,0 );
 	setLayout( layout );
 
-	connect( m_nodesEditor, SIGNAL(connectionChanged(QNEConnection*)),
-	         this, SLOT(onConnectionChanged(QNEConnection*)) );
+	connect( m_nodesEditor, SIGNAL(connectionCreated(QNEConnection*)),
+	         this, SLOT(onConnectionCreated(QNEConnection*)) );
 	connect( m_nodesEditor, SIGNAL(connectionDeleted(QNEConnection*)),
 	         this, SLOT(onConnectionDeleted(QNEConnection*)) );
 }
 
-void NodeEditorWidget::setModuleManager( ModuleManager* mm )
+void NodeEditorWidget::setProjectMe( ProjectMe* pm )
 {
-	m_moduleManager = mm;
-	if( !mm )
+	m_projectMe = pm;
+	if( !pm )
 	{
 		// Clear node editor		
 		ModuleBlockMap::iterator it = m_moduleBlockMap.begin();
@@ -84,19 +84,10 @@ void NodeEditorWidget::setModuleManager( ModuleManager* mm )
 	}
 }
 
-void NodeEditorWidget::setRenderSet( RenderSet* rs )
+void NodeEditorWidget::updateNodes( ModuleManager::ModuleArray& m )
 {
-	m_renderSet = rs;
-}
-
-void NodeEditorWidget::updateNodes()
-{
-	if( !m_moduleManager ) return;
-
 	ModuleManager::ModuleArray::iterator mit;
 	ModuleBlockMap::iterator bit;
-
-	ModuleManager::ModuleArray& m = m_moduleManager->modules();
 
 	// Add new modules, update existing ones
 	mit = m.begin();
@@ -120,6 +111,10 @@ void NodeEditorWidget::updateNodes()
 			QString type = QString::fromStdString( mr->getModuleType() ); 
 			b->ports()[0]->setName( name ); // port 0 - name
 			b->ports()[1]->setName( type ); // port 1 - type
+
+			// WORKAROUND: Render set node may have increase its (input) channels
+			while( mr->numChannels() > b->inputPorts().size() )
+				b->addInputPort(QString("channel ")+QString::number(b->inputPorts().size()));
 		}
 	}
 
@@ -137,7 +132,22 @@ void NodeEditorWidget::updateNodes()
 			// Erase this entry from QMap
 			bit = m_moduleBlockMap.erase( bit );
 		}
-	}	
+	}
+}
+
+void NodeEditorWidget::updateNodes()
+{
+	if( !m_projectMe ) return;
+
+	// Treat classical modules
+	ModuleManager::ModuleArray ma = m_projectMe->moduleManager().modules();
+
+	// WORKAROUND: Treat render set as additional module
+	ModuleRenderer* rs = static_cast<ModuleRenderer*>(
+		m_projectMe->renderSetManager().getActiveRenderSet() );
+	ma.push_back( rs );
+	
+	updateNodes( ma );
 }
 
 ModuleRenderer* NodeEditorWidget::findModule( QNEPort* p )
@@ -151,7 +161,7 @@ ModuleRenderer* NodeEditorWidget::findModule( QNEPort* p )
 	return m;
 }
 
-void NodeEditorWidget::onConnectionChanged( QNEConnection* con )
+void NodeEditorWidget::onConnectionCreated( QNEConnection* con )
 {
 	// Ports (with corresponding blocks) are given
 	QNEPort  *p1 = con->port1(),
@@ -171,7 +181,10 @@ void NodeEditorWidget::onConnectionChanged( QNEConnection* con )
 	// Hardcoded channel index mapping (only for input/destination port)
 	// Port p1 must be the single output port ("target") of a ModuleRenderer
 	int ch = p2->block()->ports().indexOf( p2 ) - 2;
-	m2->setChannel( ch, m1->target() );
+	if( m_projectMe )
+		m_projectMe->addConnection( m1, m2, ch );
+	else
+		m2->setChannel( ch, m1->target() );
 }
 
 void NodeEditorWidget::onConnectionDeleted( QNEConnection* con )
@@ -184,5 +197,8 @@ void NodeEditorWidget::onConnectionDeleted( QNEConnection* con )
 	               *m2 = findModule(p2);
 
 	int ch = p2->block()->ports().indexOf( p2 ) - 2;
-	m2->setChannel( ch, -1 ); // Invalidate connection via -1
+	if( m_projectMe )
+		m_projectMe->delConnection( m1, m2, ch );
+	else
+		m2->setChannel( ch, -1 ); // Invalidate connection via -1
 }
