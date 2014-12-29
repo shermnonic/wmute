@@ -235,7 +235,7 @@ typedef std::vector<ModuleRenderer*> RenderAreaModuleMapper;
       editing) but offers utility functoins to pick and edit area vertices.
 	- Areas are edited in normalized coordinates [-1,-1]-[1,1].
 */
-class RenderSet : public Serializable
+class RenderSet : public ModuleRenderer
 {
 public:
 	enum AreaMode { AreaOutline, AreaBlackWhite };
@@ -245,12 +245,27 @@ public:
 
 	void clear() { m_areas.clear(); m_mapper.clear(); }
 
+	/// @name ModuleRenderer implementation
+	///@{
+	void render() { render_internal(-1); } 
+	void render(int texid) { render_internal(texid); } // Workaround
+	int  target() const { return -1; } // no target, immediate mode rendering
+	void destroy() {}
+	///@}
+
+	/// @name Input channels
+	///@{
+	void setChannel( int idx, int texId ); // FIXME: Conflict with addArea(area,module)!
+	int  channel( int idx ) const;
+	int  numChannels() const;
+	///@}
+
 	///@name Rendering
 	///@{
 	/// Draw area and screen outlines
 	void drawOutline() const;	
 	/// Render all attached modules into specified areas
-	void render( int texid=-1 ) const;
+	void render_internal( int texid=-1 ) /*const*/;
 	///@}
 
 	///@name Area editing
@@ -295,6 +310,8 @@ protected:
 
 private:
 	//Rect                   m_screenRect;
+	std::vector<int> m_channels;
+
 	RenderAreaCollection   m_areas;
 	RenderAreaModuleMapper m_mapper;
 
@@ -328,6 +345,13 @@ public:
 	}
 	
 	RenderSet* getActiveRenderSet() 
+	{ 
+		if( m_active >= 0 && m_active < m_set.size() )
+			return &m_set.at(m_active);
+		return 0; 
+	}
+
+	const RenderSet* getActiveRenderSet() const
 	{ 
 		if( m_active >= 0 && m_active < m_set.size() )
 			return &m_set.at(m_active);
