@@ -94,6 +94,8 @@ source_group("gui" FILES ${gui_SRCS})
 
 set( engine_SRCS
 	DistanceTransformFelzenszwalb.h
+	Connection.h
+	Connection.cpp
 	ModuleFactory.h
 	ModuleFactory.cpp
 	RenderSet.h
@@ -109,7 +111,7 @@ set( engine_SRCS
 	ProjectMe.h
 	ProjectMe.cpp
 	hraw.h	
-	hraw.cpp	
+	hraw.cpp
 )
 source_group("engine" FILES ${engine_SRCS})
 

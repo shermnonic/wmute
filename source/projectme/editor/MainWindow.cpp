@@ -128,42 +128,14 @@ MainWindow::~MainWindow()
 
 void MainWindow::createRenderSet()
 {
-	RenderSet* set = m_renderSetManager.getActiveRenderSet();
-
-#if 0 // PREDEFINED mappers and areas
-  #if 0
-	// Create hard-coded setup of N render areas with N ShaderModules
-	const int N = 1;
-	for( int i=0; i < N; i++ )
-	{
-		m_moduleManager.addModule( new ShaderModule );
-	}
-  #else
-	// Create a particle system and a shader module
-	ShaderModule* sm = new ShaderModule;
-	ParticleModule* pm = new ParticleModule;
-	//pm->setForceTexture( sm->target() ); // texture not created yet!
-	m_moduleManager.addModule( sm );
-	m_moduleManager.addModule( pm );
-  #endif	
-    unsigned n = (unsigned)m_moduleManager.modules().size();
-	if( set )
-	{
-		set->clear();
-        for( unsigned i=0; i < n; i++ )
-		{
-			float w = 2.f/ (float)n; // width
-			RenderArea ra( (float)i*w+.1f-1.f, -.9f, (float)(i+1)*w-.1f-1.f, .9f );
-			set->addArea( ra, m_moduleManager.modules().at(i) );
-		}
-	}
-#endif
+	RenderSet* set = m_projectMe.renderSetManager().getActiveRenderSet();
+	ModuleManager* mm = &m_projectMe.moduleManager();
 
 	// Update UI
-	m_sharedGLWidget->setModuleManager( &m_moduleManager );
-	m_moduleWidget  ->setModuleManager( &m_moduleManager );
+	m_sharedGLWidget->setModuleManager( mm );
+	m_moduleWidget  ->setModuleManager( mm );
 	m_mapperWidget  ->setRenderSet( set );
-	m_mapperWidget  ->setModuleManager( &m_moduleManager );
+	m_mapperWidget  ->setModuleManager( mm );
 }
 
 void MainWindow::createModule( int typeId )
@@ -197,13 +169,13 @@ void MainWindow::createModule( int typeId )
 	}
 
 	// Add to module manager	
-	m_moduleManager.addModule( dynamic_cast<ModuleRenderer*>(m) );
+	m_projectMe.moduleManager().addModule( dynamic_cast<ModuleRenderer*>(m) );
 
 	// Custom init
 	customModuleInit( m );
 
 	updateTables();
-	m_nodeEditorWidget->setModuleManager( &m_moduleManager );
+	m_nodeEditorWidget->setModuleManager( &m_projectMe.moduleManager() );
 }
 
 void MainWindow::customModuleInit()
@@ -231,12 +203,13 @@ void MainWindow::customModuleInit( ModuleBase* m )
 	if( dynamic_cast<ParticleModule*>(m) )
 	{
 		ParticleModule* pm = dynamic_cast<ParticleModule*>(m);
+		ModuleManager& mm = m_projectMe.moduleManager();
 
 		// Get list of modules
 		QStringList sl;
-		for( int i=0; i < m_moduleManager.modules().size(); i++ )
+		for( int i=0; i < mm.modules().size(); i++ )
 		{
-			const ModuleRenderer* mr = m_moduleManager.modules()[i];
+			const ModuleRenderer* mr = mm.modules()[i];
 			sl << (mr ? QString::fromStdString(mr->getName()) : "<Invalid module>");
 		}
 
@@ -247,14 +220,14 @@ void MainWindow::customModuleInit( ModuleBase* m )
 		if( ok )
 		{
 			int idx = sl.indexOf(sel);			
-			pm->setForceTexture( m_moduleManager.modules()[idx]->target() );
+			pm->setForceTexture( mm.modules()[idx]->target() );
 		}
 	}
 }
 
 void MainWindow::newArea()
 {
-	m_renderSetManager.getActiveRenderSet()->addArea( RenderArea() );	
+	m_projectMe.renderSetManager().getActiveRenderSet()->addArea( RenderArea() );	
 	m_mapperWidget->updateTable(); // was: updateTables()
 }
 
@@ -447,7 +420,7 @@ void MainWindow::closeEvent( QCloseEvent* event )
 	else
 	{
 		m_sharedGLWidget->makeCurrent(); // Get OpenGL context
-		m_moduleManager.clear();
+		m_projectMe.clear();
 
 		writeSettings();
 		event->accept();
@@ -484,20 +457,9 @@ void MainWindow::open()
 	QFileInfo info( filename );
 	m_baseDir = info.absolutePath();
 
-#if 0
-	// clear modules and areas
-	m_moduleManager.clear();
-	m_renderSetManager.clear();
-#endif
-
-	// TBD: More general load code!
-	ProjectMe pm;
-	pm.setModuleManager( &m_moduleManager );
-	pm.setRenderSetManager( &m_renderSetManager );
-
 	m_sharedGLWidget->makeCurrent(); // Some deserializers require GL context!
 
-	if( pm.deserializeFromDisk( filename.toStdString() ) )
+	if( m_projectMe.deserializeFromDisk( filename.toStdString() ) )
 	{
 		// success		
 		statusBar()->showMessage( tr("Sucessfully loaded %1").arg( filename ) );
@@ -523,11 +485,7 @@ void MainWindow::save()
 	QFileInfo info( filename );
 	m_baseDir = info.absolutePath();
 	
-	// TBD: More general save code!
-	ProjectMe pm;
-	pm.setModuleManager( &m_moduleManager );
-	pm.setRenderSetManager( &m_renderSetManager );
-	pm.serializeToDisk( filename.toStdString() );
+	m_projectMe.serializeToDisk( filename.toStdString() );
 }
 
 void MainWindow::editShader()
@@ -557,7 +515,7 @@ void MainWindow::newPreview()
 		return;
 
 	RenderSetWidget* w = new RenderSetWidget( m_mdiArea, m_sharedGLWidget );
-	w->setRenderSet( m_renderSetManager.getActiveRenderSet() );
+	w->setRenderSet( m_projectMe.renderSetManager().getActiveRenderSet() );
 	QMdiSubWindow* sub = m_mdiArea->addSubWindow( w );
 	w->setWindowTitle("Preview #"+QString::number(windowCount++));
 	w->show();
@@ -572,7 +530,7 @@ void MainWindow::newScreen()
 	static int screenCount = 1;
 	
 	RenderSetWidget* w = new RenderSetWidget( 0, m_sharedGLWidget );
-	w->setRenderSet( m_renderSetManager.getActiveRenderSet() );
+	w->setRenderSet( m_projectMe.renderSetManager().getActiveRenderSet() );
 	w->setWindowTitle("Screen #"+QString::number(screenCount++));
 	w->show();
 
@@ -614,13 +572,13 @@ ModuleBase* MainWindow::getActiveModule()
 		QMessageBox::warning( this, tr("Warning"), tr("No module selected!") );
 		return NULL;
 	}
-	if( idx >= m_moduleManager.modules().size() )
+	if( idx >= m_projectMe.moduleManager().modules().size() )
 	{
 		QMessageBox::warning( this, tr("Error"), tr("Selection out of range?!") );
 		return NULL;
 	}
 
-	return (ModuleBase*)m_moduleManager.modules().at( idx );
+	return (ModuleBase*)m_projectMe.moduleManager().modules().at( idx );
 }
 
 void MainWindow::reloadShader()

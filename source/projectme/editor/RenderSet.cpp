@@ -229,7 +229,8 @@ void RenderArea::deserialize( Serializable::PropertyTree& pt )
 
 //-----------------------------------------------------------------------------
 RenderSet::RenderSet()
-: m_areaMode( AreaOutline ),
+: ModuleRenderer("RenderSet"),
+  m_areaMode( AreaOutline ),
   m_moduleManager( NULL )
 {
 	addArea( RenderArea(), 0 );
@@ -238,8 +239,9 @@ RenderSet::RenderSet()
 //-----------------------------------------------------------------------------
 void RenderSet::addArea( RenderArea area, ModuleRenderer* module )
 {
-	m_areas .push_back( area );
-	m_mapper.push_back( module );
+	m_areas   .push_back( area );
+	m_mapper  .push_back( module );
+	m_channels.push_back( module ? module->target() : -1 );
 }
 
 //-----------------------------------------------------------------------------
@@ -247,7 +249,8 @@ void RenderSet::setModule( int areaIdx, ModuleRenderer* module )
 {
 	if( areaIdx >= 0 && areaIdx < m_areas.size() )
 	{
-		m_mapper[areaIdx] = module;
+		m_mapper[areaIdx]   = module;
+		m_channels[areaIdx] = module->target();
 	}
 	else
 	{
@@ -387,7 +390,7 @@ void RenderSet::drawOutline() const
 }
 
 //-----------------------------------------------------------------------------
-void RenderSet::render( int texid ) const
+void RenderSet::render_internal( int texid ) /*const*/
 {
 	beginRendering();
 
@@ -505,3 +508,21 @@ void RenderSet::deserialize( Serializable::PropertyTree& pt )
 		cerr << "RenderSet::deserialize() : Mismatching number of areas!" << endl;	
 }
 
+//-----------------------------------------------------------------------------
+void RenderSet::setChannel( int idx, int texId )
+{
+	if( idx>=0 && idx<m_channels.size() )
+		m_channels[idx] = texId;
+}
+
+int  RenderSet::channel( int idx ) const
+{
+	if( idx>=0 && idx<m_channels.size() )
+		return m_channels[idx];
+	return -1;
+}
+
+int  RenderSet::numChannels() const
+{
+	return (int)m_channels.size();
+}

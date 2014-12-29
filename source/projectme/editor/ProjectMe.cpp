@@ -6,6 +6,13 @@ using std::cerr;
 using std::endl;
 
 //----------------------------------------------------------------------------
+void ProjectMe::clear()
+{
+	m_moduleManager.clear();
+	m_renderSetManager.clear();
+}
+
+//----------------------------------------------------------------------------
 Serializable::PropertyTree& ProjectMe::serialize() const
 {
 	static Serializable::PropertyTree cache;
@@ -14,25 +21,22 @@ Serializable::PropertyTree& ProjectMe::serialize() const
 	cache.put("ProjectMe.Name",getName());
 	
 	// Serialize modules
-	if( m_moduleManager )
+	const ModuleManager::ModuleArray& modules = m_moduleManager.modules();
+	cache.put("ProjectMe.NumModules",modules.size());
+	for( int i=0; i < modules.size(); i++ )
 	{
-		const ModuleManager::ModuleArray& modules = m_moduleManager->modules();
-		cache.put("ProjectMe.NumModules",modules.size());
-		for( int i=0; i < modules.size(); i++ )
-		{
-			if( modules.at(i) )
-				cache.add_child("ProjectMe.Modules.Module",modules.at(i)->serialize());
-			else
-				cerr << "ProjectMe::serialize() : Encountered void module pointer!" << endl;
-		}
+		if( modules.at(i) )
+			cache.add_child("ProjectMe.Modules.Module",modules.at(i)->serialize());
+		else
+			cerr << "ProjectMe::serialize() : Encountered void module pointer!" << endl;
 	}
 	
 	// Serialize active render set
-	if( m_renderSetManager && m_renderSetManager->getActiveRenderSet() )
+	if( m_renderSetManager.getActiveRenderSet() )
 	{
 		cache.put("ProjectMe.NumRenderSets",1);
 		
-		RenderSet* set = m_renderSetManager->getActiveRenderSet();
+		const RenderSet* set = m_renderSetManager.getActiveRenderSet();
 		cache.add_child("ProjectMe.RenderSets",set->serialize());
 	}
 	
@@ -45,63 +49,60 @@ void ProjectMe::deserialize( Serializable::PropertyTree& pt )
 	setName( pt.get("ProjectMe.Name",getDefaultName()) );
 
 	// Deserialize modules
-	if( m_moduleManager )
-	{
-		int nModules = pt.get("ProjectMe.NumModules",-1);
+	int nModules = pt.get("ProjectMe.NumModules",-1);
 
-		m_moduleManager->clear();
-		ModuleManager::ModuleArray& modules = m_moduleManager->modules();
+	m_moduleManager.clear();
+	ModuleManager::ModuleArray& modules = m_moduleManager.modules();
 		
-		int count=0;
-		BOOST_FOREACH( PropertyTree::value_type& v, pt.get_child("ProjectMe.Modules") )
+	int count=0;
+	BOOST_FOREACH( PropertyTree::value_type& v, pt.get_child("ProjectMe.Modules") )
+	{
+		// Create module instance of specific type
+		if( v.first.compare("Module")==0 )
 		{
-			// Create module instance of specific type
-			if( v.first.compare("Module")==0 )
+			// Get type name
+			ModuleBase base("Foo");
+			base.deserialize( v.second );
+			std::cout << "Module #" << count 
+					    << " type = " << base.getModuleType() << std::endl;
+
+			// Try to create a module with specified type
+			ModuleBase* mod =
+				ModuleFactory::ref().createInstance( base.getModuleType() );
+
+			if( mod )
 			{
-				// Get type name
-				ModuleBase base("Foo");
-				base.deserialize( v.second );
-				std::cout << "Module #" << count 
-					      << " type = " << base.getModuleType() << std::endl;
+				// Module succesfully created!
 
-				// Try to create a module with specified type
-				ModuleBase* mod =
-				  ModuleFactory::ref().createInstance( base.getModuleType() );
-
-				if( mod )
+				// So far, we only support descendent of ModuleRenderer
+				ModuleRenderer* mr = dynamic_cast<ModuleRenderer*>(mod);
+				if( mr )
 				{
-					// Module succesfully created!
-
-					// So far, we only support descendent of ModuleRenderer
-					ModuleRenderer* mr = dynamic_cast<ModuleRenderer*>(mod);
-					if( mr )
-					{
-						m_moduleManager->addModule( mr );
-						mr->deserialize( v.second );
-					}
+					m_moduleManager.addModule( mr );
+					mr->deserialize( v.second );
 				}
-				else
-				{
-					// Module not available in factory :-(
-					std::cerr << "ProjectMe::deserialize() : "
-						<< "Could not instantiate module of type \"" 
-						<< base.getModuleType() << "\"!" << std::endl;
-				}
+			}
+			else
+			{
+				// Module not available in factory :-(
+				std::cerr << "ProjectMe::deserialize() : "
+					<< "Could not instantiate module of type \"" 
+					<< base.getModuleType() << "\"!" << std::endl;
+			}
 				
-				count++;
-			}		
-		}
+			count++;
+		}		
 	}
 	
 	// Deserialize active render set
-	if( m_renderSetManager && m_renderSetManager->getActiveRenderSet() )
+	if( m_renderSetManager.getActiveRenderSet() )
 	{
 		int nSets = pt.get("ProjectMe.NumRenderSets",-1);
 
-		RenderSet* set = m_renderSetManager->getActiveRenderSet();
+		RenderSet* set = m_renderSetManager.getActiveRenderSet();
 
 		// WORKAROUND: RenderSet requires pointer to ModuleManager for mapping
-		set->setModuleManager( m_moduleManager );
+		set->setModuleManager( &m_moduleManager );
 
 		BOOST_FOREACH( PropertyTree::value_type& v, pt.get_child("ProjectMe.RenderSets") )
 		{

@@ -8,6 +8,7 @@
 
 #include <QMainWindow>
 #include "RenderSet.h"
+#include "ProjectMe.h"
 
 class QMdiArea;
 class QGLWidget;
@@ -104,15 +105,14 @@ private:
 	SharedGLContextWidget
 	                *m_sharedGLWidget;
 
-	RenderSetManager m_renderSetManager;
-	ModuleManager    m_moduleManager;
-
 	QString          m_shaderFilename;
 	
 	QMenu* m_menuView;
 
 	QList<RenderSetWidget*> m_previews;
 	QList<RenderSetWidget*> m_screens;
+
+	ProjectMe m_projectMe;
 
 	ModuleManagerWidget*  m_moduleWidget;
 	MapperWidget*         m_mapperWidget;
