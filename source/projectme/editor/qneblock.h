@@ -47,6 +47,8 @@ public:
 	void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 	QNEBlock* clone();
 	QVector<QNEPort*> ports();
+	QVector<QNEPort*> inputPorts();
+	QVector<QNEPort*> outputPorts();
 
 	int type() const { return Type; }
 

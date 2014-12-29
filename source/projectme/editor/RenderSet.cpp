@@ -234,6 +234,7 @@ RenderSet::RenderSet()
   m_moduleManager( NULL )
 {
 	addArea( RenderArea(), 0 );
+	setName("RenderSet");
 }
 
 //-----------------------------------------------------------------------------
@@ -401,9 +402,16 @@ void RenderSet::render_internal( int texid ) /*const*/
 	{
 		if( texid < 0 )
 		{
+			// Channel overrides mapper!
+			if( m_channels[i] >= 0 )
+			{
+				m_areas[i].render( m_channels[i] );
+			}
 			// Default behaviour: Render module textures onto render areas
-			if( !m_mapper[i] ) continue;
-			m_areas[i].render( m_mapper[i]->target() );
+			else if( m_mapper[i] ) 	
+			{
+				m_areas[i].render( m_mapper[i]->target() );
+			}
 		}
 		else
 		{

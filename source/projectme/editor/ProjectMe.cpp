@@ -8,8 +8,49 @@ using std::endl;
 //----------------------------------------------------------------------------
 void ProjectMe::clear()
 {
-	m_moduleManager.clear();
+	m_moduleManager   .clear();
 	m_renderSetManager.clear();
+	m_connections     .clear();
+}
+
+//----------------------------------------------------------------------------
+void ProjectMe
+	::addConnection( ModuleRenderer* src, ModuleRenderer* dst, int channel )
+{
+	Connection c;
+	c.connect( src, dst, channel );
+	m_connections.push_back( c );
+}
+
+void ProjectMe
+	::delConnection( ModuleRenderer* src, ModuleRenderer* dst, int channel )
+{
+	// Find connection
+	std::vector<Connection>::iterator dit = m_connections.end();
+	std::vector<Connection>::iterator it = m_connections.begin();
+	for( ; it != m_connections.end(); ++it )
+	{
+		if( it->source().module == src &&
+		    it->destination().module == dst &&
+		    it->destination().channel == channel )
+		{
+			dit = it;
+			break;
+		}
+	}
+
+	// Delete item (if found)
+	if( dit != m_connections.end() )
+	{
+		m_connections.erase( dit );
+
+		// Disconnect
+		dst->setChannel( channel, -1 );
+	}
+	else
+	{
+		cerr << "ProjectMe::delConnection() : Connection not found!" << endl;
+	}
 }
 
 //----------------------------------------------------------------------------

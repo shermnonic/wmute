@@ -145,7 +145,7 @@ bool QNodesEditor::eventFilter(QObject *o, QEvent *e)
 					conn->setPort2(port2);
 					conn->updatePath();
 
-					emit connectionChanged( conn );
+					emit connectionCreated( conn );
 
 					conn = 0;
 					return true;

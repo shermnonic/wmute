@@ -5,8 +5,7 @@
 /**
 	\class Connection
 	
-	Connect a ModuleRenderer target (output) to a channel (input) or
-	a RenderArea.
+	Connect a ModuleRenderer target (output) to a channel (input).
 */
 class Connection : public Serializable
 {
@@ -20,43 +19,24 @@ public:
 		bool valid() const { return module!=NULL; }
 	};
 	
-	/// We either connect to a ModuleRenderer channel or a RenderArea.
+	/// We either connect to a ModuleRenderer channel.
 	struct Destination
 	{
-		enum Type { TypeNone, TypeModuleRenderer, TypeRenderArea };		
-		int             type;
-
 		ModuleRenderer* module;
 		int             channel;		
-		
-		RenderSet*      set;
-		int             area;
-		
-		Destination(): type(TypeNone), module(0), channel(-1), set(0), area(-1) {}
+		Destination(): module(0), channel(-1) {}
 		Destination(ModuleRenderer* m, int ch)
-			: type(TypeModuleRenderer), module(m), channel(ch), set(0), area(-1) 
-			{}
-		Destination(RenderSet* s, int area)
-			: type(TypeRenderArea), module(0), channel(-1), set(s), area(area)
-			{}
-		
-		bool valid() const 
-			{ return type!=TypeNone && (module!=NULL || set!=NULL); }
+			: module(m), channel(ch)
+			{}		
+		bool valid() const { return module!=NULL; }
 	};
-	
-	Connection();
 	
 	void connect( ModuleRenderer* src, ModuleRenderer* dst, int channel )
 	{
 		m_src = Source(src);
 		m_dst = Destination(dst,channel);
-	}
-	
-	void connect( ModuleRenderer* src, RenderSet* dst, int area )
-	{
-		m_src = Source(src);
-		m_dst = Destination(dst,area);
-	}
+		update();
+	}	
 	
 	void disconnect() { m_src=Source(); m_dst=Destination(); }	
 	
