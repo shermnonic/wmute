@@ -50,6 +50,7 @@ QNEPort::QNEPort(QGraphicsItem *parent, QGraphicsScene *scene):
 	setFlag(QGraphicsItem::ItemSendsScenePositionChanges);
 
 	m_portFlags = 0;
+	m_maxAllowedConnections = -1;
 }
 
 QNEPort::~QNEPort()

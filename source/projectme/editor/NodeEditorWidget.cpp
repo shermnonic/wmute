@@ -26,9 +26,13 @@ QNEBlock* createModuleNode( ModuleRenderer* mod, QGraphicsScene* s )
     b->addPort( type, 0, QNEPort::TypePort ); // port 1 - type
 
 	for( int i=0; i < mod->numChannels(); i++ )
-		b->addInputPort(QString("channel ")+QString::number(i));
+	{
+		QNEPort* p;
+		p = b->addPort(QString("channel ")+QString::number(i),false);
+		p->setMaxAllowedConnections( 1 ); // Inputs have to be unique (for now)
+	}
     
-    b->addOutputPort("target");
+	b->addOutputPort("target");
 
 	return b;
 }
@@ -56,6 +60,8 @@ NodeEditorWidget::NodeEditorWidget( QWidget* parent )
 
 	connect( m_nodesEditor, SIGNAL(connectionChanged(QNEConnection*)),
 	         this, SLOT(onConnectionChanged(QNEConnection*)) );
+	connect( m_nodesEditor, SIGNAL(connectionDeleted(QNEConnection*)),
+	         this, SLOT(onConnectionDeleted(QNEConnection*)) );
 }
 
 void NodeEditorWidget::setModuleManager( ModuleManager* mm )
@@ -134,25 +140,26 @@ void NodeEditorWidget::updateNodes()
 	}	
 }
 
-void NodeEditorWidget::onConnectionChanged( QNEConnection* con )
+ModuleRenderer* NodeEditorWidget::findModule( QNEPort* p )
 {
-	// Ports and corresponding blocks are given
-	QNEPort  *p1 = con->port1(),
-	         *p2 = con->port2();
-	
-	QNEBlock *b1 = p1->block(),
-	         *b2 = p2->block();
-
 	// Find matching modules in our map
-	ModuleRenderer *m1 = NULL,
-	               *m2 = NULL;
+	QNEBlock *b = p->block();
+	ModuleRenderer *m = NULL;
 	ModuleBlockMap::iterator it = m_moduleBlockMap.begin();
 	for( ; it != m_moduleBlockMap.end(); ++it )
-	{
-		if( !m1 && it.value() == b1 ) m1 = it.key();
-		if( !m2 && it.value() == b2 ) m2 = it.key();
-	}
+		if( !m && it.value() == b ) m = it.key();
+	return m;
+}
 
+void NodeEditorWidget::onConnectionChanged( QNEConnection* con )
+{
+	// Ports (with corresponding blocks) are given
+	QNEPort  *p1 = con->port1(),
+	         *p2 = con->port2();	
+	
+	// Find matching modules in our map
+	ModuleRenderer *m1 = findModule(p1),
+	               *m2 = findModule(p2);
 	// Sanity
 	if( !m1 || !m2 )
 	{
@@ -163,6 +170,19 @@ void NodeEditorWidget::onConnectionChanged( QNEConnection* con )
 
 	// Hardcoded channel index mapping (only for input/destination port)
 	// Port p1 must be the single output port ("target") of a ModuleRenderer
-	int ch = b2->ports().indexOf( p2 ) - 2;
+	int ch = p2->block()->ports().indexOf( p2 ) - 2;
 	m2->setChannel( ch, m1->target() );
+}
+
+void NodeEditorWidget::onConnectionDeleted( QNEConnection* con )
+{
+	// See onConnectionChanged() for comments
+	QNEPort  *p1 = con->port1(),
+	         *p2 = con->port2();	
+	
+	ModuleRenderer *m1 = findModule(p1),
+	               *m2 = findModule(p2);
+
+	int ch = p2->block()->ports().indexOf( p2 ) - 2;
+	m2->setChannel( ch, -1 ); // Invalidate connection via -1
 }

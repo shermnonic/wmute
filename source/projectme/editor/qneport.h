@@ -48,6 +48,15 @@ public:
 	QVector<QNEConnection*>& connections();
 	void setPortFlags(int);
 
+	// Note that max allowed connections are not enforced here but in 
+	// qnodeseditor where connections are established.
+	void setMaxAllowedConnections(int i){ m_maxAllowedConnections=i;} // -1 = no restriction
+	int maxAllowedConnections() const { return m_maxAllowedConnections; }
+	bool isNewConnectionAllowed() const 
+	{ 
+		return (m_maxAllowedConnections<0) ? true : (m_connections.size()<m_maxAllowedConnections);
+	}
+
 	const QString& portName() const { return name; }
 	int portFlags() const { return m_portFlags; }
 
@@ -73,6 +82,7 @@ private:
 	QVector<QNEConnection*> m_connections;
 	int m_portFlags;
 	quint64 m_ptr;
+	int m_maxAllowedConnections;
 };
 
 #endif // QNEPORT_H
