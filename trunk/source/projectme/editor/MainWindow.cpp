@@ -136,6 +136,9 @@ void MainWindow::createRenderSet()
 	m_moduleWidget  ->setModuleManager( mm );
 	m_mapperWidget  ->setRenderSet( set );
 	m_mapperWidget  ->setModuleManager( mm );
+
+	m_nodeEditorWidget->setProjectMe( &m_projectMe );
+	m_nodeEditorWidget->updateNodes();
 }
 
 void MainWindow::createModule( int typeId )
@@ -176,6 +179,7 @@ void MainWindow::createModule( int typeId )
 
 	updateTables();
 	m_nodeEditorWidget->setProjectMe( &m_projectMe );
+	// m_nodeEditorWidget->update(); // FIXME: update() not sufficient?!
 }
 
 void MainWindow::customModuleInit()
@@ -231,6 +235,7 @@ void MainWindow::newArea()
 {
 	m_projectMe.renderSetManager().getActiveRenderSet()->addArea( RenderArea() );	
 	m_mapperWidget->updateTable(); // was: updateTables()
+	m_nodeEditorWidget->updateNodes();
 }
 
 void MainWindow::updateTables()
