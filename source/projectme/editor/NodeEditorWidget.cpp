@@ -26,16 +26,27 @@ QNEBlock* createModuleNode( ModuleRenderer* mod, QGraphicsScene* s )
     b->addPort( name, 0, QNEPort::NamePort ); // port 0 - name
     b->addPort( type, 0, QNEPort::TypePort ); // port 1 - type
 
+	if( dynamic_cast<RenderSet*>(mod) )
+	{ 
+		// Not output ports for RenderSet node
+	}
+	else
+		b->addOutputPort("target");
+
 	for( int i=0; i < mod->numChannels(); i++ )
 	{
 		QNEPort* p;
-		p = b->addPort(QString("channel ")+QString::number(i),false);
+		QString id = dynamic_cast<RenderSet*>(mod) ? "area " : "channel ";
+		p = b->addPort(id+QString::number(i),false);
 		p->setMaxAllowedConnections( 1 ); // Inputs have to be unique (for now)
-	}
-    
-	b->addOutputPort("target");
+	}    
 
 	return b;
+}
+
+int getChannel( QNEPort* p )
+{
+	return p->block()->inputPorts().indexOf(p) - 2;
 }
 
 
@@ -113,8 +124,8 @@ void NodeEditorWidget::updateNodes( ModuleManager::ModuleArray& m )
 			b->ports()[1]->setName( type ); // port 1 - type
 
 			// WORKAROUND: Render set node may have increase its (input) channels
-			while( mr->numChannels() > b->inputPorts().size() )
-				b->addInputPort(QString("channel ")+QString::number(b->inputPorts().size()));
+			while( mr->numChannels() > (b->inputPorts().size()-2) ) // Subtract name and type ports!
+				b->addInputPort(QString("area ")+QString::number(b->inputPorts().size()-2));
 		}
 	}
 
@@ -180,7 +191,7 @@ void NodeEditorWidget::onConnectionCreated( QNEConnection* con )
 
 	// Hardcoded channel index mapping (only for input/destination port)
 	// Port p1 must be the single output port ("target") of a ModuleRenderer
-	int ch = p2->block()->ports().indexOf( p2 ) - 2;
+	int ch = p2->block()->inputPorts().indexOf( p2 ) - 2;
 	if( m_projectMe )
 		m_projectMe->addConnection( m1, m2, ch );
 	else
@@ -196,7 +207,7 @@ void NodeEditorWidget::onConnectionDeleted( QNEConnection* con )
 	ModuleRenderer *m1 = findModule(p1),
 	               *m2 = findModule(p2);
 
-	int ch = p2->block()->ports().indexOf( p2 ) - 2;
+	int ch = p2->block()->inputPorts().indexOf( p2 ) - 2;
 	if( m_projectMe )
 		m_projectMe->delConnection( m1, m2, ch );
 	else
