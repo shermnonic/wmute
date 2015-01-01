@@ -200,3 +200,17 @@ void QNodesEditor::load(QDataStream &ds)
 		}
 	}
 }
+
+void QNodesEditor::eraseConnections()
+{
+	/*
+	QList<QGraphicsItem*>::iterator it = scene->items().begin();
+	for( ; it != scene->items().end(); ++it )
+	{
+		if( (*it) && (*it)->type() == QNEConnection::Type )
+		{
+			scene->removeItem( *it );
+		}
+	}
+	*/
+}

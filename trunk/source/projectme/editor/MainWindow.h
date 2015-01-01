@@ -86,6 +86,8 @@ private slots:
 	void customModuleInit( ModuleBase* m );
 	void newArea();
 
+	void forceRender();
+
 protected:
 	void createUI();
 	void createRenderSet();

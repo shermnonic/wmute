@@ -129,6 +129,7 @@ MainWindow::~MainWindow()
 void MainWindow::createRenderSet()
 {
 	RenderSet* set = m_projectMe.renderSetManager().getActiveRenderSet();
+	set->setProjectMe( &m_projectMe );
 	ModuleManager* mm = &m_projectMe.moduleManager();
 
 	// Update UI
@@ -389,7 +390,6 @@ void MainWindow::createUI()
 	menuAreas = menuBar()->addMenu( tr("Areas") );
 	menuAreas->addAction( actNewArea );
 
-
 	// --- connections ---
 
 	connect( actOpen, SIGNAL(triggered()), this, SLOT(open() ) );
@@ -412,6 +412,8 @@ void MainWindow::createUI()
 	connect( actNewArea, SIGNAL(triggered()), this, SLOT(newArea()) );
 
 	connect( actModuleInit, SIGNAL(triggered()), this, SLOT(customModuleInit()) );
+
+	connect( m_nodeEditorWidget, SIGNAL(connectionChanged()), this, SLOT(updateTables()) );
 }
 
 void MainWindow::closeEvent( QCloseEvent* event )
@@ -478,6 +480,14 @@ void MainWindow::open()
 	}
 
 	updateTables();
+	m_nodeEditorWidget->setProjectMe( &m_projectMe );
+	m_nodeEditorWidget->updateNodes();
+	m_nodeEditorWidget->updateConnections();
+
+	// Trigger render to force GL initialization of all modules. This results
+	// in valid texture ids for channels.
+	forceRender();	
+	m_projectMe.touchConnections();
 }
 
 void MainWindow::save()
@@ -543,6 +553,14 @@ void MainWindow::newScreen()
 
 	m_screens.append( w );
 	updateViewMenu();
+}
+
+void MainWindow::forceRender()
+{
+	m_sharedGLWidget->updateGL();
+	m_sharedGLWidget->updateGL();
+	m_sharedGLWidget->updateGL();
+	QApplication::processEvents();
 }
 
 void MainWindow::updateViewMenu()

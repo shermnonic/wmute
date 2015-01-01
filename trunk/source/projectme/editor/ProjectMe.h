@@ -14,6 +14,8 @@
 class ProjectMe : public Serializable
 {
 public:
+	typedef std::vector<Connection> Connections;
+
 	/// @name Serialization
 	///@{
 	PropertyTree& serialize() const;
@@ -21,17 +23,24 @@ public:
 	///@}
 
 	void clear();
-
+	
 	ModuleManager&    moduleManager   () { return m_moduleManager; }
 	RenderSetManager& renderSetManager() { return m_renderSetManager; }
+	RenderSet*        activeRenderSet() { return m_renderSetManager.getActiveRenderSet(); }
+	Connections&      connections() { return m_connections; }
 
 	void addConnection( ModuleRenderer* src, ModuleRenderer* dst, int channel );
 	void delConnection( ModuleRenderer* src, ModuleRenderer* dst, int channel );
 
+	void touchConnections();
+
+	ModuleRenderer* moduleFromTarget( int texid );
+	ModuleRenderer* moduleFromNameAndType( std::string name, std::string type );
+
 private:
 	ModuleManager    m_moduleManager;
 	RenderSetManager m_renderSetManager;
-	std::vector<Connection> m_connections;
+	Connections      m_connections;
 };
 
 #endif // PROJECTME_H

@@ -2,6 +2,8 @@
 #define CONNECTION_H
 #include "RenderSet.h" // for ModuleRenderer
 
+class ProjectMe;
+
 /**
 	\class Connection
 	
@@ -10,7 +12,7 @@
 class Connection : public Serializable
 {
 public:	
-	/// We connect from a ModuleRenderer target.
+	/// Connections emanate from the single target of a  ModuleRenderer.
 	struct Source
 	{			
 		ModuleRenderer* module;		
@@ -19,7 +21,7 @@ public:
 		bool valid() const { return module!=NULL; }
 	};
 	
-	/// We either connect to a ModuleRenderer channel.
+	/// Connections end at a specific channel of a ModuleRenderer.
 	struct Destination
 	{
 		ModuleRenderer* module;
@@ -30,6 +32,11 @@ public:
 			{}		
 		bool valid() const { return module!=NULL; }
 	};
+
+	Connection()
+	{
+		Serializable::setName("Connection");
+	}
 	
 	void connect( ModuleRenderer* src, ModuleRenderer* dst, int channel )
 	{
@@ -47,19 +54,19 @@ public:
 
 	void update();
 	
-	/// @name Serialization (not implemented yet!)
+	/// @name Serialization
 	///@{
-	PropertyTree& serialize() const 
-	{ 
-		static Serializable::PropertyTree cache;
-		return cache; 
-	}
-	void deserialize( Serializable::PropertyTree& pt ) {}
+	PropertyTree& serialize() const;
+	void deserialize( Serializable::PropertyTree& pt );
 	///@}
+
+	// ProjectMe instance required for deserialization (to resolve module pointers)
+	void setProjectMe( ProjectMe* pm ) { m_projectMe = pm; }
 
 private:
 	Source      m_src;
 	Destination m_dst;
+	ProjectMe*  m_projectMe;
 };
 
 #endif // CONNECTION_H

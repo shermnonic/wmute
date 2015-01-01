@@ -49,6 +49,11 @@ int getChannel( QNEPort* p )
 	return p->block()->inputPorts().indexOf(p) - 2;
 }
 
+QNEPort* getInputPort( QNEBlock* b, int channel )
+{
+	return b->inputPorts()[ channel + 2 ];
+}
+
 
 NodeEditorWidget::NodeEditorWidget( QWidget* parent )
 : QWidget( parent ),
@@ -93,6 +98,41 @@ void NodeEditorWidget::setProjectMe( ProjectMe* pm )
 	{
 		updateNodes();
 	}
+}
+
+void NodeEditorWidget::updateConnections()
+{
+	if( !m_projectMe )
+		return;
+
+	m_nodesEditor->eraseConnections();
+
+	typedef ProjectMe::Connections Connections;
+	Connections& cons = m_projectMe->connections();
+	Connections::iterator it = cons.begin();
+
+	for( ; it != cons.end(); ++it )
+	{
+		ModuleManager::ModuleArray::iterator mit;
+		ModuleBlockMap::iterator bit;
+
+		QNEBlock 
+			*block1 = findBlock( it->source().module ),
+			*block2 = findBlock( it->destination().module );
+		if( !block1 || !block2 )
+		{
+			continue;
+		}
+
+		QNEPort
+			*port1 = block1->outputPorts()[0], // unique output "target"
+			*port2 = getInputPort( block2, it->destination().channel );
+
+		QNEConnection* con = new QNEConnection(0, m_graphicsView->scene());
+		con->setPort1( port1 );
+		con->setPort2( port2 );
+		con->updatePosFromPorts();
+	}	
 }
 
 void NodeEditorWidget::updateNodes( ModuleManager::ModuleArray& m )
@@ -172,6 +212,14 @@ ModuleRenderer* NodeEditorWidget::findModule( QNEPort* p )
 	return m;
 }
 
+QNEBlock* NodeEditorWidget::findBlock( ModuleRenderer* mr )
+{
+	ModuleBlockMap::iterator it = m_moduleBlockMap.begin();
+	for( ; it != m_moduleBlockMap.end(); ++it )
+		if( it.key()==mr ) return it.value();
+	return NULL;
+}
+
 void NodeEditorWidget::onConnectionCreated( QNEConnection* con )
 {
 	// Ports (with corresponding blocks) are given
@@ -196,6 +244,8 @@ void NodeEditorWidget::onConnectionCreated( QNEConnection* con )
 		m_projectMe->addConnection( m1, m2, ch );
 	else
 		m2->setChannel( ch, m1->target() );
+
+	emit connectionChanged();
 }
 
 void NodeEditorWidget::onConnectionDeleted( QNEConnection* con )
@@ -212,4 +262,6 @@ void NodeEditorWidget::onConnectionDeleted( QNEConnection* con )
 		m_projectMe->delConnection( m1, m2, ch );
 	else
 		m2->setChannel( ch, -1 ); // Invalidate connection via -1
+
+	emit connectionChanged();
 }
