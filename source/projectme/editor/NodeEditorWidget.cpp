@@ -132,7 +132,8 @@ void NodeEditorWidget::updateConnections()
 		con->setPort1( port1 );
 		con->setPort2( port2 );
 		con->updatePosFromPorts();
-	}	
+		con->updatePath();
+	}
 }
 
 void NodeEditorWidget::updateNodes( ModuleManager::ModuleArray& m )
@@ -151,6 +152,10 @@ void NodeEditorWidget::updateNodes( ModuleManager::ModuleArray& m )
 			// Add new node
 			QNEBlock* b = createModuleNode( mr, m_graphicsView->scene() );
 
+			// Position node
+			ModuleRenderer::Position pos = mr->position();			
+			b->setPos( b->mapFromScene( pos.x, pos.y ) ); // was: b->setPos( pos.x, pos.y );
+
 			// Insert new entry into QMap
 			m_moduleBlockMap.insert( mr, b );
 		}
@@ -166,6 +171,9 @@ void NodeEditorWidget::updateNodes( ModuleManager::ModuleArray& m )
 			// WORKAROUND: Render set node may have increase its (input) channels
 			while( mr->numChannels() > (b->inputPorts().size()-2) ) // Subtract name and type ports!
 				b->addInputPort(QString("area ")+QString::number(b->inputPorts().size()-2));
+
+			// Update ModuleRenderer data (just position for now)
+			mr->setPosition( ModuleRenderer::Position(b->scenePos().x(),b->scenePos().y()) );
 		}
 	}
 

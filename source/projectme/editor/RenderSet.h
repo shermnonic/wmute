@@ -96,6 +96,11 @@ public:
 		: ModuleBase( typeName )
 	{}
 
+	///@{ Serialization of node editor hints (e.g. position)
+	virtual PropertyTree& serialize() const;
+	virtual void deserialize( PropertyTree& pt );
+	///@}
+
 	/// Render the effect into a texture
 	virtual void render() = 0;
 	/// Return the texture id where the effect has rendered into
@@ -109,6 +114,20 @@ public:
 	virtual int  channel( int idx ) const { return -1; }
 	virtual int  numChannels() const { return 0; }
 	///@}
+
+	/// @name Node editor hints
+	///@{
+	struct Position { 
+		float x, y;
+		Position():x(0.),y(0.) {}
+		Position( float x_, float y_ ):x(x_),y(y_) {}
+	};
+	void setPosition( Position p ) { m_position = p; }
+	Position position() const { return m_position; }
+	///@}
+
+private:
+	Position m_position;
 };
 
 //=============================================================================
