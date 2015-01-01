@@ -1,4 +1,5 @@
 #include "RenderSet.h"
+#include "ProjectMe.h" // RenderSet depends on ProjectMe
 #include "glbase.h"
 #include <iostream>
 #include <boost/foreach.hpp>
@@ -231,7 +232,8 @@ void RenderArea::deserialize( Serializable::PropertyTree& pt )
 RenderSet::RenderSet()
 : ModuleRenderer("RenderSet"),
   m_areaMode( AreaOutline ),
-  m_moduleManager( NULL )
+  m_moduleManager( NULL ),
+  m_projectMe( NULL )
 {
 	addArea( RenderArea(), 0 );
 	setName("RenderSet");
@@ -251,7 +253,8 @@ void RenderSet::setModule( int areaIdx, ModuleRenderer* module )
 	if( areaIdx >= 0 && areaIdx < m_areas.size() )
 	{
 		m_mapper[areaIdx]   = module;
-		m_channels[areaIdx] = module->target();
+		m_channels[areaIdx] = module ? module->target() : -1;
+			// WORKAROUND: Synchronize channels with mapper
 	}
 	else
 	{
@@ -520,7 +523,13 @@ void RenderSet::deserialize( Serializable::PropertyTree& pt )
 void RenderSet::setChannel( int idx, int texId )
 {
 	if( idx>=0 && idx<m_channels.size() )
+	{
 		m_channels[idx] = texId;
+
+		// WORKAROUND: Synchronize module mapper with channels
+		if( m_projectMe )
+			setModule( idx, m_projectMe->moduleFromTarget( texId ) );
+	}
 }
 
 int  RenderSet::channel( int idx ) const

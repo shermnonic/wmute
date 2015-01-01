@@ -222,6 +222,8 @@ private:
 //  RenderSet
 //=============================================================================
 
+class ProjectMe;
+
 typedef std::vector<RenderArea>      RenderAreaCollection;
 typedef std::vector<ModuleRenderer*> RenderAreaModuleMapper;
 
@@ -303,6 +305,8 @@ public:
 
 	// WORKAROUND: Module manager is required for deserialization!
 	void setModuleManager( ModuleManager* mm ) { m_moduleManager = mm; }
+	// WORKAROUND: ProjectMe instance is required for mapping!
+	void setProjectMe( ProjectMe* pm ) { m_projectMe = pm; }
 
 protected:
 	void beginRendering() const;
@@ -316,6 +320,7 @@ private:
 	RenderAreaModuleMapper m_mapper;
 
 	ModuleManager* m_moduleManager;
+	ProjectMe* m_projectMe;
 
 	int m_activeArea;
 	int m_pickedVertex;

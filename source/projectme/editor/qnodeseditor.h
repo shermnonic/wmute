@@ -53,6 +53,9 @@ public:
 	void save(QDataStream &ds);
 	void load(QDataStream &ds);
 
+	// WORKAROUND
+	void eraseConnections();
+
 private:
 	QGraphicsItem *itemAt(const QPointF&);
 
