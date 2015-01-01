@@ -2,15 +2,13 @@ h2. Projectme
 
 Projection mapping to several rectangular surfaces.
 
-h3. Sprint Dec2014
+h3. TODO
 
-TODO
 * Global FPS timing.
 * Texture multiplexer (can be realized via cascading shaders)
 * ModuleRenderer shader	(e.g. intensity scaling)
 * Scripting
 * Log window
-* Node editor / connection serialization
 * PotentialFromImageModule serializer
 * Custom module properties widget
 	- Special UI for shader modules (SM property widget?)
@@ -20,10 +18,11 @@ TODO
 	- Automatic derived properties w/ UI.	
 * Spectrum analyzer module
 
-DONE
+h3. Sprint Dec2014
+
+* Node editor / connection serialization
 * Node editor (texture channel flow)
 * Shader editor
 * Dynamic module creation (factory pattern)
 * UI to assign modules to render areas ("Mapper widget")
 * Module viewer (render only the output of a single module)
-
