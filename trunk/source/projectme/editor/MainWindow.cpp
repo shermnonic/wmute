@@ -502,6 +502,9 @@ void MainWindow::save()
 	QFileInfo info( filename );
 	m_baseDir = info.absolutePath();
 	
+	// Update node editor infos (e.g. set position attribute of ModuleRenderer nodes)
+	m_nodeEditorWidget->updateNodes();
+
 	m_projectMe.serializeToDisk( filename.toStdString() );
 }
 

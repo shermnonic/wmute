@@ -48,6 +48,30 @@ void ModuleBase::deserialize( Serializable::PropertyTree& pt )
 	m_moduleTypeName = pt.get("ModuleBase.Type",string("<Unknown type>"));
 }
 
+//=============================================================================
+//  ModuleRenderer
+//=============================================================================
+
+//-----------------------------------------------------------------------------
+Serializable::PropertyTree& ModuleRenderer::serialize() const
+{
+	static Serializable::PropertyTree cache = ModuleBase::serialize();
+	cache.put("ModuleRenderer.Position.x",m_position.x);
+	cache.put("ModuleRenderer.Position.y",m_position.y);
+	return cache;
+}
+
+//-----------------------------------------------------------------------------
+void ModuleRenderer::deserialize( Serializable::PropertyTree& pt )
+{
+	ModuleBase::deserialize( pt );
+
+	float
+		x = pt.get("ModuleRenderer.Position.x",0.f),
+		y = pt.get("ModuleRenderer.Position.y",0.f);
+
+	setPosition( Position(x,y) );
+}
 
 //=============================================================================
 //  RenderArea

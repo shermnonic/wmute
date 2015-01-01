@@ -203,14 +203,22 @@ void QNodesEditor::load(QDataStream &ds)
 
 void QNodesEditor::eraseConnections()
 {
-	/*
-	QList<QGraphicsItem*>::iterator it = scene->items().begin();
-	for( ; it != scene->items().end(); ++it )
+	QList<QGraphicsItem*> items = scene->items();
+	QList<QGraphicsItem*>::iterator it = items.begin();
+	QList<QGraphicsItem*> conItems;
+	for( ; it != items.end(); ++it )
 	{
-		if( (*it) && (*it)->type() == QNEConnection::Type )
+		QGraphicsItem* item = *it;
+		if( item && item->type() == QNEConnection::Type )
 		{
-			scene->removeItem( *it );
+			conItems.push_back( item );
 		}
 	}
-	*/
+
+	for( it = conItems.begin(); it != conItems.end(); it++ )
+	{
+		scene->removeItem( *it );
+		delete *it;
+	}
+	scene->update();
 }
