@@ -33,12 +33,15 @@ bool Serializable::deserializeFromDisk( string filename )
 //  ModuleBase
 //=============================================================================
 
+std::map<std::string,int> ModuleBase::s_typeCount;
+
 //-----------------------------------------------------------------------------
 Serializable::PropertyTree& ModuleBase::serialize() const
 {
 	static Serializable::PropertyTree cache;
 	cache.clear();
-	cache.put("ModuleBase.Type",m_moduleTypeName);
+	cache.put("ModuleBase.Type",getModuleType());
+	cache.put("ModuleBase.Name",getName());
 	return cache;
 }
 
@@ -46,7 +49,20 @@ Serializable::PropertyTree& ModuleBase::serialize() const
 void ModuleBase::deserialize( Serializable::PropertyTree& pt )
 {
 	m_moduleTypeName = pt.get("ModuleBase.Type",string("<Unknown type>"));
+	setName( pt.get("ModuleBase.Name", getDefaultName()) );
 }
+
+//-----------------------------------------------------------------------------
+std::string ModuleBase::getDefaultName()
+{
+	std::stringstream ss;
+	if( !s_typeCount.count( getModuleType() ) )
+		ss << Serializable::getDefaultName();
+	else
+		ss << getModuleType() << s_typeCount[getModuleType()];
+	return ss.str();
+}
+
 
 //=============================================================================
 //  ModuleRenderer
@@ -458,7 +474,6 @@ Serializable::PropertyTree& RenderSet::serialize() const
 	static Serializable::PropertyTree cache;
 	cache = ModuleRenderer::serialize();
 	
-	cache.put("RenderSet.Name",getName());
 	cache.put("RenderSet.NumAreas",m_areas.size());
 
 	// Write render area configuration
@@ -500,11 +515,11 @@ void RenderSet::deserialize( Serializable::PropertyTree& pt )
 		return;
 	}
 
-	string name = pt.get("RenderSet.Name",getDefaultName());
 	int numAreas = pt.get<int>("RenderSet.NumAreas",0);
 
 	clear();
-	m_mapper.resize( numAreas, NULL );
+	m_mapper  .resize( numAreas, NULL ); // Mappings can be deserialized before areas
+	m_channels.resize( numAreas );
 	
 	BOOST_FOREACH( PropertyTree::value_type& v, pt.get_child("RenderSet") )
 	{		
@@ -513,6 +528,7 @@ void RenderSet::deserialize( Serializable::PropertyTree& pt )
 		{
 			RenderArea area;
 			area.deserialize( v.second );
+			addArea( area, NULL );
 			m_areas.push_back( area );
 		}
 		else
@@ -529,6 +545,7 @@ void RenderSet::deserialize( Serializable::PropertyTree& pt )
 			{
 				// Set mapping
 				m_mapper[idx] = mod;
+				m_channels[idx] = mod ? mod->target() : -1;
 			}
 			else
 			{

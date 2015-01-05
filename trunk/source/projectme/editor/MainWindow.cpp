@@ -302,6 +302,7 @@ void MainWindow::createUI()
 	QAction
 		*actOpen,
 		*actSave,
+		*actClear,
 		*actQuit,
 		*actNewPreview,
 		*actNewScreen,
@@ -316,6 +317,8 @@ void MainWindow::createUI()
 
 	actSave = new QAction( tr("&Save project..."), this );
 	actSave->setShortcut( tr("Ctrl+S") );
+
+	actClear = new QAction( tr("&New project"), this );
 	
 	actQuit = new QAction( tr("&Quit"), this );
 	actQuit->setStatusTip( tr("Quit application.") );
@@ -344,6 +347,7 @@ void MainWindow::createUI()
 		*menuAreas;
 
 	menuFile = menuBar()->addMenu( tr("&File") );
+	menuFile->addAction( actClear );
 	menuFile->addAction( actOpen );
 	menuFile->addAction( actSave );
 	menuFile->addSeparator();
@@ -392,6 +396,7 @@ void MainWindow::createUI()
 
 	// --- connections ---
 
+	connect( actClear,SIGNAL(triggered()), this, SLOT(clear()) );
 	connect( actOpen, SIGNAL(triggered()), this, SLOT(open() ) );
 	connect( actSave, SIGNAL(triggered()), this, SLOT(save() ) );
 	connect( actQuit, SIGNAL(triggered()), qApp, SLOT(closeAllWindows()) );
@@ -479,13 +484,28 @@ void MainWindow::open()
 		statusBar()->showMessage( tr("Failed to load %1!").arg( filename ) );
 	}
 
-	updateTables();
+	updateProject();
+}
+
+void MainWindow::clear()
+{
+	// TODO: Show "Are you sure?" dialog
+
+	m_nodeEditorWidget->setProjectMe( NULL );
+	m_projectMe.clear();
+	updateProject();
+}
+
+void MainWindow::updateProject()
+{
+	// Update GUI.
+	updateTables();	
 	m_nodeEditorWidget->setProjectMe( &m_projectMe );
 	m_nodeEditorWidget->updateNodes();
 	m_nodeEditorWidget->updateConnections();
 
 	// Trigger render to force GL initialization of all modules. This results
-	// in valid texture ids for channels.
+	// in valid texture ids for all channels.
 	forceRender();	
 	m_projectMe.touchConnections();
 }
