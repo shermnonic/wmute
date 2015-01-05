@@ -55,7 +55,8 @@ void ModuleBase::deserialize( Serializable::PropertyTree& pt )
 //-----------------------------------------------------------------------------
 Serializable::PropertyTree& ModuleRenderer::serialize() const
 {
-	static Serializable::PropertyTree cache = ModuleBase::serialize();
+	static Serializable::PropertyTree cache;
+	cache = ModuleBase::serialize();
 	cache.put("ModuleRenderer.Position.x",m_position.x);
 	cache.put("ModuleRenderer.Position.y",m_position.y);
 	return cache;
@@ -455,7 +456,7 @@ void RenderSet::render_internal( int texid ) /*const*/
 Serializable::PropertyTree& RenderSet::serialize() const
 {
 	static Serializable::PropertyTree cache;
-	cache.clear();
+	cache = ModuleRenderer::serialize();
 	
 	cache.put("RenderSet.Name",getName());
 	cache.put("RenderSet.NumAreas",m_areas.size());

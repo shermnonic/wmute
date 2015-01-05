@@ -235,7 +235,8 @@ void ShaderModule::render()
 //-----------------------------------------------------------------------------
 Serializable::PropertyTree& ShaderModule::serialize() const
 {
-	static Serializable::PropertyTree cache = Super::serialize();
+	static Serializable::PropertyTree cache;
+	cache = Super::serialize();
 	
 	cache.put("ShaderModule.Name",getName());
 	cache.put("ShaderModule.FragmentShader",m_fshader);
