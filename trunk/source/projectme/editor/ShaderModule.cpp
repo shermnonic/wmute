@@ -180,8 +180,13 @@ void ShaderModule::render()
 	m_shader->bind();
 	checkGLError( "ShaderModule::render() - After shader bind" );
 
-	GLint iResolution = m_shader->getUniformLocation("iResolution");
-	GLint iGlobalTime = m_shader->getUniformLocation("iGlobalTime");
+	GLint 
+		iResolution = m_shader->getUniformLocation("iResolution"),
+		iGlobalTime = m_shader->getUniformLocation("iGlobalTime"),
+		iChannel0   = m_shader->getUniformLocation("iChannel0"),
+		iChannel1   = m_shader->getUniformLocation("iChannel1"),
+		iChannel2   = m_shader->getUniformLocation("iChannel2"),
+		iChannel3   = m_shader->getUniformLocation("iChannel3");
 	if( iResolution >= 0 )
 	{
 		GLfloat res[3]; 
@@ -198,7 +203,23 @@ void ShaderModule::render()
 		glUniform1f( m_shader->getUniformLocation( "iGlobalTime" ), time );
 		checkGLError( "ShaderModule::render() - After glUniform1f()" );
 	}
+	if( iChannel0 >= 0 ) glUniform1i( iChannel0, 0 );
+	if( iChannel1 >= 0 ) glUniform1i( iChannel1, 1 );
+	if( iChannel2 >= 0 ) glUniform1i( iChannel2, 2 );
+	if( iChannel3 >= 0 ) glUniform1i( iChannel3, 3 );
 	checkGLError( "ShaderModule::render() - After shader uniform setup" );
+
+	// Bind textures
+	for( int i=0; i < 4; i++ )
+	{
+		if( m_channels[i] >= 0 )
+		{
+			glActiveTexture( GL_TEXTURE0 + i );
+			glBindTexture( GL_TEXTURE_2D, m_channels[i] );
+		}
+	}
+	glActiveTexture( GL_TEXTURE0 );
+	checkGLError( "ShaderModule::render() - After setting texture channels" );
 	
 	if( m_r2t.bind( m_target.GetID() ) )
 	{
@@ -226,6 +247,14 @@ void ShaderModule::render()
 	{
 		cerr << "ShaderModule::render() : Could not bind framebuffer!" << endl;
 	}
+
+	// Unbind textures
+	for( int i=0; i < 4; i++ )
+	{
+		glActiveTexture( GL_TEXTURE0 + i );
+		glBindTexture( GL_TEXTURE_2D, 0 ); // unbind
+	}
+	glActiveTexture( GL_TEXTURE0 );
 	
 	m_shader->release();
 	

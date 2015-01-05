@@ -66,7 +66,8 @@ Highlighter::Highlighter(QTextDocument *parent)
 	 keywordPatterns << "\\buniform\\b" << "\\bvarying\\b"
 		             << "\\bvec2\\b" << "\\bvec3\\b" << "\\bvec4\\b"
 					 << "\\bmat2\\b" << "\\bmat3\\b" << "\\bmat4\\b"
-					 << "\\bgl_FragCoord\\b" << "\\bgl_FragColor\\b";
+					 << "\\bgl_FragCoord\\b" << "\\bgl_FragColor\\b"
+					 << "\\bsampler2D\\b" << "\\btexture2D\\b";
      
 	 foreach (const QString &pattern, keywordPatterns) {
          rule.pattern = QRegExp(pattern);
