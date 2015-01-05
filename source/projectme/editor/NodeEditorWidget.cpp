@@ -26,7 +26,8 @@ QNEBlock* createModuleNode( ModuleRenderer* mod, QGraphicsScene* s )
     b->addPort( name, 0, QNEPort::NamePort ); // port 0 - name
     b->addPort( type, 0, QNEPort::TypePort ); // port 1 - type
 
-	if( dynamic_cast<RenderSet*>(mod) )
+	RenderSet* rs = dynamic_cast<RenderSet*>(mod);
+	if( rs )
 	{ 
 		// Not output ports for RenderSet node
 	}
@@ -36,7 +37,7 @@ QNEBlock* createModuleNode( ModuleRenderer* mod, QGraphicsScene* s )
 	for( int i=0; i < mod->numChannels(); i++ )
 	{
 		QNEPort* p;
-		QString id = dynamic_cast<RenderSet*>(mod) ? "area " : "channel ";
+		QString id = rs ? "area " : "channel ";
 		p = b->addPort(id+QString::number(i),false);
 		p->setMaxAllowedConnections( 1 ); // Inputs have to be unique (for now)
 	}    
@@ -93,6 +94,8 @@ void NodeEditorWidget::setProjectMe( ProjectMe* pm )
 			delete it.value();  it.value() = NULL;
 		}
 		m_moduleBlockMap.clear();
+
+		m_nodesEditor->clear();
 	}
 	else
 	{
@@ -146,6 +149,9 @@ void NodeEditorWidget::updateNodes( ModuleManager::ModuleArray& m )
 	for( ; mit != m.end(); ++mit )
 	{
 		ModuleRenderer* mr = *mit;
+
+		if( !mr ) continue;
+
 		bit = m_moduleBlockMap.find( mr );
 		if( bit == m_moduleBlockMap.end() )
 		{
@@ -182,6 +188,9 @@ void NodeEditorWidget::updateNodes( ModuleManager::ModuleArray& m )
 	for( ; bit != m_moduleBlockMap.end(); ++bit )
 	{
 		ModuleRenderer* mr = bit.key();
+
+		if( !mr ) continue;
+
 		mit = std::find( m.begin(), m.end(), mr );
 		if( mit == m.end() )
 		{

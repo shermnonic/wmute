@@ -86,6 +86,7 @@ bool PotentialFromImageModule::loadImage( const char* filename )
 	m_data   = grad;
 	m_width  = width;
 	m_height = height;
+	m_filename = std::string(filename);
 		
 	m_dirty = true; // Upload texture in next render() call
 		
@@ -141,9 +142,9 @@ void PotentialFromImageModule::render()
 //-----------------------------------------------------------------------------
 Serializable::PropertyTree& PotentialFromImageModule::serialize() const
 {
-	static Serializable::PropertyTree cache = Super::serialize();
+	static Serializable::PropertyTree cache;
+	cache = Super::serialize();
 	
-	cache.put("PotentialFromImageModule.Name",getName());
 	cache.put("PotentialFromImageModule.Texture.Filename",m_filename);
 
 	return cache;
@@ -154,10 +155,18 @@ void PotentialFromImageModule::deserialize( Serializable::PropertyTree& pt )
 {
 	Super::deserialize( pt );
 
-	setName( pt.get("ShaderModule.Name", getDefaultName()) );
-	std::string filename = pt.get( "ShaderModule.Texture.Filename", "" );
+	std::string filename = pt.get( "PotentialFromImageModule.Texture.Filename", "" );
 	if( !filename.empty() )
-		m_filename = filename;
+	{
+		if( !loadImage( filename.c_str() ) )
+		{
+			cerr << "PotentialFromImageModule::deserialize : "
+				"Could not load texture \"" << filename << "\"!" << endl;
+		}
+	}
 	else
-		cerr << "PotentialFromImageModule::deserialize : No texture filename given!" << endl;
+	{
+		cerr << "PotentialFromImageModule::deserialize : "
+			"No texture filename given!" << endl;
+	}
 }

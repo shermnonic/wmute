@@ -55,6 +55,7 @@ public:
 
 	// WORKAROUND
 	void eraseConnections();
+	void clear();
 
 private:
 	QGraphicsItem *itemAt(const QPointF&);

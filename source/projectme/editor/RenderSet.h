@@ -37,7 +37,7 @@ public:
 	///@{ Access name
 	std::string getName() const { return m_name; }
 	void setName( const std::string& name ) { m_name = name; }
-	static std::string getDefaultName()
+	virtual std::string getDefaultName()
 	{
 		static int count=0;
 		std::stringstream ss;
@@ -60,10 +60,21 @@ private:
 */
 class ModuleBase : public Serializable
 {
+	static std::map<std::string,int> s_typeCount;
+
 public:
 	ModuleBase( std::string typeName )
 		: m_moduleTypeName( typeName )
-	{}
+	{
+		s_typeCount[typeName]++;
+		setName( getDefaultName() );
+	}
+
+	~ModuleBase()
+	{
+		if( s_typeCount.count(m_moduleTypeName) )
+			s_typeCount[m_moduleTypeName]--;
+	}
 
 	/// Return type of module as string
 	std::string getModuleType() const { return m_moduleTypeName; }
@@ -75,6 +86,9 @@ public:
 	virtual PropertyTree& serialize() const;
 	virtual void deserialize( PropertyTree& pt );
 	///@}
+
+	/// Override default name with numbered module type string
+	virtual std::string getDefaultName();
 
 protected:
 	std::string m_moduleTypeName;
@@ -363,9 +377,7 @@ public:
 	RenderSetManager()
 	: m_active(-1)
 	{
-		// Provide a single RenderSet by default
-		m_set.push_back( RenderSet() );
-		m_active = 0;
+		setup();
 	}
 	
 	RenderSet* getActiveRenderSet() 
@@ -388,6 +400,16 @@ public:
 		for( ; it != m_set.end(); ++it )
 			it->clear();
 		m_set.clear();
+
+		setup();
+	}
+
+protected:
+	void setup()
+	{
+		// Provide a single RenderSet by default
+		m_set.push_back( RenderSet() );
+		m_active = 0;
 	}
 
 private:

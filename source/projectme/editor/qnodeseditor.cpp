@@ -222,3 +222,8 @@ void QNodesEditor::eraseConnections()
 	}
 	scene->update();
 }
+
+void QNodesEditor::clear()
+{ 
+	if( scene ) scene->clear(); 
+}

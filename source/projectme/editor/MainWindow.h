@@ -69,14 +69,16 @@ public:
 public slots:
 	void open();
 	void save();
+	void clear();
 
 private slots:
 	void newPreview();
 	void newScreen();
 	void updateViewMenu();
 
-	void updateTables();
-	
+	void updateTables();	
+	void updateProject(); // Also calls updateTables()
+
 	void loadShader();
 	void reloadShader();
 	void editShader();

@@ -236,9 +236,8 @@ void ShaderModule::render()
 Serializable::PropertyTree& ShaderModule::serialize() const
 {
 	static Serializable::PropertyTree cache;
-	cache = Super::serialize();
-	
-	cache.put("ShaderModule.Name",getName());
+	cache = Super::serialize();	
+
 	cache.put("ShaderModule.FragmentShader",m_fshader);
 
 	return cache;
@@ -249,7 +248,6 @@ void ShaderModule::deserialize( Serializable::PropertyTree& pt )
 {
 	Super::deserialize( pt );
 
-	setName( pt.get("ShaderModule.Name", getDefaultName()) );
 	std::string fshader = pt.get( "ShaderModule.FragmentShader", "" );
 	if( !fshader.empty() )
 		m_fshader = fshader;

@@ -162,9 +162,9 @@ void ParticleModule::render()
 Serializable::PropertyTree& ParticleModule::serialize() const
 {
 	static Serializable::PropertyTree cache;
-	cache = Super::serialize();
-	
-	cache.put("ParticleModule.Name",getName());
+	cache = Super::serialize();	
+
+	// Nothing to serialize yet!
 
 	return cache;
 }
@@ -174,5 +174,5 @@ void ParticleModule::deserialize( Serializable::PropertyTree& pt )
 {
 	Super::deserialize( pt );
 
-	setName( pt.get("ParticleModule.Name", getDefaultName()) );
+	// Nothing to deserialize yet!
 }
