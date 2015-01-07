@@ -329,7 +329,20 @@ void ParticleSystem::render()
 	glActiveTexture( GL_TEXTURE0 + 0 );	glBindTexture( GL_TEXTURE_2D, m_texPos[bufid] );
 	glActiveTexture( GL_TEXTURE0 + 1 );	glBindTexture( GL_TEXTURE_2D, m_texVel[bufid] );
 	if( m_texSprite >= 0 )
+	{
+		glPointSize( 10.f );
+		glEnable( GL_POINT_SPRITE );
+		glTexEnvi( GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE );
+		glEnable( GL_BLEND );
+		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 		glActiveTexture( GL_TEXTURE0 + 2 ); glBindTexture( GL_TEXTURE_2D, m_texSprite );
+	}
+	else
+	{
+		glDisable( GL_BLEND );
+		glDisable( GL_POINT_SPRITE );
+		glPointSize( 1.5f );
+	}
 	glActiveTexture( GL_TEXTURE0 );
 	checkGLError("ParticleSystem::render() : After texture bind");
 
@@ -348,6 +361,8 @@ void ParticleSystem::render()
 		glBindTexture( GL_TEXTURE_2D, 0 );
 	}
 	glActiveTexture( GL_TEXTURE0 );
+	glDisable( GL_BLEND );
+	glDisable(GL_POINT_SPRITE);
 
 	m_renderShader->release();
 	checkGLError("ParticleSystem::render() : After shader release");
