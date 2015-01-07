@@ -4,6 +4,7 @@
 #include "MainWindow.h"
 #include "ShaderModule.h"
 #include "ParticleModule.h"
+#include "ImageModule.h"
 #include "PotentialFromImageModule.h"
 #include "RenderSetWidget.h"
 #include "ModuleManagerWidget.h"
@@ -202,6 +203,17 @@ void MainWindow::customModuleInit( ModuleBase* m )
 
 		if( !filename.isEmpty() )
 			pfim->loadImage( filename.toStdString().c_str() );
+	}
+
+	if( dynamic_cast<ImageModule*>(m) )
+	{
+		ImageModule* im = dynamic_cast<ImageModule*>(m);
+
+		QString filename = QFileDialog::getOpenFileName( this, tr("Load image"),
+			tr(""), tr("*.png;*.jpg") );
+
+		if( !filename.isEmpty() )
+			im->loadImage( filename.toStdString().c_str() );
 	}
 
 #if 0 // OBSOLETE input texture for particle system can be set via node editor

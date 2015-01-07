@@ -21,6 +21,20 @@ ParticleModule::ParticleModule()
 }
 
 //----------------------------------------------------------------------------
+void ParticleModule::setChannel( int idx, int texId ) 
+{ 
+	if( idx==1 )
+		m_ps.setSpriteTexture( texId );
+	else
+		m_ps.setForceTexture(texId); 
+}
+
+int ParticleModule::channel( int idx ) const 
+{ 
+	return idx==1 ? m_ps.getSpriteTexture() : m_ps.getForceTexture(); 
+}
+
+//----------------------------------------------------------------------------
 bool ParticleModule::init()
 {
 	// Create texture
