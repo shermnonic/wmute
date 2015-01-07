@@ -100,8 +100,8 @@ private:
            m_height;
 
 	GLuint m_texForce,    ///< Force / acceleration texture
-	       m_curTexForce, ///< Currently active force texture (maybe set from outside)
-		   m_texSprite;
+	       m_curTexForce; ///< Currently active force texture (maybe set from outside)
+	int	   m_texSprite;
 	GLuint m_texBirthPos, ///< Particle re-incarnation positions
 	       m_texBirthVel; ///< Particle re-incarnation velocities
 	GLuint m_texPos[2],   ///< Particle position double-buffer
