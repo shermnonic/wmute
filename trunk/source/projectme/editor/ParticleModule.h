@@ -37,9 +37,9 @@ public:
 
 	///@name ModuleRenderer channels implementation
 	///@{
-	void setChannel( int idx, int texId ) { m_ps.setForceTexture(texId); }
-	int  channel( int idx ) const { return m_ps.getForceTexture(); }
-	int  numChannels() const { return 1; }
+	void setChannel( int idx, int texId );
+	int  channel( int idx ) const;
+	int  numChannels() const { return 2; }
 	///@}
 	
 	/// @name Serialization

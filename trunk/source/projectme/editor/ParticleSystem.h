@@ -58,6 +58,15 @@ public:
 	{
 		return m_curTexForce;
 	}
+
+	void setSpriteTexture( int texid )
+	{
+		m_texSprite = texid;
+	}
+	int getSpriteTexture() const
+	{
+		return m_texSprite;
+	}
 	
 protected:	
 	void loadShadersFromDisk();
@@ -91,7 +100,8 @@ private:
            m_height;
 
 	GLuint m_texForce,    ///< Force / acceleration texture
-	       m_curTexForce; ///< Currently active force texture (maybe set from outside)
+	       m_curTexForce, ///< Currently active force texture (maybe set from outside)
+		   m_texSprite;
 	GLuint m_texBirthPos, ///< Particle re-incarnation positions
 	       m_texBirthVel; ///< Particle re-incarnation velocities
 	GLuint m_texPos[2],   ///< Particle position double-buffer

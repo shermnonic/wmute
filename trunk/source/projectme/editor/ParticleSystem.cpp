@@ -67,7 +67,8 @@ ParticleSystem::ParticleSystem()
   m_advectShader( NULL ),
   m_width ( 256 ),
   m_height( 256 ),
-  m_curTargetBuf( 1 )
+  m_curTargetBuf( 1 ),
+  m_texSprite( -1 )
 {
 }
 
@@ -315,15 +316,21 @@ void ParticleSystem::render()
 	// Uniforms
 	GLint iPos = m_renderShader->getUniformLocation("iPos");
 	GLint iVel = m_renderShader->getUniformLocation("iVel");
+	GLint iDoSprite = m_renderShader->getUniformLocation("doSprite");
+	GLint iSprite   = m_renderShader->getUniformLocation("sprite");
 	glUniform1i( iPos,   0 ); // Texture unit 0 - Position
 	glUniform1i( iVel,   1 ); // Texture unit 1 - Velocity	
+	glUniform1i( iSprite,2 ); // Texture unit 2 - Point Sprite (if any)
+	glUniform1i( iDoSprite, m_texSprite >= 0 );
 	checkGLError("ParticleSystem::render() : After setting shader uniforms");
 
 	// Bind position and velocity texture
 	GLint bufid = m_curTargetBuf;
 	glActiveTexture( GL_TEXTURE0 + 0 );	glBindTexture( GL_TEXTURE_2D, m_texPos[bufid] );
 	glActiveTexture( GL_TEXTURE0 + 1 );	glBindTexture( GL_TEXTURE_2D, m_texVel[bufid] );
-	glActiveTexture( GL_TEXTURE0 + 0 );
+	if( m_texSprite >= 0 )
+		glActiveTexture( GL_TEXTURE0 + 2 ); glBindTexture( GL_TEXTURE_2D, m_texSprite );
+	glActiveTexture( GL_TEXTURE0 );
 	checkGLError("ParticleSystem::render() : After texture bind");
 
 	// Generate vertex stream, position data will be replaced in shader
@@ -333,6 +340,14 @@ void ParticleSystem::render()
 	glDrawArrays( GL_POINTS, 0, m_width*m_height ); // number of vertices
 
 	glFlush(); // FIXME
+
+	// Unbind textures
+	for( int i=0; i < 3; i++ )
+	{
+		glActiveTexture( GL_TEXTURE0 + i );
+		glBindTexture( GL_TEXTURE_2D, 0 );
+	}
+	glActiveTexture( GL_TEXTURE0 );
 
 	m_renderShader->release();
 	checkGLError("ParticleSystem::render() : After shader release");

@@ -106,6 +106,8 @@ set( engine_SRCS
 	ParticleModule.cpp
 	ParticleSystem.h
 	ParticleSystem.cpp
+	ImageModule.h
+	ImageModule.cpp
 	PotentialFromImageModule.h
 	PotentialFromImageModule.cpp
 	ProjectMe.h
