@@ -48,7 +48,7 @@ bool PotentialFromImageModule::loadImage( const char* filename )
 		for( int x=0; x < width; x++, ofs++ )
 		{
 			// Just consider R channel for now
-			QRgb color = img->pixel(x,y);						
+			QRgb color = img->pixel(x,height-y-1);
 			float scalar = qRed(color);
 			// Threshold
 			cbuf[ofs] = (scalar > threshold) ? 1 : 0;

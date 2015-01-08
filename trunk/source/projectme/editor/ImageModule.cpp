@@ -47,7 +47,7 @@ bool ImageModule::loadImage( const char* filename )
 		for( int x=0; x < width; x++ )
 		{
 			// Just consider R channel for now
-			QRgb color = img->pixel(x,y);
+			QRgb color = img->pixel(x,height-y-1); // Flip upside-down
 			cbuf[ofs++] = qRed  (color);
 			cbuf[ofs++] = qGreen(color);
 			cbuf[ofs++] = qBlue (color);
