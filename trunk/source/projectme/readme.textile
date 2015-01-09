@@ -17,6 +17,8 @@ h3. TODO
 	  (e.g. "float foo = 7.5; //[-1.0,10.0]")
 	- Automatic derived properties w/ UI.	
 * Spectrum analyzer module
+* Particle system: Fade particles over lifetime
+* Particle system: Mixture of velocity textures
 
 h3. Sprint Dec2014
 
