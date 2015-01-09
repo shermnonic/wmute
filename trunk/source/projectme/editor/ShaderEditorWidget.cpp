@@ -79,6 +79,7 @@ void ShaderEditorWidget::updateShader()
 	if( m_shaderModule->setShaderSource( text.toStdString() ) )
 	{
 		setDirty( false );
+		emit shaderUpdated((ModuleBase*)m_shaderModule);
 	}
 }
 
