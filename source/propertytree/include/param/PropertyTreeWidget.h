@@ -22,7 +22,10 @@ class PropertyTreeView;
 /// Widget to show and edit a a \a ParameterList in a \a PropertyTreeView.
 class QPARAMS_EXPORT PropertyTreeWidget : public QWidget
 {
-	//Q_OBJECT
+	Q_OBJECT
+
+signals:
+	void parameterChanged( ParameterBase* );
 
 public:
 	PropertyTreeWidget( QWidget* parent=0 );
@@ -30,7 +33,10 @@ public:
 	void setParameters( ParameterList* params );
 
 protected:
-	QStandardItem* getParameterValueItem( ParameterBase* p );
+	QStandardItem* getParameterValueItem( ParameterBase* p );	
+
+protected slots:
+	void onItemChanged( QStandardItem* item );
 
 private:
 	QStandardItemModel* m_model;	
