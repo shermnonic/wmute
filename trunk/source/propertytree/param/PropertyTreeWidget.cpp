@@ -8,6 +8,9 @@
 #include <QTreeView>
 #include <QVBoxLayout>
 #include <QStringList>
+#include <QDebug>
+
+#include <cassert>
 
 PropertyTreeWidget
   ::PropertyTreeWidget( QWidget* parent )
@@ -22,7 +25,38 @@ PropertyTreeWidget
 
 	QVBoxLayout* layout = new QVBoxLayout;
 	layout->addWidget( m_view );
-	setLayout( layout );	
+	setLayout( layout );
+
+	connect( m_model, SIGNAL(itemChanged(QStandardItem*)), 
+	         this, SLOT(onItemChanged(QStandardItem*)) );
+}
+
+void PropertyTreeWidget
+  ::onItemChanged( QStandardItem* item )
+{
+	// Sanity
+	if( !m_params )
+	{
+		qDebug() << "PropertyTreeWidget::onItemChanged : "
+			"Missing parameter list!";
+		return;
+	}
+
+	// Assume 1-1 index to item correspondence
+	int idx = item->index().row();
+
+	// Sanity
+	if( idx<0 || idx>=m_params->size() )
+	{
+		qDebug() << "PropertyTreeWidget::onItemChanged : "
+			"Mismatching index!";
+		return;
+	}
+
+	// Emit parameterChanged() signal
+	ParameterBase* p = m_params->at(idx);
+	assert( p );
+	emit parameterChanged( p );
 }
 
 void PropertyTreeWidget
