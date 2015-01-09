@@ -330,7 +330,7 @@ void ParticleSystem::render()
 	glActiveTexture( GL_TEXTURE0 + 1 );	glBindTexture( GL_TEXTURE_2D, m_texVel[bufid] );
 	if( m_texSprite >= 0 )
 	{
-		glPointSize( 10.f );
+		glPointSize( 10.f * m_pointSize );
 		glEnable( GL_POINT_SPRITE );
 		glTexEnvi( GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE );
 		glEnable( GL_BLEND );
@@ -341,7 +341,7 @@ void ParticleSystem::render()
 	{
 		glDisable( GL_BLEND );
 		glDisable( GL_POINT_SPRITE );
-		glPointSize( 1.5f );
+		glPointSize( m_pointSize );
 	}
 	glActiveTexture( GL_TEXTURE0 );
 	checkGLError("ParticleSystem::render() : After texture bind");

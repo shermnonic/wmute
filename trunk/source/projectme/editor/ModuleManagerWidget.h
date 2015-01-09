@@ -11,6 +11,7 @@ class QStandardItem;
 // Custom forwards
 class ModuleManager;
 class ModuleRenderer;
+class ModuleBase;
 
 /**
 	\class ModuleManagerWidget
@@ -24,6 +25,7 @@ Q_OBJECT
 signals:
 	void moduleNameChanged( int idx );
 	void moduleChanged( ModuleRenderer* mod );
+	void moduleChanged( ModuleBase* mod );
 	
 public:
 	ModuleManagerWidget( QWidget* parent=0 );

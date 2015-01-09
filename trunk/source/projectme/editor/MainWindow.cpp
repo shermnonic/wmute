@@ -9,6 +9,7 @@
 #include "RenderSetWidget.h"
 #include "ModuleManagerWidget.h"
 #include "ModuleRendererWidget.h"
+#include "ModuleParameterWidget.h"
 #include "MapperWidget.h"
 #include "ModuleFactory.h"
 #include "ProjectMe.h"
@@ -179,9 +180,9 @@ void MainWindow::createModule( int typeId )
 	// Custom init
 	customModuleInit( m );
 
+	// Update gui
 	updateTables();
-	m_nodeEditorWidget->setProjectMe( &m_projectMe );
-	// m_nodeEditorWidget->update(); // FIXME: update() not sufficient?!
+	m_nodeEditorWidget->setProjectMe( &m_projectMe );	
 }
 
 void MainWindow::customModuleInit()
@@ -283,22 +284,29 @@ void MainWindow::createUI()
 	m_moduleRendererWidget = new ModuleRendererWidget( this, m_sharedGLWidget );
 	m_moduleRendererWidget->setWindowTitle(tr("Module Renderer"));
 
+	m_moduleParameterWidget = new ModuleParameterWidget( this );
+	m_moduleParameterWidget->setWindowTitle(tr("Module Parameters"));
+
 	m_nodeEditorWidget = new NodeEditorWidget( this );
 	m_nodeEditorWidget->setWindowTitle(tr("Node Editor"));
 
 	// --- dock widgets ---
 
-	QDockWidget* dockModuleManager = new QDockWidget(tr("Module Manager"),this);
+	QDockWidget* dockModuleManager = new QDockWidget(m_moduleWidget->windowTitle(),this);
 	dockModuleManager->setWidget( m_moduleWidget );
 	dockModuleManager->setObjectName("Dock Module Manager");
 
-	QDockWidget* dockAreaMapper = new QDockWidget(tr("Area Mapper"),this);
+	QDockWidget* dockAreaMapper = new QDockWidget(m_mapperWidget->windowTitle(),this);
 	dockAreaMapper->setWidget( m_mapperWidget );
 	dockAreaMapper->setObjectName("Dock Area Mapper");
 
-	QDockWidget* dockModuleRenderer = new QDockWidget(tr("Module Renderer"),this);
+	QDockWidget* dockModuleRenderer = new QDockWidget(m_moduleRendererWidget->windowTitle(),this);
 	dockModuleRenderer->setWidget( m_moduleRendererWidget );
 	dockModuleRenderer->setObjectName("Dock Module Renderer");
+
+	QDockWidget* dockModuleParameters = new QDockWidget(m_moduleParameterWidget->windowTitle(),this);
+	dockModuleParameters->setWidget( m_moduleParameterWidget );
+	dockModuleParameters->setObjectName("Dock Module Parameters");
 
 	QDockWidget* dockNodeEditor = new QDockWidget(tr("Node Editor"),this);
 	dockNodeEditor->setWidget( m_nodeEditorWidget );
@@ -306,6 +314,7 @@ void MainWindow::createUI()
 
 	addDockWidget( Qt::RightDockWidgetArea, dockModuleRenderer );
 	addDockWidget( Qt::RightDockWidgetArea, dockModuleManager );
+	addDockWidget( Qt::LeftDockWidgetArea, dockModuleParameters );
 	addDockWidget( Qt::RightDockWidgetArea, dockAreaMapper );
 	addDockWidget( Qt::BottomDockWidgetArea, dockNodeEditor );
 	
@@ -425,6 +434,7 @@ void MainWindow::createUI()
 	connect( m_moduleWidget, SIGNAL(moduleNameChanged(int)), m_mapperWidget, SLOT(updateTable()) );
 	connect( m_moduleWidget, SIGNAL(moduleNameChanged(int)), m_nodeEditorWidget, SLOT(updateNodes()) );
 	connect( m_moduleWidget, SIGNAL(moduleChanged(ModuleRenderer*)), m_moduleRendererWidget, SLOT(setModuleRenderer(ModuleRenderer*)) );
+	connect( m_moduleWidget, SIGNAL(moduleChanged(ModuleBase*)), m_moduleParameterWidget, SLOT(setModule(ModuleBase*)) );
 
 	connect( actNewArea, SIGNAL(triggered()), this, SLOT(newArea()) );
 

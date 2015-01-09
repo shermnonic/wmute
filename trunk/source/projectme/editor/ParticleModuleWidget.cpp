@@ -7,8 +7,7 @@ MODULEWIDGETFACTORY_REGISTER( ParticleModuleWidget, "ParticleModule" )
 ParticleModuleWidget
 	::ParticleModuleWidget( QWidget* parent )
 	: ModuleWidget( parent )
-{
-	
+{	
 }
 
 bool ParticleModuleWidget
