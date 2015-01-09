@@ -567,6 +567,8 @@ void MainWindow::editShader()
 		
 		//w->setWindowTitle(tr("Editor %1").arg( name ));
 		w->show();
+
+		connect( w, SIGNAL(shaderUpdated(ModuleBase*)), m_moduleParameterWidget, SLOT(setModule(ModuleBase*)) );
 	}
 }
 

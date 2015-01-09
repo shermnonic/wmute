@@ -2,8 +2,10 @@
 #include <glutils/GLError.h>
 #include <iostream>
 #include <ctime>
+#include <cstdlib> // for atof()
 using std::cerr;
 using std::endl;
+using std::string;
 #ifdef GL_NAMESPACE
 using GL::checkGLError;
 #endif
@@ -46,6 +48,109 @@ defaultUniforms +
 "	vec2 uv = gl_FragCoord.xy / iResolution.xy;\n"
 "	gl_FragColor = vec4(uv,0.5+0.5*sin(iGlobalTime),1.0);\n"
 "}";
+
+//----------------------------------------------------------------------------
+//  Shader preprocessing utilities
+//----------------------------------------------------------------------------
+
+struct ShaderVariable
+{
+	std::string type, name, value;
+	
+	ShaderVariable() {}
+	ShaderVariable( std::string type_, std::string name_, std::string value_ )
+		: type(type_), name(name_), value(value_) {}
+};	
+
+typedef std::vector<ShaderVariable> ShaderVariables;
+
+std::string preprocessShader( std::string shader, ShaderVariables& vars )
+{
+	using namespace std;
+	
+	const string MARKER("//###");
+	
+	istringstream ss( shader );
+	stringstream os;
+	
+	string line, comment;
+	int lineCount=1;
+	while( getline( ss, line ) )
+	{
+		// Look for marker
+		size_t found = line.find( MARKER );
+		if( found != string::npos )
+		{
+			// Marker found
+			comment = line.substr( found+MARKER.length() );
+			line = line.substr( 0, found );
+			
+			// Replace '=' with ' '
+			size_t p;
+			while( (p = line.find( '=' )) != string::npos )
+				line.replace( p, 1, " " );
+			
+			// Erase ';'
+			while( (p = line.find( ';' )) != string::npos )
+				line.erase( p, 1 );
+			
+			// Tokenize
+			// See http://stackoverflow.com/questions/236129/split-a-string-in-c
+			istringstream tmp(line);
+			vector<string> tokens;
+			copy( istream_iterator<string>(tmp),
+				  istream_iterator<string>(),
+			      back_inserter(tokens) );			
+			
+			if( tokens.size() < 2 || tokens.size() > 3 )
+			{
+				cerr << "ShaderModule::preprocess() : "
+					"Syntax error in shader variable definition on line " 
+					<< lineCount << ":" << endl
+					<< line << endl;
+				os << line << "\n"; // Copy line w/o transforming				
+			}
+			
+			// Parse 			
+			// 	<type> <name> [=<default_value>];
+			string 
+				sType(tokens[0]), 
+				sName(tokens[1]), 
+				sDefault(tokens.size()>2?tokens[2]:string());
+			
+			// So far we only support 'float' type
+			if( sType.compare("float")==0 )
+			{			
+				// Store variable
+				vars.push_back( ShaderVariable( sType, sName, sDefault ) );
+				
+				// Transform to uniform in output
+				os << "uniform " << sType << " " << sName << ";\n";			
+			}
+			else
+			{
+				cerr << "ShaderModule::preprocess() : "
+					"Non float shader variable defined on line " 
+					<< lineCount << " not supported yet:" << endl
+					<< line << endl;
+				os << line << "\n"; // Copy line w/o transforming
+			}
+		}
+		else
+		{
+			// Marker not found, simply copy line
+			os << line << "\n";
+		}
+		
+		lineCount++;
+	}	
+	
+	return os.str();
+}
+
+//=============================================================================
+//  ShaderModule implementation
+//=============================================================================
 
 //----------------------------------------------------------------------------
 ShaderModule::ShaderModule()
@@ -114,7 +219,9 @@ void ShaderModule::destroy()
 //----------------------------------------------------------------------------
 bool ShaderModule::compile()
 {
-	return compile( m_vshader, m_fshader );
+	// Preprocessing is applied on each compilation!
+	string fshaderProcessed = preprocess(m_fshader);
+	return compile( m_vshader, fshaderProcessed );
 }
 
 //----------------------------------------------------------------------------
@@ -142,6 +249,8 @@ bool ShaderModule::loadShader( const char* filename )
 
 	// Replace current fragment shader on succesfull compilation
 	m_fshader = fshader;
+	// Compile again, this time with preprocessing!
+	compile();
 	return checkGLError( "ShaderModule::loadShader() : GL error at exit!" );
 }
 
@@ -208,6 +317,15 @@ void ShaderModule::render()
 	if( iChannel2 >= 0 ) glUniform1i( iChannel2, 2 );
 	if( iChannel3 >= 0 ) glUniform1i( iChannel3, 3 );
 	checkGLError( "ShaderModule::render() - After shader uniform setup" );
+
+	// Set custom uniforms (found and defined in preprocessing)	
+	for( int i=0; i < m_uniformParams.floats.size(); i++ )
+	{
+		GLint loc = m_shader->getUniformLocation( m_uniformParams.floats[i].key().c_str() );
+		if( loc >= 0 )
+			glUniform1f( loc, (float)m_uniformParams.floats[i].value() );
+	}
+	checkGLError( "ShaderModule::render() - After shader custom uniform setup" );
 
 	// Bind textures
 	for( int i=0; i < 4; i++ )
@@ -312,4 +430,42 @@ int ShaderModule::channel( int idx ) const
 int ShaderModule::numChannels() const 
 { 
 	return (int)m_channels.size(); 
+}
+
+//----------------------------------------------------------------------------
+std::string ShaderModule::preprocess( std::string shader )
+{	
+	using namespace std;	
+	
+	ShaderVariables vars;
+	string shaderProcessed = preprocessShader( shader, vars );
+	
+	// Collect 'float' parameters
+	m_uniformParams.floats.clear();
+	for( int i=0; i < vars.size(); i++ )
+	{
+		string key = vars[i].name;
+		
+		// Assume 'float' type
+		DoubleParameter p( key );
+		
+		// Set default value (if specified)
+		p.setValueAndDefault( !vars[i].value.empty() ? atof(vars[i].value.c_str()) : 1.0 );
+		
+		// Get value from existing 'float' (if available)
+		DoubleParameter* cur = dynamic_cast<DoubleParameter*>
+		                                      ( parameters().get_param( key ) );
+		if( cur )
+			p.setValue( dynamic_cast<DoubleParameter*>(cur)->value() );
+		
+		m_uniformParams.floats.push_back( p );
+	}	
+	
+	// Re-create parameter list 
+	// (So far it only contains shader 'float' parameters)
+	parameters().clear();
+	for( int i=0; i < m_uniformParams.floats.size(); ++i )
+		parameters().push_back( &m_uniformParams.floats[i] );
+
+	return shaderProcessed;
 }

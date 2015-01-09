@@ -13,6 +13,7 @@ using GL::GLSLProgram;
 #endif
 
 #include "RenderSet.h" // for ModuleRenderer
+#include "Parameter.h"
 
 /**
 	\class ShaderModule
@@ -62,8 +63,11 @@ public:
 	bool setShaderSource( const std::string& shader );
 
 protected:
-	// Invoked once in first render() call
+	/// Invoked once in first render() call
 	bool init();
+
+	/// Preprocess shader: Replace some variables by uniforms and update parameters accordingly.
+	std::string preprocess( std::string shader );
 	
 private:
 	bool            m_initialized;
@@ -74,6 +78,14 @@ private:
 	std::string     m_vshader, m_fshader;
 	std::string     m_lastCompileMessage;
 	std::vector<int> m_channels;
+
+	struct UniformParameters
+	{
+		std::vector<DoubleParameter> floats;
+		// Maybe later we'll add support for some more types ...
+	};
+	UniformParameters m_uniformParams;
+
 };
 
 #endif // SHADERMODULE_H

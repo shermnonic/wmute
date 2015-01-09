@@ -7,10 +7,14 @@
 class QAction;
 class CodeEditor;
 class ShaderModule;
+class ModuleBase;
 
 class ShaderEditorWidget : public QWidget
 {
 	Q_OBJECT
+
+signals:
+	void shaderUpdated(ModuleBase*);
 
 public:
 	ShaderEditorWidget( QWidget* parent=0 );
