@@ -67,6 +67,16 @@ public:
 	{
 		return m_texSprite;
 	}
+
+	float getPointSize() const
+	{
+		return m_pointSize;
+	}
+
+	void setPointSize( float f )
+	{
+		m_pointSize = f;
+	}
 	
 protected:	
 	void loadShadersFromDisk();
@@ -110,6 +120,8 @@ private:
 	GLuint m_vbo;         ///< Vertex buffer object (VBO) for rendering
 	
 	int m_curTargetBuf;	
+
+	float m_pointSize;
 };
 
 #endif // PARTICLESYSTEM_H

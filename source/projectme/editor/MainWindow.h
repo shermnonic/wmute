@@ -18,6 +18,7 @@ class QTimer;
 class RenderSetWidget;
 class ModuleManagerWidget;
 class ModuleRendererWidget;
+class ModuleParameterWidget;
 class MapperWidget;
 class NodeEditorWidget;
 class ModuleBase;
@@ -121,6 +122,7 @@ private:
 	ModuleManagerWidget*  m_moduleWidget;
 	MapperWidget*         m_mapperWidget;
 	ModuleRendererWidget* m_moduleRendererWidget;
+	ModuleParameterWidget*m_moduleParameterWidget;
 	NodeEditorWidget*     m_nodeEditorWidget;
 };
 

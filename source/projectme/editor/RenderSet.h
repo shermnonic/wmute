@@ -2,6 +2,7 @@
 #define RENDERSET_H
 
 #include "Geometry.h"
+#include "Parameter.h"
 
 #include <vector>
 #include <string>
@@ -86,12 +87,18 @@ public:
 	virtual PropertyTree& serialize() const;
 	virtual void deserialize( PropertyTree& pt );
 	///@}
+	
+	///@{ Parameters
+	const ParameterList& parameters() const { return m_parameterList; }
+	ParameterList& parameters() { return m_parameterList; }
+	///@}
 
 	/// Override default name with numbered module type string
 	virtual std::string getDefaultName();
 
 protected:
 	std::string m_moduleTypeName;
+	ParameterList m_parameterList;
 };
 
 

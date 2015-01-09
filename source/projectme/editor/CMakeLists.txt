@@ -35,6 +35,7 @@ set( projectme_MOC_HDRS
 	RenderSetWidget.h
 	ModuleManagerWidget.h
 	ModuleRendererWidget.h
+	ModuleParameterWidget.h
 	MapperWidget.h
 	ComboBoxDelegate.h
 	CodeEditor.h
@@ -43,6 +44,7 @@ set( projectme_MOC_HDRS
 	NodeEditorWidget.h
 #	${qne_SRCS}
 	qnodeseditor.h
+	QAutoGUI.h
 )
 
 # generate rules for building source files from the Qt resources
@@ -77,6 +79,8 @@ set( gui_SRCS
 	ModuleManagerWidget.cpp
 	ModuleRendererWidget.h
 	ModuleRendererWidget.cpp
+	ModuleParameterWidget.h
+	ModuleParameterWidget.cpp
 	MapperWidget.h
 	MapperWidget.cpp
 	ComboBoxDelegate.h
@@ -89,6 +93,7 @@ set( gui_SRCS
 	ShaderEditorWidget.cpp
 	NodeEditorWidget.h
 	NodeEditorWidget.cpp
+	QAutoGUI.h
 )
 source_group("gui" FILES ${gui_SRCS})
 
@@ -114,6 +119,8 @@ set( engine_SRCS
 	ProjectMe.cpp
 	hraw.h	
 	hraw.cpp
+	Parameter.h
+	Parameter.cpp
 )
 source_group("engine" FILES ${engine_SRCS})
 

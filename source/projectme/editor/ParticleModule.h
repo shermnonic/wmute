@@ -2,6 +2,7 @@
 #define PARTICLEMODULE_H
 
 #include "RenderSet.h" // for ModuleRenderer
+#include "Parameter.h"
 #include "ParticleSystem.h"
 
 #include <glutils/GLTexture.h>
@@ -55,6 +56,18 @@ private:
 	GLTexture       m_target;
 	RenderToTexture m_r2t;
 	ParticleSystem  m_ps;
+
+	// Live parameters
+	struct Params {
+		DoubleParameter pointSize;
+		Params()
+		: pointSize("PointSize")
+		{
+			pointSize.setValueAndDefault( 1.5 );
+			pointSize.setLimits( 0.1, 50.0 );
+		}
+	};
+	Params m_params;
 };
 
 

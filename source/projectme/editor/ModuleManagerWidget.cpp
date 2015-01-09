@@ -136,8 +136,13 @@ void ModuleManagerWidget::onSelectionChanged( const QItemSelection& selected, co
 	if( mi.row() >=0 && mi.row() < modules.size() )
 	{
 		m_activeRow = mi.row();
-		emit moduleChanged( m_master->modules()[m_activeRow] );
+		ModuleRenderer* m = m_master->modules()[m_activeRow];
+		emit moduleChanged( m );
+		emit moduleChanged( (ModuleBase*)m );
 	}
 	else
-		emit moduleChanged( NULL );
+	{
+		emit moduleChanged( (ModuleRenderer*)NULL );
+		emit moduleChanged( (ModuleBase*)NULL );
+	}
 }

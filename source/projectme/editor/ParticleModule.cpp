@@ -18,6 +18,8 @@ ParticleModule::ParticleModule()
   m_update( true ),
   m_width(1024), m_height(1024)
 {
+	// Set parameters
+	parameters().push_back( &m_params.pointSize );
 }
 
 //----------------------------------------------------------------------------
@@ -138,9 +140,7 @@ void ParticleModule::render()
 		}
 #endif
 		// Render particles
-		glPointSize( 0.5 );
-		glEnable( GL_POINT_SMOOTH );
-		glDisable( GL_TEXTURE_2D );
+		m_ps.setPointSize( (float)m_params.pointSize.value() );
 		m_ps.render();
 
 	  #if 0
