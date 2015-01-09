@@ -441,7 +441,7 @@ std::string ShaderModule::preprocess( std::string shader )
 	string shaderProcessed = preprocessShader( shader, vars );
 	
 	// Collect 'float' parameters
-	m_uniformParams.floats.clear();
+	std::vector<DoubleParameter> floats;	
 	for( int i=0; i < vars.size(); i++ )
 	{
 		string key = vars[i].name;
@@ -458,8 +458,11 @@ std::string ShaderModule::preprocess( std::string shader )
 		if( cur )
 			p.setValue( dynamic_cast<DoubleParameter*>(cur)->value() );
 		
-		m_uniformParams.floats.push_back( p );
+		floats.push_back( p );
 	}	
+	
+	// FIXME: Parameters should not be accessed after changing 'float' instances!
+	m_uniformParams.floats = floats;
 	
 	// Re-create parameter list 
 	// (So far it only contains shader 'float' parameters)
