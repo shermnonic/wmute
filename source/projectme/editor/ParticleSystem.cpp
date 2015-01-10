@@ -316,11 +316,13 @@ void ParticleSystem::render()
 	// Uniforms
 	GLint iPos = m_renderShader->getUniformLocation("iPos");
 	GLint iVel = m_renderShader->getUniformLocation("iVel");
+	GLint iBirthPos = m_renderShader->getUniformLocation("iBirthPos");
 	GLint iDoSprite = m_renderShader->getUniformLocation("doSprite");
 	GLint iSprite   = m_renderShader->getUniformLocation("sprite");
 	glUniform1i( iPos,   0 ); // Texture unit 0 - Position
 	glUniform1i( iVel,   1 ); // Texture unit 1 - Velocity	
-	glUniform1i( iSprite,2 ); // Texture unit 2 - Point Sprite (if any)
+	glUniform1i( iBirthPos, 2 );//Texture unit 2 - Birth position 
+	glUniform1i( iSprite,3 ); // Texture unit 3 - Point Sprite (if any)
 	glUniform1i( iDoSprite, m_texSprite >= 0 );
 	checkGLError("ParticleSystem::render() : After setting shader uniforms");
 
@@ -328,6 +330,7 @@ void ParticleSystem::render()
 	GLint bufid = m_curTargetBuf;
 	glActiveTexture( GL_TEXTURE0 + 0 );	glBindTexture( GL_TEXTURE_2D, m_texPos[bufid] );
 	glActiveTexture( GL_TEXTURE0 + 1 );	glBindTexture( GL_TEXTURE_2D, m_texVel[bufid] );
+	glActiveTexture( GL_TEXTURE0 + 2 );	glBindTexture( GL_TEXTURE_2D, m_texBirthPos );
 	if( m_texSprite >= 0 )
 	{
 		glPointSize( 10.f * m_pointSize );
@@ -335,7 +338,7 @@ void ParticleSystem::render()
 		glTexEnvi( GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE );
 		glEnable( GL_BLEND );
 		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-		glActiveTexture( GL_TEXTURE0 + 2 ); glBindTexture( GL_TEXTURE_2D, m_texSprite );
+		glActiveTexture( GL_TEXTURE0 + 3 ); glBindTexture( GL_TEXTURE_2D, m_texSprite );
 	}
 	else
 	{
