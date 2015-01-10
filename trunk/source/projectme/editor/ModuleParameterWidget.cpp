@@ -22,6 +22,7 @@ void ModuleParameterWidget
   ::setModule( ModuleBase* master )
 {
 	using QAutoGUI::DoubleLineEdit;
+	using QAutoGUI::DoubleSpinEdit;
 	using QAutoGUI::BooleanCheckbox;
 	using QAutoGUI::IntegerSpinEdit;
 	using QAutoGUI::BooleanIntCheckbox;
@@ -49,9 +50,24 @@ void ModuleParameterWidget
 		QString name = QString::fromStdString( (*it)->key() );
 				
 		if( pdouble )
-		{
-			p << DoubleLineEdit::New( pdouble->valueRef(), name );
+		{			
+			DoubleSpinEdit& dse = DoubleSpinEdit::New( pdouble->valueRef(), name );				
+			if( pdouble->limits().active ) 
+			{
+				double 
+					min_ = pdouble->limits().min_,
+					max_ = pdouble->limits().max_;
+
+				dse.setRange( min_, max_ );
+				dse.setSingleStep( abs(max_-min_)/100.0 );
+			}
+			else
+				dse.setSingleStep( 0.1 ); // Default single step
+			p << dse.setDecimals( 2 ); // FIXME: Hardcoded #decimals
 					//.connect_to( this, SLOT(parameterChanged()) );
+			
+			// Alternatively we could use a line edit:
+			//p << DoubleLineEdit::New( pdouble->valueRef(), name );
 		}
 		else
 		if( pbool ) // handle bool specialization before int
@@ -68,7 +84,10 @@ void ModuleParameterWidget
 		else
 		if( pint ) // handle int after its specializations bool and enum
 		{
-			p << IntegerSpinEdit::New( pint->valueRef(), name );
+			IntegerSpinEdit& ise = IntegerSpinEdit::New( pint->valueRef(), name );
+			if( pint->limits().active )
+				ise.setRange( pint->limits().min_, pint->limits().max_ );
+			p << ise;				
 					//.connect_to( this, SLOT(parameterChanged()) );			
 		}
 		else

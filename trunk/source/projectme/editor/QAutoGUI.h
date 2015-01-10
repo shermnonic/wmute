@@ -14,6 +14,7 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QSpinBox>
+#include <QDoubleSpinBox>
 #include <QToolBox>
 #include <QDebug>
 
@@ -434,6 +435,50 @@ private:
         update_gui(); 
         connect( widget(), SIGNAL(clicked()), this, SLOT(collect_gui()));
         connect( widget(), SIGNAL(toggled(bool)), this, SIGNAL(toggled(bool)));
+    }
+};
+
+
+/// @brief a QSpinBox linked to an "double"
+class DoubleSpinEdit : public TemplateParameter<double, QDoubleSpinBox>{
+    Q_OBJECT
+public:
+    static DoubleSpinEdit& New(double& value, QString label){ return *new DoubleSpinEdit(value, label); }
+public slots:
+    void update_gui(){ widget()->setValue( value() ); }
+    void collect_gui(){ value() = widget()->value(); }
+signals:
+    void valueChanged(double);
+public:
+    DoubleSpinEdit& connect_to(const QObject* receiver, const char* signalname){
+        connect( this, SIGNAL(valueChanged(int)), receiver, signalname);
+        return (*this);
+    }
+public:
+    DoubleSpinEdit& setRange(double min, double max){ 
+        widget()->setRange(min, max); 
+        /// @todo value() to fit criteria above
+        // collect_gui() ///< not working!!
+        return *this; 
+    }
+    DoubleSpinEdit& setDecimals(int prec){ 
+        widget()->setDecimals(prec); 
+        return *this; 
+    }
+    DoubleSpinEdit& setSingleStep(double val){ 
+        widget()->setSingleStep(val); 
+        return *this; 
+    }
+private:
+    DoubleSpinEdit(double& value, QString label) : Super(value, label){
+        update_gui();
+        /// makes it take a full line
+        QSizePolicy policy = widget()->sizePolicy();
+        policy.setHorizontalPolicy(QSizePolicy::MinimumExpanding);
+        widget()->setSizePolicy(policy);
+        /// connects
+        connect( widget(), SIGNAL(valueChanged(double)), this, SLOT(collect_gui()) );
+        connect( widget(), SIGNAL(valueChanged(double)), this, SIGNAL(valueChanged(double)) );
     }
 };
 
