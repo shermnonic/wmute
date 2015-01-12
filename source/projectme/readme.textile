@@ -19,6 +19,7 @@ h3. TODO
 * Spectrum analyzer module
 * Particle system: Fade particles over lifetime
 * Particle system: Mixture of velocity textures
+* Module selection in node editor
 
 h3. Sprint Dec2014
 
