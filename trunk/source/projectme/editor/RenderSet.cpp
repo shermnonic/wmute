@@ -42,6 +42,17 @@ Serializable::PropertyTree& ModuleBase::serialize() const
 	cache.clear();
 	cache.put("ModuleBase.Type",getModuleType());
 	cache.put("ModuleBase.Name",getName());
+
+	// Write parameters
+	// FIXME: Hardcoded, better implement generic in ParameterList
+	cache.put("ParameterList.NumParameters",parameters().size());
+	for( int i=0; i < parameters().size(); i++ )
+	{
+		Serializable::PropertyTree pt;
+		parameters()[i]->write( pt );
+		cache.add_child("ParameterList.Parameter",pt);
+	}
+
 	return cache;
 }
 
@@ -50,6 +61,24 @@ void ModuleBase::deserialize( Serializable::PropertyTree& pt )
 {
 	m_moduleTypeName = pt.get("ModuleBase.Type",string("<Unknown type>"));
 	setName( pt.get("ModuleBase.Name", getDefaultName()) );
+
+	// Read parameters
+	// FIXME: Hardcoded for floats only, better implement generic in ParameterList
+	int numParams = pt.get("ParameterList.NumParameters",(int)0);
+	BOOST_FOREACH( PropertyTree::value_type& v, pt.get_child("ParameterList") )
+	{
+		if( v.first.compare("Parameter")==0 )
+		{
+			DoubleParameter* p = new DoubleParameter("Foo");
+			p->read( v.second );
+			parameters().push_back( p );
+		}		
+	}
+	if( parameters().size() != numParams )
+	{
+		cerr << "ModuleBase::deserialize() : "
+			"Mismatch in number of parameters!" << endl;
+	}
 }
 
 //-----------------------------------------------------------------------------

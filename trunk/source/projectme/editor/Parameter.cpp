@@ -1,4 +1,5 @@
 #include "Parameter.h"
+#include <boost/foreach.hpp>
 
 //-----------------------------------------------------------------------------
 // --- Parameter base implementation ---
@@ -48,3 +49,39 @@ bool operator == ( const ParameterBase& a, const ParameterBase& b )
 {
 	return a.key() == b.key();
 };
+
+#if 0 // NOT YET!
+//-----------------------------------------------------------------------------
+// --- ParameterList implementation ---
+//-----------------------------------------------------------------------------
+
+void ParameterList::write( PTree& pt ) const
+{
+	ParameterList::const_iterator it = begin();
+	for( ; it != end(); ++it )
+	{
+		if( *it )
+		{
+			PTree pt;
+			(*it)->write( pt );
+
+			pt.add_child( "ParameterList.Parameter", pt );
+		}
+	}
+}
+
+void ParameterList::read( const PTree& pt )
+{
+	//ParameterList l;
+
+	BOOST_FOREACH( PTree::value_type& v, pt.get_child("ParameterList") )
+	{
+		if( v.first.compare("Parameter")==0 )
+		{
+			// TODO: Implement abstract factory to instantiate parameter
+			//       of particular type.
+		}
+	}
+
+}
+#endif
