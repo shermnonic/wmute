@@ -201,6 +201,18 @@ public:
 		return NULL;
 	}
 
+	/// Returns index of module or -1 if not found
+	int moduleIndex( ModuleRenderer* m )
+	{
+		ModuleArray::iterator it = m_modules.begin();
+		for( ; it != m_modules.end(); ++it )
+		{
+			if( (*it) == m )
+				return (int)(it - m_modules.begin());
+		}
+		return -1;
+	}
+
 	/// Trigger rendering for *all* modules
 	void render()
 	{

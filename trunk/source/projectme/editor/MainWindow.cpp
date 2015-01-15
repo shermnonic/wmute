@@ -441,6 +441,7 @@ void MainWindow::createUI()
 	connect( actModuleInit, SIGNAL(triggered()), this, SLOT(customModuleInit()) );
 
 	connect( m_nodeEditorWidget, SIGNAL(connectionChanged()), this, SLOT(updateTables()) );
+	connect( m_nodeEditorWidget, SIGNAL(selectionChanged(ModuleRenderer*)), m_moduleWidget, SLOT(setActiveModule(ModuleRenderer*)) );
 }
 
 void MainWindow::closeEvent( QCloseEvent* event )

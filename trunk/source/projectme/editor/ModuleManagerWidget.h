@@ -37,6 +37,7 @@ public:
 	
 public slots:
 	void updateModuleTable();
+	void setActiveModule( ModuleRenderer* m );
 
 protected slots:
 	void onSelectionChanged(const QItemSelection&,const QItemSelection&);
