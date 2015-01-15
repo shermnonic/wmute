@@ -314,7 +314,12 @@ void RenderSet::addArea( RenderArea area, ModuleRenderer* module )
 {
 	m_areas   .push_back( area );
 	m_mapper  .push_back( module );
-	m_channels.push_back( module ? module->target() : -1 );
+	
+	// WORKAROUND: Add enough channels to match number of areas
+	while( m_areas.size() > m_channels.size() )
+		m_channels.push_back( 0 );
+
+	m_channels.back() = module ? module->target() : -1;
 }
 
 //-----------------------------------------------------------------------------
@@ -558,7 +563,6 @@ void RenderSet::deserialize( Serializable::PropertyTree& pt )
 			RenderArea area;
 			area.deserialize( v.second );
 			addArea( area, NULL );
-			m_areas.push_back( area );
 		}
 		else
 		// Read mapping area to module
