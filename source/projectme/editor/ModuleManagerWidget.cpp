@@ -146,3 +146,19 @@ void ModuleManagerWidget::onSelectionChanged( const QItemSelection& selected, co
 		emit moduleChanged( (ModuleBase*)NULL );
 	}
 }
+
+//----------------------------------------------------------------------------
+void ModuleManagerWidget::setActiveModule( ModuleRenderer* m )
+{
+	int idx = m_master->moduleIndex( m );
+	if( idx < 0 )
+	{
+		qDebug() << "ModuleManagerWidget::setActiveModule() : "
+			"Module not found!";
+		return;
+	}
+
+	m_tableView->selectionModel()->select( m_model->index(idx,0), 
+		QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows );
+	//m_tableView->setCurrentIndex( 
+}

@@ -79,6 +79,8 @@ NodeEditorWidget::NodeEditorWidget( QWidget* parent )
 	         this, SLOT(onConnectionCreated(QNEConnection*)) );
 	connect( m_nodesEditor, SIGNAL(connectionDeleted(QNEConnection*)),
 	         this, SLOT(onConnectionDeleted(QNEConnection*)) );
+	connect( s, SIGNAL(selectionChanged()),
+	         this, SLOT(onSelectionChanged()) );
 }
 
 void NodeEditorWidget::setProjectMe( ProjectMe* pm )
@@ -221,7 +223,12 @@ void NodeEditorWidget::updateNodes()
 ModuleRenderer* NodeEditorWidget::findModule( QNEPort* p )
 {
 	// Find matching modules in our map
-	QNEBlock *b = p->block();
+	return findModule( p->block() );
+}
+
+ModuleRenderer* NodeEditorWidget::findModule( QNEBlock* b )
+{
+	// Find matching modules in our map
 	ModuleRenderer *m = NULL;
 	ModuleBlockMap::iterator it = m_moduleBlockMap.begin();
 	for( ; it != m_moduleBlockMap.end(); ++it )
@@ -231,10 +238,16 @@ ModuleRenderer* NodeEditorWidget::findModule( QNEPort* p )
 
 QNEBlock* NodeEditorWidget::findBlock( ModuleRenderer* mr )
 {
+#if 1
+	if( m_moduleBlockMap.count( mr ) )
+		return m_moduleBlockMap[mr];
+	return NULL;
+#else
 	ModuleBlockMap::iterator it = m_moduleBlockMap.begin();
 	for( ; it != m_moduleBlockMap.end(); ++it )
 		if( it.key()==mr ) return it.value();
 	return NULL;
+#endif
 }
 
 void NodeEditorWidget::onConnectionCreated( QNEConnection* con )
@@ -281,4 +294,27 @@ void NodeEditorWidget::onConnectionDeleted( QNEConnection* con )
 		m2->setChannel( ch, -1 ); // Invalidate connection via -1
 
 	emit connectionChanged();
+}
+
+void NodeEditorWidget::onSelectionChanged()
+{
+	QList<QGraphicsItem*> sel = m_graphicsView->scene()->selectedItems();	
+
+	if( sel.empty() ) // Maybe we want to add a selectionCleared() signal later?
+		return;
+
+	// Does not support multi-selections!
+	if( sel.size() > 1 )
+		return;
+
+	// Find selected Block and corresponding ModuleRenderer*
+	QNEBlock* b = dynamic_cast<QNEBlock*>( sel[0] );
+	if( b )
+	{
+		ModuleRenderer* m = findModule( b );
+		if( m )
+		{
+			emit selectionChanged( m );
+		}
+	}
 }

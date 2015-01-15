@@ -28,6 +28,7 @@ class NodeEditorWidget : public QWidget
 
 signals:
 	void connectionChanged();
+	void selectionChanged( ModuleRenderer* );
 	
 public:
 	NodeEditorWidget( QWidget* parent=0 );
@@ -41,8 +42,10 @@ public slots:
 protected slots:
 	void onConnectionCreated( QNEConnection* );
 	void onConnectionDeleted( QNEConnection* );
+	void onSelectionChanged();
 
 protected:
+	ModuleRenderer* findModule( QNEBlock* b );
 	ModuleRenderer* findModule( QNEPort* p );
 	QNEBlock* findBlock( ModuleRenderer* mr );
 	void updateNodes( ModuleManager::ModuleArray& ma );

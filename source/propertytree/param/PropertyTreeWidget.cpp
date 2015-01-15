@@ -53,6 +53,8 @@ void PropertyTreeWidget
 		return;
 	}
 
+	qDebug() << "Parameter " << idx << " changed";
+
 	// Emit parameterChanged() signal
 	ParameterBase* p = m_params->at(idx);
 	assert( p );
