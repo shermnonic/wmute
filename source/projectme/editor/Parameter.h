@@ -91,6 +91,14 @@ class ParameterList : public std::vector<ParameterBase*>
 public:
 	/// Access parameter by key, returns NULL if no matching parameter found
 	ParameterBase* get_param( std::string key );
+
+#if 0 // NOT YET!
+	/// @name Serialization
+	///@{
+	virtual void write( PTree& pt ) const;
+	virtual void read ( const PTree& pt );
+	///@}
+#endif
 };
 
 /// Equality operator based on key comparison.
