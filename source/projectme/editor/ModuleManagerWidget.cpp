@@ -4,6 +4,7 @@
 #include <QStandardItemModel>
 #include <QStandardItem>
 #include <QTableView>
+#include <QHeaderView>
 #include <QItemSelection>
 #include <QVBoxLayout>
 #include <QStringList>
@@ -115,6 +116,8 @@ void ModuleManagerWidget::updateModuleTable()
 	// Resize table view
 	m_tableView->resizeColumnsToContents();
 	m_tableView->resizeRowsToContents();
+	m_tableView->horizontalHeader()->setStretchLastSection( true );
+	m_tableView->verticalHeader()->setVisible( false );
 
 	// Re-connect
 	if( m_master )
