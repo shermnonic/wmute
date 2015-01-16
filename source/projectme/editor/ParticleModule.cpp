@@ -18,7 +18,7 @@ ParticleModule::ParticleModule()
   m_update( true ),
   m_width(1024), m_height(1024)
 {
-	// Set parameters
+	// Add parameters
 	parameters().push_back( &m_params.pointSize );
 }
 

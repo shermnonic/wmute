@@ -71,7 +71,24 @@ void ModuleBase::deserialize( Serializable::PropertyTree& pt )
 		{
 			DoubleParameter* p = new DoubleParameter("Foo");
 			p->read( v.second );
-			parameters().push_back( p );
+
+			// Check if parameter already exists (maybe added by derived class)
+			DoubleParameter* pExisting = dynamic_cast<DoubleParameter*>( 
+			                               parameters().get_param( p->key() ) );
+			if( pExisting  )
+			{
+				// Set value and limits
+				pExisting->setValue( p->value() );
+				if( pExisting->limits().active )
+					pExisting->setLimits( p->limits().min_, p->limits().max_ );
+			}
+			else
+			{
+				// Add as new parameter
+				// (E.g. ShaderModule's will check dynamically for existing 
+				//  parameters when precompiling their fragment shader.)
+				parameters().push_back( p );
+			}
 		}		
 	}
 	if( parameters().size() != numParams )
@@ -473,8 +490,21 @@ void RenderSet::render_internal( int texid ) /*const*/
 {
 	beginRendering();
 
+	// Set opaque black background
+	glClearColor( 0.f, 0.f, 0.f, 1.f );
+	glClear( GL_COLOR_BUFFER_BIT );
+
+	// Enable texturing
 	glColor4f( 1.f, 1.f, 1.f, 1.f );
 	glEnable( GL_TEXTURE_2D );
+
+	// Disable z-buffer
+	glDisable( GL_DEPTH_TEST );
+
+	// Alpha-blending (classical transparency, no pre-multiplied alpha)
+	glBlendFunc( GL_FUNC_ADD, GL_FUNC_ADD );
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	glEnable( GL_BLEND );
 
 	for( int i=0; i < m_areas.size(); i++ )
 	{
@@ -498,7 +528,9 @@ void RenderSet::render_internal( int texid ) /*const*/
 		}
 	}
 
+	glDisable( GL_BLEND );
 	glDisable( GL_TEXTURE_2D );
+	glEnable( GL_DEPTH_TEST );
 	endRendering();
 }
 
