@@ -15,6 +15,10 @@ public:
 					   m_fbo(0),m_depth(0)
 	{}
 
+	bool init_no_depthbuffer( GLint texid )
+	{
+		return init( 0, 0, texid, false );
+	}
 	bool init( int width, int height, GLint texid, bool attach_depth );
 	bool deinit();
 	bool bind( GLint texid, bool bind_depth=false );
