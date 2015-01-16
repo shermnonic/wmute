@@ -8,6 +8,7 @@
 //#include <map> // for factory
 #include <boost/property_tree/ptree.hpp> // for serialization
 #include <boost/optional.hpp>
+#include <boost/foreach.hpp>
 #include <cassert>
 
 typedef boost::property_tree::ptree PTree;
@@ -89,16 +90,29 @@ class ParameterBase;
 class ParameterList : public std::vector<ParameterBase*>
 {
 public:
+	ParameterList( const std::string& name="ParameterList" )
+		: m_name( name )
+	{}
+
 	/// Access parameter by key, returns NULL if no matching parameter found
 	ParameterBase* get_param( std::string key );
 
-#if 0 // NOT YET!
+	///@{ List name
+	void setName( const std::string& name ) { m_name = name; }
+	std::string name() const { return m_name; }
+	///@}
+
 	/// @name Serialization
 	///@{
+	/// Append serialization of all parameters to a PropertyTree.
 	virtual void write( PTree& pt ) const;
+	/// Read parameters from a PropertyTree, updating existing ones and adding new ones.
+	/// Does not remove any existing items in the parameter list.
 	virtual void read ( const PTree& pt );
 	///@}
-#endif
+
+private:
+	std::string m_name;
 };
 
 /// Equality operator based on key comparison.
@@ -443,7 +457,7 @@ public:
 	virtual std::string type() const { return "string"; }
 };
 
-/// A boolean parameter, realized two-value limited integer parameter.
+/// A boolean parameter, realized as two-value limited integer parameter.
 class BoolParameter: public IntParameter
 {
 public:
@@ -473,6 +487,13 @@ protected:
 class EnumParameter: public IntParameter
 {
 public:
+	/// Create an empty enum array for deserialization
+	EnumParameter( const std::string& key )
+		: IntParameter( key )
+	{
+		setLimits( 0, 0 );
+	}
+
 	EnumParameter( const std::string& key, std::vector<std::string> enumNames )
 		: IntParameter( key ),
 		  m_enumNames( enumNames )
@@ -564,6 +585,33 @@ public:
 	std::string type() const { return "enum"; };
 
 	const std::vector<std::string>& enumNames() const { return m_enumNames; }
+
+	// Serialization
+
+	virtual void write( PTree& pt ) const
+	{
+		IntParameter::write( pt ); // call super
+		// Store enum names
+		pt.put( "enumNames.size", m_enumNames.size() );
+		for( int i=0; i < m_enumNames.size(); i++ )
+			pt.put( "enumNames.name", m_enumNames[i] );
+	}
+
+	virtual void read( const PTree& pt )
+	{
+		IntParameter::read( pt ); // call super
+		// Restore enum names
+		int size = pt.get( "enumNames.size", 0 );
+		m_enumNames.clear();
+		BOOST_FOREACH( const PTree::value_type& v, pt.get_child("enumNames") )
+		{
+			if( v.first.compare("name")==0 )
+			{				
+				m_enumNames.push_back( v.second.get_value("<MissingString>") );
+			}
+		}
+		setLimits( 0, (int)m_enumNames.size() );
+	}
 
 protected:
 	// Override limit functions and make them inaccessible from outside

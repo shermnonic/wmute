@@ -43,15 +43,9 @@ Serializable::PropertyTree& ModuleBase::serialize() const
 	cache.put("ModuleBase.Type",getModuleType());
 	cache.put("ModuleBase.Name",getName());
 
-	// Write parameters
-	// FIXME: Hardcoded, better implement generic in ParameterList
-	cache.put("ParameterList.NumParameters",parameters().size());
-	for( int i=0; i < parameters().size(); i++ )
-	{
-		Serializable::PropertyTree pt;
-		parameters()[i]->write( pt );
-		cache.add_child("ParameterList.Parameter",pt);
-	}
+	// Write parameters and options
+	parameters().write( cache );
+	options().write( cache );
 
 	return cache;
 }
@@ -62,40 +56,9 @@ void ModuleBase::deserialize( Serializable::PropertyTree& pt )
 	m_moduleTypeName = pt.get("ModuleBase.Type",string("<Unknown type>"));
 	setName( pt.get("ModuleBase.Name", getDefaultName()) );
 
-	// Read parameters
-	// FIXME: Hardcoded for floats only, better implement generic in ParameterList
-	int numParams = pt.get("ParameterList.NumParameters",(int)0);
-	BOOST_FOREACH( PropertyTree::value_type& v, pt.get_child("ParameterList") )
-	{
-		if( v.first.compare("Parameter")==0 )
-		{
-			DoubleParameter* p = new DoubleParameter("Foo");
-			p->read( v.second );
-
-			// Check if parameter already exists (maybe added by derived class)
-			DoubleParameter* pExisting = dynamic_cast<DoubleParameter*>( 
-			                               parameters().get_param( p->key() ) );
-			if( pExisting  )
-			{
-				// Set value and limits
-				pExisting->setValue( p->value() );
-				if( pExisting->limits().active )
-					pExisting->setLimits( p->limits().min_, p->limits().max_ );
-			}
-			else
-			{
-				// Add as new parameter
-				// (E.g. ShaderModule's will check dynamically for existing 
-				//  parameters when precompiling their fragment shader.)
-				parameters().push_back( p );
-			}
-		}		
-	}
-	if( parameters().size() != numParams )
-	{
-		cerr << "ModuleBase::deserialize() : "
-			"Mismatch in number of parameters!" << endl;
-	}
+	// Read parameters and options
+	parameters().read( pt );
+	options().read( pt );
 }
 
 //-----------------------------------------------------------------------------
