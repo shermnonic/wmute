@@ -63,7 +63,7 @@ public:
 	bool setShaderSource( const std::string& shader );
 
 protected:
-	/// Invoked once in first render() call
+	/// Invoked in first render() call and on each size change of render texture.
 	bool init();
 
 	/// Preprocess shader: Replace some variables by uniforms and update parameters accordingly.
@@ -71,7 +71,11 @@ protected:
 	
 private:
 	bool            m_initialized;
-	int             m_width, m_height;
+	// Some initialization has only to be done once
+	bool            m_target_initialized;
+	bool            m_r2t_initialized;
+	bool            m_shader_initialized;
+
 	GLTexture       m_target;
 	GLSLProgram*    m_shader;
 	RenderToTexture m_r2t;
@@ -79,6 +83,7 @@ private:
 	std::string     m_lastCompileMessage;
 	std::vector<int> m_channels;
 
+	/// Live shader parameters
 	struct UniformParameters
 	{
 		std::vector<DoubleParameter> floats;
@@ -86,6 +91,21 @@ private:
 	};
 	UniformParameters m_uniformParams;
 
+	/// Setup options
+	struct Opts
+	{
+		IntParameter width, height;
+		Opts() 
+		: width("targetWidth"),
+		  height("targetHeight")
+		{
+			width.setValueAndDefault( 512 );
+			width.setLimits( 1, 2048 );
+			height.setValueAndDefault( 512 );
+			height.setLimits( 1, 2048 );
+		}
+	};
+	Opts m_opts;
 };
 
 #endif // SHADERMODULE_H

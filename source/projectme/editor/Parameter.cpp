@@ -1,5 +1,4 @@
 #include "Parameter.h"
-#include <boost/foreach.hpp>
 
 //-----------------------------------------------------------------------------
 // --- Parameter base implementation ---
@@ -50,13 +49,14 @@ bool operator == ( const ParameterBase& a, const ParameterBase& b )
 	return a.key() == b.key();
 };
 
-#if 0 // NOT YET!
 //-----------------------------------------------------------------------------
 // --- ParameterList implementation ---
 //-----------------------------------------------------------------------------
 
 void ParameterList::write( PTree& pt ) const
 {
+	std::string key = name() + ".Parameter";
+
 	ParameterList::const_iterator it = begin();
 	for( ; it != end(); ++it )
 	{
@@ -65,23 +65,148 @@ void ParameterList::write( PTree& pt ) const
 			PTree pt;
 			(*it)->write( pt );
 
-			pt.add_child( "ParameterList.Parameter", pt );
+			pt.add_child( key, pt );
 		}
 	}
 }
 
 void ParameterList::read( const PTree& pt )
 {
-	//ParameterList l;
+	std::string root = name();
 
-	BOOST_FOREACH( PTree::value_type& v, pt.get_child("ParameterList") )
+	if( pt.count( root )==0 )
+	{
+		// No root node found, do nothing.
+		return;
+	}
+
+	// FIXME: Deserialization is hardcoded for specialized types.
+	BOOST_FOREACH( const PTree::value_type& v, pt.get_child(root) )
 	{
 		if( v.first.compare("Parameter")==0 )
 		{
-			// TODO: Implement abstract factory to instantiate parameter
-			//       of particular type.
-		}
-	}
+			// Parse key and type
+			ParameterBase base("<Unknown>");
+			base.read( v.second );
 
+			// Check if parameter with given key already exists
+			ParameterBase* existing = get_param( base.key() );
+
+			// Parameter with given key exists but type does not match!
+			if( existing && base.type().compare(existing->type())!=0 )
+			{
+				// FIXME: Throw typed exception
+				throw("ParameterList::read() : Type mismatch!");
+			}
+
+			// Handle specializations
+
+			// DoubleParameter
+			if( base.type().compare( "double" )==0 )
+			{
+				DoubleParameter* p = new DoubleParameter("<UnknownDouble>");
+				p->read( v.second );
+
+				if( existing )
+				{
+					DoubleParameter* pe = dynamic_cast<DoubleParameter*>( existing );
+					assert( pe );
+					// Set value and limits
+					pe->setValue( p->value() );
+					if( p->limits().active )
+						pe->setLimits( p->limits().min_, p->limits().max_ );
+				}
+				else
+				{
+					// Add as new parameter
+					push_back( p );
+				}
+			}
+			else
+			// IntParameter
+			if( base.type().compare( "int" )==0 )
+			{
+				IntParameter* p = new IntParameter("<UnknownInt>");
+				p->read( v.second );
+
+				if( existing )
+				{
+					IntParameter* pe = dynamic_cast<IntParameter*>( existing );
+					assert( pe );
+					// Set value and limits
+					pe->setValue( p->value() );
+					if( p->limits().active )
+						pe->setLimits( p->limits().min_, p->limits().max_ );
+				}
+				else
+				{
+					// Add as new parameter
+					push_back( p );
+				}
+			}
+			else
+			// StringParameter
+			if( base.type().compare( "int" )==0 )
+			{
+				StringParameter* p = new StringParameter("<UnknownString>");
+				p->read( v.second );
+
+				if( existing )
+				{
+					StringParameter* pe = dynamic_cast<StringParameter*>( existing );
+					assert( pe );
+					// Set value
+					pe->setValue( p->value() );
+				}
+				else
+				{
+					// Add as new parameter
+					push_back( p );
+				}
+			}
+			else			
+			// BoolParameter
+			if( base.type().compare( "bool" )==0 )
+			{
+				BoolParameter* p = new BoolParameter("<UnknownBool>");
+				p->read( v.second );
+
+				if( existing )
+				{
+					BoolParameter* pe = dynamic_cast<BoolParameter*>( existing );
+					assert( pe );
+					// Set value
+					pe->setValue( p->value() );
+				}
+				else
+				{
+					// Add as new parameter
+					push_back( p );
+				}
+			}
+			else
+			// EnumParameter
+			if( base.type().compare( "enum" )==0 )
+			{
+				EnumParameter* p = new EnumParameter("<UnknownEnum>");
+				p->read( v.second );
+
+				if( existing )
+				{
+					EnumParameter* pe = dynamic_cast<EnumParameter*>( existing );
+					assert( pe );
+					// Set value
+					pe->setValue( p->value() );
+				}
+				else
+				{
+					// Add as new parameter
+					push_back( p );
+				}
+			}
+			else
+				// FIXME: Throw typed exception
+				throw("ParameterList::read() : Unknown parameter type!");
+		}		
+	}
 }
-#endif

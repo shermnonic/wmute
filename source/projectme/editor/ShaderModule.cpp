@@ -156,22 +156,31 @@ std::string preprocessShader( std::string shader, ShaderVariables& vars )
 ShaderModule::ShaderModule()
 : ModuleRenderer( "ShaderModule" ),
   m_initialized(false),
-  m_width(512), m_height(512),
+  m_target_initialized(false),
+  m_r2t_initialized   (false),
+  m_shader_initialized(false),
   m_shader(0),
   m_vshader( defaultVertexShader ),
   m_fshader( defaultFragmentShader ),
   m_channels(4,-1)
 {
+	options().push_back( &m_opts.width  );
+	options().push_back( &m_opts.height );
 }
 
 //----------------------------------------------------------------------------
 bool ShaderModule::init()
 {
 	// Create texture
-	if( !m_target.Create(GL_TEXTURE_2D) )
+	if( !m_target_initialized )
 	{
-		cerr << "ShaderModule::init() : Couldn't create 2D textures!" << endl;
-		return false;
+		// Create texture id only once!
+		if( !m_target.Create(GL_TEXTURE_2D) )
+		{
+			cerr << "ShaderModule::init() : Couldn't create 2D textures!" << endl;
+			return false;
+		}
+		m_target_initialized = true;
 	}
 	
 	// Note on texture format:
@@ -181,29 +190,43 @@ bool ShaderModule::init()
 	GLint internalFormat = GL_RGBA32F; //GL_RGB12;
 
 	// Allocate GPU mem
-	m_target.Image(0, internalFormat, m_width,m_width, 0, GL_RGBA, GL_FLOAT, NULL );
+	m_target.Image( 0, internalFormat, 
+	                m_opts.width.value(), m_opts.height.value(), 
+	                0, GL_RGBA, GL_FLOAT, NULL );
 	
 	// Setup Render-2-Texture
-	if( !m_r2t.init( m_width,m_width, m_target.GetID(), false/* no depthbuffer*/ ) )
+	if( !m_r2t_initialized )
 	{
-		cerr << "ShaderModule::init() : Couldn't setup render-to-texture!" << endl;
-		return false;
+		// Since we are using no depth-buffer attachement, r2t has not be
+		// setup again on size change. 
+		if( !m_r2t.init_no_depthbuffer( m_target.GetID() ) )
+		{
+			cerr << "ShaderModule::init() : Couldn't setup render-to-texture!" << endl;
+			return false;
+		}
+		m_r2t_initialized = true;
 	}
 	
 	// Create shader
-	if( m_shader ) delete m_shader; m_shader=0;
-	m_shader = new GLSLProgram();
-	if( !m_shader )
+	if( !m_shader_initialized )
 	{
-		cerr << "ShaderModule::init() : Creation of GLSL shader failed!" << endl;
-		return false;
-	}
-	
-	// Compile shader
-	if( !compile() )
-		// On this call we currently require the shader to compile correctly!
-		return false;
+		// Initialize shader
+		if( m_shader ) delete m_shader; m_shader=0;
+		m_shader = new GLSLProgram();
+		if( !m_shader )
+		{
+			cerr << "ShaderModule::init() : Creation of GLSL shader failed!" << endl;
+			return false;
+		}
+		m_shader_initialized = true;
 
+		// Compile shader
+		if( !compile() )
+			// On this call we currently require the shader to compile correctly!
+			return false;
+	}	
+
+	// If the end of init() is reached once, we consider the module initialized
 	m_initialized = checkGLError( "ShaderModule::init() : GL error at exit!" );
 	return m_initialized;
 }
@@ -289,6 +312,9 @@ void ShaderModule::render()
 	m_shader->bind();
 	checkGLError( "ShaderModule::render() - After shader bind" );
 
+	int width  = m_opts.width .value(),
+		height = m_opts.height.value();
+
 	GLint 
 		iResolution = m_shader->getUniformLocation("iResolution"),
 		iGlobalTime = m_shader->getUniformLocation("iGlobalTime"),
@@ -299,11 +325,11 @@ void ShaderModule::render()
 	if( iResolution >= 0 )
 	{
 		GLfloat res[3]; 
-		res[0] = (GLfloat)m_width; 
-		res[1] = (GLfloat)m_height; 
+		res[0] = (GLfloat)width; 
+		res[1] = (GLfloat)height; 
 		res[2] = (GLfloat)1.f;
 		glUniform3f( m_shader->getUniformLocation( "iResolution" ), 
-			(GLfloat)m_width, (GLfloat)m_height, (GLfloat)1.f );
+			(GLfloat)width, (GLfloat)height, (GLfloat)1.f );
 		checkGLError( "ShaderModule::render() - After glUniform3f()" );
 	}
 	if( iGlobalTime >= 0 )
@@ -345,7 +371,7 @@ void ShaderModule::render()
 
 		int viewport[4];
 		glGetIntegerv( GL_VIEWPORT, viewport );
-		glViewport( 0,0, m_width,m_height );
+		glViewport( 0,0, width,height );
 
 		// Set transparent background
 		glClearColor( 0.f, 0.f, 0.f, 0.f );

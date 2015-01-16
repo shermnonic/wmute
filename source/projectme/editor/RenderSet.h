@@ -69,6 +69,8 @@ public:
 	{
 		s_typeCount[typeName]++;
 		setName( getDefaultName() );
+		m_parameterList.setName("ParameterList");
+		m_optionsList.setName("OptionList");
 	}
 
 	~ModuleBase()
@@ -83,14 +85,23 @@ public:
 	/// Function of touch depends on particular module type
 	virtual void touch() {}
 
-	///@{ Standard serialization of module type name (must be called explicitly by subclasses!)
+	///@name Standard serialization of module type name (must be called explicitly by subclasses!)
+	///@{ 
 	virtual PropertyTree& serialize() const;
 	virtual void deserialize( PropertyTree& pt );
 	///@}
 	
-	///@{ Parameters
+	///@name Live parameters
+	///@{ 
 	const ParameterList& parameters() const { return m_parameterList; }
 	ParameterList& parameters() { return m_parameterList; }
+	///@}
+
+	///@name Setup options (require an explicit applyOptions() call)
+	///@{
+	const ParameterList& options() const { return m_optionsList; }
+	ParameterList& options() { return m_optionsList; }	
+	virtual void applyOptions() {}
 	///@}
 
 	/// Override default name with numbered module type string
@@ -99,6 +110,7 @@ public:
 protected:
 	std::string m_moduleTypeName;
 	ParameterList m_parameterList;
+	ParameterList m_optionsList;
 };
 
 
