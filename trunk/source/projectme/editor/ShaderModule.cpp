@@ -346,6 +346,10 @@ void ShaderModule::render()
 		int viewport[4];
 		glGetIntegerv( GL_VIEWPORT, viewport );
 		glViewport( 0,0, m_width,m_height );
+
+		// Set transparent background
+		glClearColor( 0.f, 0.f, 0.f, 0.f );
+		glClear( GL_COLOR_BUFFER_BIT );
 		
 		glMatrixMode( GL_PROJECTION );
 		glLoadIdentity();

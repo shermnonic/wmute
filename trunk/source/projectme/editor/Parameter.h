@@ -356,8 +356,8 @@ public:
 	virtual void read( const PTree& pt )
 	{
 		Super::read( pt ); // call super
-		boost::optional<T> min_ = pt.get_optional<T>( "limits_min" );
-		boost::optional<T> max_ = pt.get_optional<T>( "limits_max" );
+		boost::optional<T> min_ = pt.get_optional<T>( "limit_min" );
+		boost::optional<T> max_ = pt.get_optional<T>( "limit_max" );
 		// Only set limits if *both* min and max are provided
 		if( min_ && max_ )
 			setLimits( Range(min_.get(),max_.get()) );		
