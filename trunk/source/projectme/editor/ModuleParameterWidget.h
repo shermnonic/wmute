@@ -5,6 +5,7 @@
 
 // Forwards
 class ModuleBase;
+class ParameterList;
 namespace QAutoGUI {
 	class Parameters;
 	class ParametersWidget;
@@ -28,10 +29,19 @@ public:
 public slots:
 	void setModule( ModuleBase* master );	
 
+protected slots:
+	void onApplyOptions();
+
+protected:
+	void clear();
+	void setupParameters( ParameterList& , QAutoGUI::Parameters*, QAutoGUI::ParametersWidget* );
+
 private:
 	ModuleBase* m_master;
-	QAutoGUI::ParametersWidget* m_widget;
+	QAutoGUI::ParametersWidget* m_paramWidget;
+	QAutoGUI::ParametersWidget* m_optsWidget;
 	QAutoGUI::Parameters* m_parameters;
+	QAutoGUI::Parameters* m_options;
 };
 
 #endif // MODULEPARAMETERWIDGET_H

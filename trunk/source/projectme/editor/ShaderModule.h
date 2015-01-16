@@ -33,6 +33,7 @@ public:
 	int  target() const { return m_target.GetID(); }	
 	void destroy();
 	void touch() { compile(); }
+	void applyOptions() { /* Call init again to change texture size */ init(); }
 	///@}
 
 	///@name ModuleRenderer channels implementation
