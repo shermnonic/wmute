@@ -62,10 +62,10 @@ void ParameterList::write( PTree& pt ) const
 	{
 		if( *it )
 		{
-			PTree pt;
-			(*it)->write( pt );
+			PTree cache;
+			(*it)->write( cache );
 
-			pt.add_child( key, pt );
+			pt.add_child( key, cache );
 		}
 	}
 }

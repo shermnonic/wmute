@@ -5,39 +5,68 @@
 
 #include <QDebug>
 #include <QVBoxLayout>
+#include <QGroupBox>
+#include <QPushButton>
 
 ModuleParameterWidget
   ::ModuleParameterWidget( QWidget* parent )
   : QWidget(parent)
 {
 	m_parameters = new QAutoGUI::Parameters(this);
-	m_widget = new QAutoGUI::ParametersWidget();
+	m_options    = new QAutoGUI::Parameters(this);
+	m_paramWidget = new QAutoGUI::ParametersWidget();
+	m_optsWidget  = new QAutoGUI::ParametersWidget();
+
+	QPushButton* optsApplyBut = new QPushButton(tr("Apply Options"));
+	
+	QVBoxLayout* paramLayout = new QVBoxLayout;
+	paramLayout->addWidget( m_paramWidget );
+	paramLayout->setContentsMargins( 0,0,0,0 );
+
+	QVBoxLayout* optsLayout = new QVBoxLayout;
+	optsLayout->addWidget( m_optsWidget );
+	optsLayout->addWidget( optsApplyBut );
+	optsLayout->setContentsMargins( 0,0,0,0 );
+
+	QGroupBox* paramGroup = new QGroupBox(tr("Live parameters"));
+	QGroupBox* optsGroup  = new QGroupBox(tr("Setup options"));	
+	paramGroup->setLayout( paramLayout );
+	optsGroup->setLayout( optsLayout );
+
 	QVBoxLayout* l = new QVBoxLayout();
-	l->addWidget( m_widget );
+	l->addWidget( paramGroup );
+	l->addWidget( optsGroup );
+	l->addStretch( 1 );
 	l->setContentsMargins( 0,0,0,0 );
 	setLayout( l );
+
+	connect( optsApplyBut, SIGNAL(clicked()), this, SLOT(onApplyOptions()) );
 }
 
 void ModuleParameterWidget
-  ::setModule( ModuleBase* master )
+  ::onApplyOptions()
 {
+	if( m_master )
+	{
+		m_master->applyOptions();
+	}
+}
+
+void ModuleParameterWidget
+  ::setupParameters( ParameterList& plist, QAutoGUI::Parameters* params, QAutoGUI::ParametersWidget* widget )
+{
+	assert( params );
+	assert( widget );
+
 	using QAutoGUI::DoubleLineEdit;
 	using QAutoGUI::DoubleSpinEdit;
 	using QAutoGUI::BooleanCheckbox;
 	using QAutoGUI::IntegerSpinEdit;
 	using QAutoGUI::BooleanIntCheckbox;
 
-	m_widget->clear();
-	m_parameters->clear();
-	m_master = master;	
-	QAutoGUI::Parameters& p = *m_parameters;
-	if( !master ) 
-	{
-		return;
-	}
+	QAutoGUI::Parameters& p = *params;
 	
 	// Create parameters
-	ParameterList& plist = master->parameters();	
 	ParameterList::iterator it = plist.begin();
 	for( ; it != plist.end(); ++it )
 	{
@@ -88,7 +117,7 @@ void ModuleParameterWidget
 			if( pint->limits().active )
 				ise.setRange( pint->limits().min_, pint->limits().max_ );
 			p << ise;				
-					//.connect_to( this, SLOT(parameterChanged()) );			
+					//.connect_to( this, SLOT(parameterChanged()) );
 		}
 		else
 		if( pstring )
@@ -99,5 +128,29 @@ void ModuleParameterWidget
 	}
 	
 	// Update gui
-	m_widget->load_parameters( p );
+	widget->load_parameters( p );
+}
+
+void ModuleParameterWidget
+  ::clear()
+{
+	m_paramWidget->clear();
+	m_optsWidget->clear();
+	m_parameters->clear();
+	m_options->clear();
+}
+
+void ModuleParameterWidget
+  ::setModule( ModuleBase* master )
+{
+	clear();
+
+	m_master = master;
+	if( !master ) 
+	{
+		return;
+	}
+
+	setupParameters( master->parameters(), m_parameters, m_paramWidget );
+	setupParameters( master->options(), m_options, m_optsWidget );
 }
