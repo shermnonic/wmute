@@ -312,7 +312,8 @@ public:
     }
 public:
     IntegerSpinEdit& setRange(int min, int max){ 
-        widget()->setRange(min, max); 
+        widget()->setRange(min, max);		
+		widget()->setValue( value() );
         /// @todo value() to fit criteria above
         // collect_gui() ///< not working!!
         return *this; 
@@ -457,12 +458,14 @@ public:
 public:
     DoubleSpinEdit& setRange(double min, double max){ 
         widget()->setRange(min, max); 
+		widget()->setValue( value() );
         /// @todo value() to fit criteria above
         // collect_gui() ///< not working!!
         return *this; 
     }
     DoubleSpinEdit& setDecimals(int prec){ 
         widget()->setDecimals(prec); 
+		widget()->setValue( value() );
         return *this; 
     }
     DoubleSpinEdit& setSingleStep(double val){ 
