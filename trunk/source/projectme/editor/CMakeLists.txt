@@ -10,6 +10,22 @@
 
 # --> Boost and Qt4 already configures in main CMakeList
 
+#--- BASS related source
+
+if( PROJECTME_USE_BASS )
+	set( BASS_MOC_SRCS
+		SoundInputWidget.h
+	)
+	set( BASS_GUI_SRCS 
+		SoundInputWidget.h
+		SoundInputWidget.cpp
+	)
+	set( BASS_ENGINE_SRCS 
+		SoundInput.h
+		SoundInput.cpp
+	)
+endif()
+
 #---- qne Qt Node Editor  -----------------------------------------------------
 
 set( qne_SRCS
@@ -45,6 +61,8 @@ set( projectme_MOC_HDRS
 #	${qne_SRCS}
 	qnodeseditor.h
 	QAutoGUI.h
+	${BASS_MOC_SRCS}
+	#SoundInputWidget.h
 )
 
 # generate rules for building source files from the Qt resources
@@ -94,6 +112,7 @@ set( gui_SRCS
 	NodeEditorWidget.h
 	NodeEditorWidget.cpp
 	QAutoGUI.h
+	${BASS_GUI_SRCS}
 )
 source_group("gui" FILES ${gui_SRCS})
 
@@ -121,6 +140,7 @@ set( engine_SRCS
 	hraw.cpp
 	Parameter.h
 	Parameter.cpp
+	${BASS_ENGINE_SRCS}
 )
 source_group("engine" FILES ${engine_SRCS})
 
@@ -138,5 +158,6 @@ target_link_libraries( projectme
 	${OPENMESH_LIBRARIES}
 	${QT_LIBRARIES}
 	${OPENGL_LIBRARIES}
-	${GLEW_LIBRARY}	
+	${GLEW_LIBRARY}
+	${BASS_LIBRARY}
 )

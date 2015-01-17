@@ -6,6 +6,18 @@ project(projectme)
 # Common CMake macros (e.g. wintermuteExportLibrary)
 include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/WintermuteCommon.cmake)
 
+#---- User config  ------------------------------------------------------------
+
+# User variables
+set( PROJECTME_USE_BASS "TRUE" CACHE BOOL 
+		"Enable audio support via BASS library." )
+		
+if( PROJECTME_USE_BASS )
+	message( STATUS "BASS enabled." )
+else()
+	add_definitions(-DPROJECTME_BASS_DISABLED)
+endif()
+
 #---- Dependencies ------------------------------------------------------------
 
 #-------------------
@@ -21,8 +33,15 @@ set(GLM_INCLUDE_DIR  "${WINTERMUTE_3RDPARTY_LIBS_PATH}/glm"    CACHE PATH "glm i
 set(GLUTILS_PATH     "${WINTERMUTE_GLUTILS_PATH}"              CACHE PATH "path to authors custom glutils")
 set(GLUTILS_SOURCES ${WINTERMUTE_GLUTILS_SOURCES})
 
-include_directories( ${GLUTILS_PATH} )
-include_directories( ${GLM_INCLUDE_DIR} )
+set(BASS_INCLUDE_PATH "${WINTERMUTE_3RDPARTY_LIBS_PATH}/bass"  CACHE PATH     "BASS include path")
+set(BASS_LIBRARY      "${BASS_INCLUDE_PATH}/bass.lib"          CACHE FILEPATH "BASS library")
+message(STATUS "BASS_LIBRARY=${BASS_LIBRARY}")
+
+include_directories( 
+	${GLUTILS_PATH} 
+	${GLM_INCLUDE_DIR}
+	${BASS_INCLUDE_PATH} 
+)
 
 #---------------------------------------------------------
 # Boost (e.g. filesystem dependency in included libraries)

@@ -15,6 +15,7 @@
 #include "ProjectMe.h"
 #include "ShaderEditorWidget.h"
 #include "NodeEditorWidget.h"
+#include "SoundInputWidget.h"
 
 #include <QtGui> // FIXME: Include only required Qt classes
 #include <QMdiArea>
@@ -114,8 +115,8 @@ MainWindow::MainWindow()
 	// Load application settings
 	readSettings();
 
-	// Setup render set
-	createRenderSet();
+	// Initialize engine
+	initialize();
 
 	// Default startup
 	newPreview();
@@ -128,11 +129,27 @@ MainWindow::~MainWindow()
 {
 }
 
-void MainWindow::createRenderSet()
+void MainWindow::initialize()
 {
+	// Setup ProjectMe
 	RenderSet* set = m_projectMe.renderSetManager().getActiveRenderSet();
 	set->setProjectMe( &m_projectMe );
 	ModuleManager* mm = &m_projectMe.moduleManager();
+
+#ifndef PROJECTME_BASS_DISABLED
+	// Setup SoundInput
+	if( m_soundInput.isInitialized() )
+	{
+		// BASS init succeeded
+		m_soundInputWidget->setSoundInput( &m_soundInput );
+	}
+	else
+	{
+		// BASS init failed
+		QMessageBox::warning( this, tr("ProjectMe"),
+			tr("Could not setup audio device!") );
+	}
+#endif
 
 	// Update UI
 	m_sharedGLWidget->setModuleManager( mm );
@@ -258,6 +275,16 @@ void MainWindow::updateTables()
 	m_mapperWidget->updateTable();
 }
 
+QDockWidget* createDock( QWidget* parent, QWidget* w )
+{
+	QString title = w->windowTitle();
+	QDockWidget* dock = new QDockWidget( title, parent );
+	dock->setWidget( w );
+	dock->setWindowTitle( title );
+	dock->setObjectName( QString("Dock ")+title );
+	return dock;
+}
+
 void MainWindow::createUI()
 {
 	setWindowTitle( APP_NAME );
@@ -290,33 +317,34 @@ void MainWindow::createUI()
 	m_nodeEditorWidget = new NodeEditorWidget( this );
 	m_nodeEditorWidget->setWindowTitle(tr("Node Editor"));
 
+	m_soundInputWidget = new SoundInputWidget( this );
+	m_soundInputWidget->setWindowTitle(tr("Audio Input"));
+
 	// --- dock widgets ---
 
-	QDockWidget* dockModuleManager = new QDockWidget(m_moduleWidget->windowTitle(),this);
-	dockModuleManager->setWidget( m_moduleWidget );
-	dockModuleManager->setObjectName("Dock Module Manager");
-
-	QDockWidget* dockAreaMapper = new QDockWidget(m_mapperWidget->windowTitle(),this);
-	dockAreaMapper->setWidget( m_mapperWidget );
-	dockAreaMapper->setObjectName("Dock Area Mapper");
-
-	QDockWidget* dockModuleRenderer = new QDockWidget(m_moduleRendererWidget->windowTitle(),this);
-	dockModuleRenderer->setWidget( m_moduleRendererWidget );
-	dockModuleRenderer->setObjectName("Dock Module Renderer");
-
-	QDockWidget* dockModuleParameters = new QDockWidget(m_moduleParameterWidget->windowTitle(),this);
-	dockModuleParameters->setWidget( m_moduleParameterWidget );
-	dockModuleParameters->setObjectName("Dock Module Parameters");
-
-	QDockWidget* dockNodeEditor = new QDockWidget(tr("Node Editor"),this);
-	dockNodeEditor->setWidget( m_nodeEditorWidget );
-	dockNodeEditor->setObjectName("Dock Node Editor");
+	QDockWidget
+		*dockModuleManager    = createDock( this, m_moduleWidget ),
+		*dockAreaMapper       = createDock( this, m_mapperWidget ),
+		*dockModuleRenderer   = createDock( this, m_moduleRendererWidget ),
+		*dockModuleParameters = createDock( this, m_moduleParameterWidget ),
+		*dockNodeEditor       = createDock( this, m_nodeEditorWidget );
 
 	addDockWidget( Qt::RightDockWidgetArea, dockModuleRenderer );
 	addDockWidget( Qt::RightDockWidgetArea, dockModuleManager );
 	addDockWidget( Qt::LeftDockWidgetArea, dockModuleParameters );
 	addDockWidget( Qt::RightDockWidgetArea, dockAreaMapper );
 	addDockWidget( Qt::BottomDockWidgetArea, dockNodeEditor );
+
+	QList<QDockWidget*> docks;
+	docks << dockModuleManager << dockAreaMapper << dockModuleRenderer
+		  << dockModuleParameters << dockNodeEditor;
+
+#ifndef PROJECTME_BASS_DISABLED
+	QDockWidget *dockSoundInput = createDock( this, m_soundInputWidget );
+	addDockWidget( Qt::TopDockWidgetArea, dockSoundInput );
+	docks << dockSoundInput;
+#endif
+
 	
 	// --- actions ---
 
@@ -375,9 +403,8 @@ void MainWindow::createUI()
 	menuFile->addAction( actQuit );
 
 	menuWindows = menuBar()->addMenu( tr("&Windows") );
-	menuWindows->addAction( dockModuleRenderer->toggleViewAction() );
-	menuWindows->addAction( dockModuleManager ->toggleViewAction() );
-	menuWindows->addAction( dockAreaMapper    ->toggleViewAction() );
+	for( int i=0; i < docks.size(); i++ )
+		menuWindows->addAction( docks[i]->toggleViewAction() );
 	menuWindows->addSeparator();
 	menuWindows->addAction( actNewPreview );
 	menuWindows->addAction( actNewScreen );

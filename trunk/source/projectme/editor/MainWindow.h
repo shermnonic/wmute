@@ -9,6 +9,9 @@
 #include <QMainWindow>
 #include "RenderSet.h"
 #include "ProjectMe.h"
+#ifndef PROJECTME_BASS_DISABLED
+#include "SoundInput.h"
+#endif
 
 class QMdiArea;
 class QGLWidget;
@@ -22,6 +25,8 @@ class ModuleParameterWidget;
 class MapperWidget;
 class NodeEditorWidget;
 class ModuleBase;
+class SoundInputWidget;
+class SoundInput;
 
 /** @addtogroup editor_grp Editor
   * @{ */
@@ -59,6 +64,11 @@ private:
 //=============================================================================
 //  MainWindow
 //=============================================================================
+/**
+	\class MainWindow
+
+	ProjectMe application main window, owns a ProjectMe instance.
+*/
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT
@@ -93,7 +103,8 @@ private slots:
 
 protected:
 	void createUI();
-	void createRenderSet();
+
+	void initialize();
 
 	void closeEvent( QCloseEvent* event );
 
@@ -124,6 +135,11 @@ private:
 	ModuleRendererWidget* m_moduleRendererWidget;
 	ModuleParameterWidget*m_moduleParameterWidget;
 	NodeEditorWidget*     m_nodeEditorWidget;
+
+#ifndef PROJECTME_BASS_DISABLED
+	SoundInput m_soundInput;
+	SoundInputWidget*     m_soundInputWidget;
+#endif
 };
 
 /** @} */ // end group
