@@ -23,6 +23,8 @@ if( PROJECTME_USE_BASS )
 	set( BASS_ENGINE_SRCS 
 		SoundInput.h
 		SoundInput.cpp
+		SoundModule.h
+		SoundModule.cpp
 	)
 endif()
 
