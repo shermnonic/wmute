@@ -15,7 +15,10 @@
 #include "ProjectMe.h"
 #include "ShaderEditorWidget.h"
 #include "NodeEditorWidget.h"
+#ifndef PROJECTME_BASS_DISABLED
 #include "SoundInputWidget.h"
+#include "SoundModule.h"
+#endif
 
 #include <QtGui> // FIXME: Include only required Qt classes
 #include <QMdiArea>
@@ -211,6 +214,15 @@ void MainWindow::customModuleInit( ModuleBase* m )
 {
 	// Sanity
 	if( !m ) return;
+
+#ifndef PROJECTME_BASS_DISABLED
+	// Link SoundModule to global SoundInput instance
+	if( dynamic_cast<SoundModule*>(m) )
+	{
+		SoundModule* sm = dynamic_cast<SoundModule*>(m);
+		sm->setSoundInput( &m_soundInput );
+	}
+#endif
 
 	// Input image for potential field
 	if( dynamic_cast<PotentialFromImageModule*>(m) )

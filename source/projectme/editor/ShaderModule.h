@@ -52,6 +52,10 @@ public:
 	/// Load fragment shader from disk, implicitly compiles the shader
 	bool loadShader( const char* filename );
 	bool saveShader( const char* filename ) const;
+	/// Access current shader source
+	std::string getShaderSource() const { return m_fshader; }
+	/// Replace current shader source
+	bool setShaderSource( const std::string& shader );
 	///@}
 
 	/// @name Serialization
@@ -59,9 +63,6 @@ public:
 	PropertyTree& serialize() const;
 	void deserialize( Serializable::PropertyTree& pt );
 	///@}
-
-	std::string getShaderSource() const { return m_fshader; }
-	bool setShaderSource( const std::string& shader );
 
 protected:
 	/// Invoked in first render() call and on each size change of render texture.
