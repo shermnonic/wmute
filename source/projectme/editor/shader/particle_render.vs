@@ -1,6 +1,8 @@
 #version 130
 uniform sampler2D iPos;      // w counts lifetime backwards from max to zero
 uniform sampler2D iBirthPos; // w contains max lifetime
+uniform float pointSize;    // globale point size
+
 out vec2 lifetime;
 
 const vec2 texSize = vec2(256,256);
@@ -28,4 +30,5 @@ void main(void)
 	
 	// Color (pass through)
 	gl_FrontColor = gl_Color * tc.x;
+	gl_PointSize = pointSize; //*max(1.0,data.z);
 }

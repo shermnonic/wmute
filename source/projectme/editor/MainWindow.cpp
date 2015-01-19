@@ -43,12 +43,55 @@ SharedGLContextWidget::SharedGLContextWidget( QWidget* parent )
 : QGLWidget( parent ),
   m_man(0)
 {
+	// Set OpenGL profile.
 	// Set multisampling option for OpenGL.
 	// Note that it still has to enabled in OpenGL via glEnable(GL_MULTISAMPLE)
     QGLFormat glf = QGLFormat::defaultFormat();
+	glf.setProfile( QGLFormat::CompatibilityProfile );
     glf.setSampleBuffers(true);
     glf.setSamples(4);
     QGLFormat::setDefaultFormat(glf);
+
+	// Print some infos on first instantiation
+	static bool firstCall = true;
+	if( firstCall )
+	{
+		firstCall = false;
+
+		// Profile
+		QGLFormat::OpenGLContextProfile profile = glf.profile();
+		QString sProfile("Unknown");
+		switch( profile )
+		{
+		case QGLFormat::CoreProfile:           sProfile=QString("Core");          break;
+		case QGLFormat::CompatibilityProfile:  sProfile=QString("Compatibility"); break;
+		case QGLFormat::NoProfile:             sProfile=QString("No");            break;
+		}
+
+		// Version
+		QGLFormat::OpenGLVersionFlags flags = glf.openGLVersionFlags();
+		QString version("Unknown");
+		if( flags & 0x00000000 ) version  = QString("OpenGL Version None");
+		if( flags & 0x00000001 ) version  = QString("OpenGL Version 1.1");
+		if( flags & 0x00000002 ) version  = QString("OpenGL Version 1.2");
+		if( flags & 0x00000004 ) version  = QString("OpenGL Version 1.3");
+		if( flags & 0x00000008 ) version  = QString("OpenGL Version 1.4");
+		if( flags & 0x00000010 ) version  = QString("OpenGL Version 1.5");
+		if( flags & 0x00000020 ) version  = QString("OpenGL Version 2.0");
+		if( flags & 0x00000040 ) version  = QString("OpenGL Version 2.1");
+		if( flags & 0x00001000 ) version  = QString("OpenGL Version 3.0");
+		if( flags & 0x00002000 ) version  = QString("OpenGL Version 3.1");
+		if( flags & 0x00004000 ) version  = QString("OpenGL Version 3.2");
+		if( flags & 0x00008000 ) version  = QString("OpenGL Version 3.3");
+		if( flags & 0x00010000 ) version  = QString("OpenGL Version 4.0");
+		//if( flags & 0x00000100 ) version  = QString("OpenGL ES CommonLite Version 1 0"); else
+		//if( flags & 0x00000080 ) version  = QString("OpenGL ES Common Version 1 0"); else
+		//if( flags & 0x00000400 ) version  = QString("OpenGL ES CommonLite Version 1 1"); else
+		//if( flags & 0x00000200 ) version  = QString("OpenGL ES Common Version 1 1"); else
+		//if( flags & 0x00000800 ) version  = QString("OpenGL ES Version 2 0"); else
+
+		qDebug() << "Using" << qPrintable(version) << qPrintable(sProfile) << "Profile";
+	}
 
 	// Render update timer
 	m_renderUpdateTimer = new QTimer( this );
