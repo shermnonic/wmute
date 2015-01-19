@@ -567,20 +567,23 @@ void RenderSet::deserialize( Serializable::PropertyTree& pt )
 			string name = v.second.get("ModuleName",string("")),
 			       type = v.second.get("ModuleType",string(""));
 
-			ModuleRenderer* mod =
-				m_moduleManager->findModule( name, type );
-			if( mod && (idx>=0) && (idx<m_mapper.size()) )
+			if( !name.empty() ) // Empty name indicates no mapping
 			{
-				// Set mapping
-				m_mapper[idx] = mod;
-				m_channels[idx] = mod ? mod->target() : -1;
-			}
-			else
-			{
-				if( !mod )
-					cerr << "RenderSet::deserialize() : Module not found!" << endl;
+				ModuleRenderer* mod =
+					m_moduleManager->findModule( name, type );
+				if( mod && (idx>=0) && (idx<m_mapper.size()) )
+				{
+					// Set mapping
+					m_mapper[idx] = mod;
+					m_channels[idx] = mod ? mod->target() : -1;
+				}
 				else
-					cerr << "RenderSet::deserialize() : Invalid mapping index!" << endl;
+				{
+					if( !mod )
+						cerr << "RenderSet::deserialize() : No module with name=\""<<name<<"\" of type \""<<type<<"\" found!" << endl;
+					else
+						cerr << "RenderSet::deserialize() : Invalid mapping index " << idx << "!" << endl;
+				}
 			}
 		}
 	}
