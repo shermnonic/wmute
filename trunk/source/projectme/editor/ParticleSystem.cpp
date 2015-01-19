@@ -319,11 +319,13 @@ void ParticleSystem::render()
 	GLint iBirthPos = m_renderShader->getUniformLocation("iBirthPos");
 	GLint iDoSprite = m_renderShader->getUniformLocation("doSprite");
 	GLint iSprite   = m_renderShader->getUniformLocation("sprite");
-	glUniform1i( iPos,   0 ); // Texture unit 0 - Position
-	glUniform1i( iVel,   1 ); // Texture unit 1 - Velocity	
-	glUniform1i( iBirthPos, 2 );//Texture unit 2 - Birth position 
-	glUniform1i( iSprite,3 ); // Texture unit 3 - Point Sprite (if any)
+	GLint iPointSize= m_renderShader->getUniformLocation("pointSize");
+	glUniform1i( iPos,      0 ); // Texture unit 0 - Position
+	glUniform1i( iVel,      1 ); // Texture unit 1 - Velocity	
+	glUniform1i( iBirthPos, 2 ); // Texture unit 2 - Birth position 
+	glUniform1i( iSprite,   3 ); // Texture unit 3 - Point Sprite (if any)
 	glUniform1i( iDoSprite, m_texSprite >= 0 );
+	glUniform1f( iPointSize, (m_texSprite>=0) ? 10.f * m_pointSize : m_pointSize );
 	checkGLError("ParticleSystem::render() : After setting shader uniforms");
 
 	// Bind position and velocity texture
@@ -347,6 +349,11 @@ void ParticleSystem::render()
 		glPointSize( m_pointSize );
 	}
 	glActiveTexture( GL_TEXTURE0 );
+
+	// TESTING POINT SIZE
+	glEnable( GL_PROGRAM_POINT_SIZE );
+	glEnable( GL_VERTEX_PROGRAM_POINT_SIZE ); 
+
 	checkGLError("ParticleSystem::render() : After texture bind");
 
 	// Generate vertex stream, position data will be replaced in shader
@@ -553,7 +560,8 @@ void ParticleSystem::seedParticlePositions()
 		*ptr = r*sin(theta); ptr++;
 		*ptr = r*cos(theta); ptr++;
 	  #endif
-		*ptr = 0.f; ptr++;  // z = 0
+		*ptr = 0.f;  // z = 0
+		//*ptr = 1.f+2.f*frand(); ptr++;  // z = point size (scale factor in [1,3])
 		*ptr = .5f+frand(); ptr++;  // w = lifetime
 	}
 
