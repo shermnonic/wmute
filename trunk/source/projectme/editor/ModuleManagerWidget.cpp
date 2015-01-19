@@ -156,6 +156,10 @@ void ModuleManagerWidget::setActiveModule( ModuleRenderer* m )
 	int idx = m_master->moduleIndex( m );
 	if( idx < 0 )
 	{
+		// Ignore RenderSet silently
+		if( dynamic_cast<RenderSet*>(m) )
+			return;
+
 		qDebug() << "ModuleManagerWidget::setActiveModule() : "
 			"Module not found!";
 		return;

@@ -19,8 +19,9 @@ void main(void)
 	
 	// Vertex position
 	vec4 data = texture2D( iPos, tc );
-	vec4 pos = vec4( data.xyz, 1.0 );	
-	gl_Position = gl_ModelViewProjectionMatrix * pos;
+	vec4 pos = vec4( vec3(data.xy, 0.5), 1.0 );	
+	mat4 MVP = mat4(1.0); // Identity (was: gl_ModelViewProjectionMatrix)
+	gl_Position = MVP * pos;
 	
 	// Lifetime
 	float timeMax = texture2D( iBirthPos, tc ).w;
@@ -30,5 +31,5 @@ void main(void)
 	
 	// Color (pass through)
 	gl_FrontColor = gl_Color * tc.x;
-	gl_PointSize = pointSize; //*max(1.0,data.z);
+	gl_PointSize = pointSize*(0.5+2.0*data.z);
 }

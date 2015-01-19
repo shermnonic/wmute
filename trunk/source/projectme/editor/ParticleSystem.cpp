@@ -333,9 +333,11 @@ void ParticleSystem::render()
 	glActiveTexture( GL_TEXTURE0 + 0 );	glBindTexture( GL_TEXTURE_2D, m_texPos[bufid] );
 	glActiveTexture( GL_TEXTURE0 + 1 );	glBindTexture( GL_TEXTURE_2D, m_texVel[bufid] );
 	glActiveTexture( GL_TEXTURE0 + 2 );	glBindTexture( GL_TEXTURE_2D, m_texBirthPos );
+	checkGLError("ParticleSystem::render() : After texture bind");
+
 	if( m_texSprite >= 0 )
 	{
-		glPointSize( 10.f * m_pointSize );
+		glPointSize( 10.f * m_pointSize ); // OBSOLETE: Replaced by gl_PointSize
 		glEnable( GL_POINT_SPRITE );
 		glTexEnvi( GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE );
 		glEnable( GL_BLEND );
@@ -346,15 +348,16 @@ void ParticleSystem::render()
 	{
 		glDisable( GL_BLEND );
 		glDisable( GL_POINT_SPRITE );
-		glPointSize( m_pointSize );
+		glPointSize( m_pointSize ); // OBSOLETE: Replaced by gl_PointSize
 	}
 	glActiveTexture( GL_TEXTURE0 );
+	checkGLError("ParticleSystem::render() : After point sprite setup");
 
-	// TESTING POINT SIZE
-	glEnable( GL_PROGRAM_POINT_SIZE );
-	glEnable( GL_VERTEX_PROGRAM_POINT_SIZE ); 
+	// GL states
+	glDisable( GL_DEPTH_TEST );
+	glEnable( GL_VERTEX_PROGRAM_POINT_SIZE );
+	checkGLError("ParticleSystem::render() : After state setup");
 
-	checkGLError("ParticleSystem::render() : After texture bind");
 
 	// Generate vertex stream, position data will be replaced in shader
 	glBindBuffer( GL_ARRAY_BUFFER, m_vbo );
@@ -371,8 +374,11 @@ void ParticleSystem::render()
 		glBindTexture( GL_TEXTURE_2D, 0 );
 	}
 	glActiveTexture( GL_TEXTURE0 );
+	
+	// Reset states
 	glDisable( GL_BLEND );
-	glDisable(GL_POINT_SPRITE);
+	glDisable( GL_POINT_SPRITE );
+	glDisable( GL_VERTEX_PROGRAM_POINT_SIZE );
 
 	m_renderShader->release();
 	checkGLError("ParticleSystem::render() : After shader release");
@@ -560,8 +566,8 @@ void ParticleSystem::seedParticlePositions()
 		*ptr = r*sin(theta); ptr++;
 		*ptr = r*cos(theta); ptr++;
 	  #endif
-		*ptr = 0.f;  // z = 0
-		//*ptr = 1.f+2.f*frand(); ptr++;  // z = point size (scale factor in [1,3])
+		//*ptr = .0f; ptr++;  // z = 0
+		*ptr = frand(); ptr++;  // z = point size (scale factor in [0,1])
 		*ptr = .5f+frand(); ptr++;  // w = lifetime
 	}
 
