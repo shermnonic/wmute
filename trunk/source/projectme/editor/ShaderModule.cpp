@@ -1,4 +1,5 @@
 #include "ShaderModule.h"
+#include "ShaderPrecompiler.h"
 #include <glutils/GLError.h>
 #include <iostream>
 #include <ctime>
@@ -49,104 +50,6 @@ defaultUniforms +
 "	gl_FragColor = vec4(uv,0.5+0.5*sin(iGlobalTime),1.0);\n"
 "}";
 
-//----------------------------------------------------------------------------
-//  Shader preprocessing utilities
-//----------------------------------------------------------------------------
-
-struct ShaderVariable
-{
-	std::string type, name, value;
-	
-	ShaderVariable() {}
-	ShaderVariable( std::string type_, std::string name_, std::string value_ )
-		: type(type_), name(name_), value(value_) {}
-};	
-
-typedef std::vector<ShaderVariable> ShaderVariables;
-
-std::string preprocessShader( std::string shader, ShaderVariables& vars )
-{
-	using namespace std;
-	
-	const string MARKER("//###");
-	
-	istringstream ss( shader );
-	stringstream os;
-	
-	string line, comment;
-	int lineCount=1;
-	while( getline( ss, line ) )
-	{
-		// Look for marker
-		size_t found = line.find( MARKER );
-		if( found != string::npos )
-		{
-			// Marker found
-			comment = line.substr( found+MARKER.length() );
-			line = line.substr( 0, found );
-			
-			// Replace '=' with ' '
-			size_t p;
-			while( (p = line.find( '=' )) != string::npos )
-				line.replace( p, 1, " " );
-			
-			// Erase ';'
-			while( (p = line.find( ';' )) != string::npos )
-				line.erase( p, 1 );
-			
-			// Tokenize
-			// See http://stackoverflow.com/questions/236129/split-a-string-in-c
-			istringstream tmp(line);
-			vector<string> tokens;
-			copy( istream_iterator<string>(tmp),
-				  istream_iterator<string>(),
-			      back_inserter(tokens) );			
-			
-			if( tokens.size() < 2 || tokens.size() > 3 )
-			{
-				cerr << "ShaderModule::preprocess() : "
-					"Syntax error in shader variable definition on line " 
-					<< lineCount << ":" << endl
-					<< line << endl;
-				os << line << "\n"; // Copy line w/o transforming				
-			}
-			
-			// Parse 			
-			// 	<type> <name> [=<default_value>];
-			string 
-				sType(tokens[0]), 
-				sName(tokens[1]), 
-				sDefault(tokens.size()>2?tokens[2]:string());
-			
-			// So far we only support 'float' type
-			if( sType.compare("float")==0 )
-			{			
-				// Store variable
-				vars.push_back( ShaderVariable( sType, sName, sDefault ) );
-				
-				// Transform to uniform in output
-				os << "uniform " << sType << " " << sName << ";\n";			
-			}
-			else
-			{
-				cerr << "ShaderModule::preprocess() : "
-					"Non float shader variable defined on line " 
-					<< lineCount << " not supported yet:" << endl
-					<< line << endl;
-				os << line << "\n"; // Copy line w/o transforming
-			}
-		}
-		else
-		{
-			// Marker not found, simply copy line
-			os << line << "\n";
-		}
-		
-		lineCount++;
-	}	
-	
-	return os.str();
-}
 
 //=============================================================================
 //  ShaderModule implementation
@@ -467,8 +370,9 @@ std::string ShaderModule::preprocess( std::string shader )
 {	
 	using namespace std;	
 	
-	ShaderVariables vars;
-	string shaderProcessed = preprocessShader( shader, vars );
+	ShaderPrecompiler pc;
+	string shaderProcessed = pc.precompile( shader );
+	ShaderPrecompiler::ShaderVariables& vars = pc.vars();
 	
 	// Collect 'float' parameters
 	std::vector<DoubleParameter> floats;	
