@@ -128,6 +128,8 @@ set( engine_SRCS
 	RenderSet.cpp
 	ShaderModule.h
 	ShaderModule.cpp
+	ShaderPrecompiler.h
+	ShaderPrecompiler.cpp
 	ParticleModule.h
 	ParticleModule.cpp
 	ParticleSystem.h
