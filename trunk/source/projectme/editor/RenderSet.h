@@ -298,7 +298,7 @@ typedef std::vector<ModuleRenderer*> RenderAreaModuleMapper;
 	- Manages render areas and mapping to modules.
 	- Does *not* manage modules!
 	- Does *not* provide user interaction (like trackball camera or polygon 
-      editing) but offers utility functoins to pick and edit area vertices.
+      editing) but offers utility functions to pick and edit area vertices.
 	- Areas are edited in normalized coordinates [-1,-1]-[1,1].
 */
 class RenderSet : public ModuleRenderer
