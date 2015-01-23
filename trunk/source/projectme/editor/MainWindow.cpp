@@ -319,9 +319,25 @@ void MainWindow::customModuleInit( ModuleBase* m )
 
 void MainWindow::newArea()
 {
-	m_projectMe.renderSetManager().getActiveRenderSet()->addArea( RenderArea() );	
-	m_mapperWidget->updateTable(); // was: updateTables()
-	m_nodeEditorWidget->updateNodes();
+	QStringList types;
+	types << tr("Default area") 
+		<< tr("UV split vertical left") << tr("UV split vertical right") 
+		<< tr("UV split horizontal top") << tr("UV split horizontal bottom");
+	bool ok;
+	QString type = QInputDialog::getItem( this, tr("projectme - Create area"),
+		tr("Select area type"), types, 0, false, &ok );
+	if( ok && !type.isEmpty() )
+	{
+		RenderArea area;
+
+		// Set UV split
+		area.setUVSplit( types.indexOf(type) );
+
+		m_projectMe.renderSetManager().getActiveRenderSet()->addArea( area );
+
+		m_mapperWidget->updateTable(); // was: updateTables()
+		m_nodeEditorWidget->updateNodes();
+	}
 }
 
 void MainWindow::updateTables()
