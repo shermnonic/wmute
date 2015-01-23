@@ -277,9 +277,21 @@ public:
 	void deserialize( Serializable::PropertyTree& pt );
 	///@}
 
+	/// Possible texture sectors for UV mapping
+	enum SplitSectors {
+		NoSplit,
+		VerticalLeft,
+		VerticalRight,
+		HorizontalTop,
+		HorizontalBottom
+	};
+	/// Set UV coordinates to show only half of texture
+	void setUVSplit( int direction );
+
 private:
 	Polygon m_poly; ///< 2D polygon w/ tex-coords (geometry to render to)
 	mutable HomogeneousQuad m_hq; ///< Projective mapping if polygon is a quad
+	int m_split;
 };
 
 //=============================================================================

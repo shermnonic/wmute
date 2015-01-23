@@ -105,6 +105,7 @@ void ModuleRenderer::deserialize( Serializable::PropertyTree& pt )
 
 //-----------------------------------------------------------------------------
 RenderArea::RenderArea()
+	: m_split(RenderArea::NoSplit)
 {
 	float verts[] =
 	{
@@ -131,6 +132,7 @@ RenderArea::RenderArea()
 
 //-----------------------------------------------------------------------------
 RenderArea::RenderArea( float xmin, float ymin, float xmax, float ymax )
+	: m_split(RenderArea::NoSplit)
 {
 	polygon().clear();
 	polygon().verts().push_back( xmin );  polygon().verts().push_back( ymin );
@@ -147,6 +149,64 @@ RenderArea::RenderArea( float xmin, float ymin, float xmax, float ymax )
 	};
 	polygon().texcoords()
 		= std::vector<float>( texcoords, texcoords+sizeof(texcoords)/sizeof(float));
+}
+
+//-----------------------------------------------------------------------------
+void RenderArea::setUVSplit( int splitSector )
+{
+	if( !isQuad() ) return; // Only available for quads!
+	if( splitSector == VerticalLeft )
+	{
+		float texcoords[] =
+		{
+			0.f, 0.f,
+			0.f, 1.f,
+			.5f, 1.f,
+			.5f, 0.f
+		};
+		polygon().texcoords()
+			= std::vector<float>( texcoords, texcoords+sizeof(texcoords)/sizeof(float));
+		m_split = splitSector;
+	}
+	else if( splitSector == VerticalRight )
+	{
+		float texcoords[] =
+		{
+			.5f, 0.f,
+			.5f, 1.f,
+			1.f, 1.f,
+			1.f, 0.f
+		};
+		polygon().texcoords()
+			= std::vector<float>( texcoords, texcoords+sizeof(texcoords)/sizeof(float));
+		m_split = splitSector;
+	}
+	else if( splitSector == HorizontalTop )
+	{
+		float texcoords[] =
+		{
+			.0f, 0.f,
+			.0f, .5f,
+			1.f, .5f,
+			1.f, 0.f
+		};
+		polygon().texcoords()
+			= std::vector<float>( texcoords, texcoords+sizeof(texcoords)/sizeof(float));
+		m_split = splitSector;
+	}
+	else if( splitSector == HorizontalBottom )
+	{
+		float texcoords[] =
+		{
+			.0f, .5f,
+			.0f, 1.f,
+			1.f, 1.f,
+			1.f, .5f
+		};
+		polygon().texcoords()
+			= std::vector<float>( texcoords, texcoords+sizeof(texcoords)/sizeof(float));
+		m_split = splitSector;
+	}
 }
 
 //-----------------------------------------------------------------------------
