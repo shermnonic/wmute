@@ -345,7 +345,7 @@ RenderSet::RenderSet()
   m_moduleManager( NULL ),
   m_projectMe( NULL )
 {
-	addArea( RenderArea(), 0 );
+	//addArea( RenderArea(), 0 );
 	setName("RenderSet");
 }
 
