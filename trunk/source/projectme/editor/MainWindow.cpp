@@ -179,7 +179,8 @@ void MainWindow::initialize()
 {
 	// Setup ProjectMe
 	RenderSet* set = m_projectMe.renderSetManager().getActiveRenderSet();
-	set->setProjectMe( &m_projectMe );
+	if( set )
+		set->setProjectMe( &m_projectMe );
 	ModuleManager* mm = &m_projectMe.moduleManager();
 
 #ifndef PROJECTME_BASS_DISABLED
