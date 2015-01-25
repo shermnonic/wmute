@@ -11,7 +11,7 @@ class QNEPort;
 class QNEBlock;
 class QNEConnection;
 
-#include "RenderSet.h" // for ModuleManager
+#include "ModuleManager.h"
 class ProjectMe;
 class ModuleRenderer;
 

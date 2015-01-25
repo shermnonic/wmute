@@ -11,7 +11,9 @@
 
 #include <algorithm> // for find()
 
-#include "RenderSet.h" // for RenderSet, ModuleManager, ModuleBase
+#include "RenderSet.h"
+#include "ModuleBase.h"
+#include "ModuleManager.h"
 #include "ProjectMe.h"
 
 

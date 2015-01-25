@@ -63,6 +63,7 @@ set( projectme_MOC_HDRS
 #	${qne_SRCS}
 	qnodeseditor.h
 	QAutoGUI.h
+	QDebugStream.h
 	${BASS_MOC_SRCS}
 	#SoundInputWidget.h
 )
@@ -122,6 +123,8 @@ set( engine_SRCS
 	DistanceTransformFelzenszwalb.h
 	Connection.h
 	Connection.cpp
+	Module.h
+	Module.cpp
 	ModuleFactory.h
 	ModuleFactory.cpp
 	RenderSet.h
@@ -144,6 +147,7 @@ set( engine_SRCS
 	hraw.cpp
 	Parameter.h
 	Parameter.cpp
+	Serializable.h
 	${BASS_ENGINE_SRCS}
 )
 source_group("engine" FILES ${engine_SRCS})

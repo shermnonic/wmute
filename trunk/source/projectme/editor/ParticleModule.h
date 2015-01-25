@@ -1,7 +1,7 @@
 #ifndef PARTICLEMODULE_H
 #define PARTICLEMODULE_H
 
-#include "RenderSet.h" // for ModuleRenderer
+#include "ModuleRenderer.h"
 #include "Parameter.h"
 #include "ParticleSystem.h"
 
