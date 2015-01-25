@@ -12,7 +12,7 @@ using GL::GLTexture;
 using GL::GLSLProgram;
 #endif
 
-#include "RenderSet.h" // for ModuleRenderer
+#include "ModuleRenderer.h"
 #include "Parameter.h"
 
 /**

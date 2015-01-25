@@ -1,7 +1,7 @@
 #ifndef SOUNDMODULE_H
 #define SOUNDMODULE_H
 
-#include "RenderSet.h" // for ModuleRenderer
+#include "ModuleRenderer.h"
 
 #include <glutils/GLTexture.h>
 #ifdef GL_NAMESPACE

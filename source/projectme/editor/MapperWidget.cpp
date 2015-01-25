@@ -1,5 +1,6 @@
 #include "MapperWidget.h"
 #include "RenderSet.h"
+#include "ModuleManager.h"
 #include "ComboBoxDelegate.h"
 #include <QDebug>
 #include <QStandardItemModel>

@@ -1,6 +1,6 @@
 #ifndef CONNECTION_H
 #define CONNECTION_H
-#include "RenderSet.h" // for ModuleRenderer
+#include "ModuleRenderer.h"
 
 class ProjectMe;
 

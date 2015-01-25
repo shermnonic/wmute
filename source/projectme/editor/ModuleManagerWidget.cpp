@@ -1,5 +1,5 @@
 #include "ModuleManagerWidget.h"
-#include "RenderSet.h" // for ModuleManager
+#include "ModuleManager.h"
 #include <QDebug>
 #include <QStandardItemModel>
 #include <QStandardItem>
@@ -151,6 +151,7 @@ void ModuleManagerWidget::onSelectionChanged( const QItemSelection& selected, co
 }
 
 //----------------------------------------------------------------------------
+#include "RenderSet.h"
 void ModuleManagerWidget::setActiveModule( ModuleRenderer* m )
 {
 	int idx = m_master->moduleIndex( m );

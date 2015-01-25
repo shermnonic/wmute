@@ -1,5 +1,5 @@
 #include "ModuleRendererWidget.h"
-#include "RenderSet.h" // for ModuleRenderer
+#include "ModuleRenderer.h"
 #include <QDebug>
 #include <QTimer>
 

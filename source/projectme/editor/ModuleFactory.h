@@ -1,7 +1,7 @@
 #ifndef MODULEFACTORY_H
 #define MODULEFACTORY_H
 
-#include "RenderSet.h" // for ModuleBase
+#include "ModuleBase.h"
 #include <string>
 #include <vector>
 #include <map>

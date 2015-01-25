@@ -1,5 +1,5 @@
 #include "ModuleParameterWidget.h"
-#include "RenderSet.h" // for ModuleBase
+#include "ModuleBase.h"
 #include "Parameter.h"
 #include "QAutoGUI.h"
 

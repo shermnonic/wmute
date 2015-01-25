@@ -8,6 +8,7 @@
 
 #include <QMainWindow>
 #include "RenderSet.h"
+#include "ModuleRenderer.h"
 #include "ProjectMe.h"
 #ifndef PROJECTME_BASS_DISABLED
 #include "SoundInput.h"
