@@ -28,7 +28,7 @@
 
 const QString APP_NAME        ( "projectme" );
 const QString APP_ORGANIZATION( "www.386dx25.de" );
-#define       APP_ICON        QIcon(QPixmap(":/projectme.png"))
+#define       APP_ICON        QIcon(QPixmap(":/data/icon.png"))
 
 //=============================================================================
 //  SharedGLContextWidget
@@ -357,6 +357,27 @@ QDockWidget* createDock( QWidget* parent, QWidget* w )
 	return dock;
 }
 
+#include "QDebugStream.h"
+
+QDockWidget* createLogDock( QWidget* parent )
+{
+	QTextEdit* te = new QTextEdit();
+	te->setTextInteractionFlags( Qt::TextBrowserInteraction );
+	te->setWindowTitle(parent->tr("Log"));
+
+	// TODO: Somehow consider also stream output before QTextEdit was created.
+	//       E.g. at program start one could redirect cout/cerr to another 
+	//       streambuf which is then read in when creating the QDebugStream
+	//       here.
+	QDebugStream 
+		*qout = new QDebugStream( std::cout, te ),
+		*qerr = new QDebugStream( std::cerr, te );
+
+	// TODO: Also capture Qt outputs like qDebug() via qInstallMsgHandler().	
+
+	return createDock( parent, te );
+}
+
 void MainWindow::createUI()
 {
 	setWindowTitle( APP_NAME );
@@ -399,17 +420,19 @@ void MainWindow::createUI()
 		*dockAreaMapper       = createDock( this, m_mapperWidget ),
 		*dockModuleRenderer   = createDock( this, m_moduleRendererWidget ),
 		*dockModuleParameters = createDock( this, m_moduleParameterWidget ),
-		*dockNodeEditor       = createDock( this, m_nodeEditorWidget );
+		*dockNodeEditor       = createDock( this, m_nodeEditorWidget ),
+		*dockLog              = createLogDock( this );
 
 	addDockWidget( Qt::RightDockWidgetArea, dockModuleRenderer );
 	addDockWidget( Qt::RightDockWidgetArea, dockModuleManager );
 	addDockWidget( Qt::LeftDockWidgetArea, dockModuleParameters );
 	addDockWidget( Qt::RightDockWidgetArea, dockAreaMapper );
 	addDockWidget( Qt::BottomDockWidgetArea, dockNodeEditor );
+	addDockWidget( Qt::BottomDockWidgetArea, dockLog );
 
 	QList<QDockWidget*> docks;
 	docks << dockModuleManager << dockAreaMapper << dockModuleRenderer
-		  << dockModuleParameters << dockNodeEditor;
+		  << dockModuleParameters << dockNodeEditor << dockLog;
 
 #ifndef PROJECTME_BASS_DISABLED
 	QDockWidget *dockSoundInput = createDock( this, m_soundInputWidget );

@@ -524,9 +524,10 @@ void RenderSet::render_internal( int texid ) /*const*/
 	// Disable z-buffer
 	glDisable( GL_DEPTH_TEST );
 
-	// Alpha-blending (classical transparency, no pre-multiplied alpha)
+	// Alpha-blending
 	glBlendFunc( GL_FUNC_ADD, GL_FUNC_ADD );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA ); // classical transparency, no pre-multiplied alpha
+	//glBlendFunc( GL_ONE, GL_ONE_MINUS_SRC_ALPHA ); // over-operator
 	glEnable( GL_BLEND );
 
 	for( int i=0; i < m_areas.size(); i++ )

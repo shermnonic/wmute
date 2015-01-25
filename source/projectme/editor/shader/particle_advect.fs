@@ -19,6 +19,9 @@ vec4 getForce( vec4 pos )
 	vec2 tc = 0.5*(pos.xy+vec2(1.0,1.0));
 	vec4 force = texture2D( iForce, tc );
 	
+	//float mag = length(force);
+	//force = mag*mag*normalize(force);
+	
 	return -force;
 }
 
@@ -50,19 +53,19 @@ void main(void)
 		vec3 rot  = vec3( -pos.y, pos.x, 0.0 );
 		
 		// Euler step
-		vel.xyz = dt * ( force.xyz*700.0 + rot*0.0 + grav*0.0 );
+		vel.xyz = dt * ( force.xyz*700.0 + rot*230.0 + grav*0.0 );
 		//vel.xyz = force.xyz; // Alternatively define velocity directly from input
 		pos.xyz += dt * vel.xyz;
 		
 		// Handle borders
-	  #if 1
+	  #if 0
 		bool borderHit = false;
 		if( pos.x > 1.0 || pos.x < -1.0 ) { vel.x *= -1.0; borderHit=true; }
 		if( pos.y > 1.0 || pos.y < -1.0 ) { vel.y *= -1.0; borderHit=true; }
 		if( pos.z > 1.0 || pos.z < -1.0 ) { vel.z *= -1.0; borderHit=true; }
 		if( borderHit )
 		{
-		  #if 0 // Reflect
+		  #if 0// Reflect
 			pos.xyz += dt * vel.xyz;
 	      #else // Die
 			pos.w = -1.0;

@@ -34,6 +34,7 @@ public:
 	int  target() const { return m_target.GetID(); }
 	void destroy() { m_ps.destroy(); }
 	void touch();
+	void applyOptions() { /* Call init again to change texture size */ init(); }
 	///@}
 
 	///@name ModuleRenderer channels implementation
@@ -51,13 +52,17 @@ public:
 	
 private:
 	bool            m_initialized;
+	// Some initialization has only to be done once
+	bool            m_target_initialized;
+	bool            m_r2t_initialized;
+	bool            m_ps_initialized;
+
 	bool            m_update;
-	int             m_width, m_height;
 	GLTexture       m_target;
 	RenderToTexture m_r2t;
 	ParticleSystem  m_ps;
 
-	// Live parameters
+	/// Live parameters
 	struct Params {
 		DoubleParameter pointSize;
 		Params()
@@ -68,6 +73,22 @@ private:
 		}
 	};
 	Params m_params;
+
+	/// Setup options
+	struct Opts
+	{
+		IntParameter width, height;
+		Opts() 
+		: width("targetWidth"),
+		  height("targetHeight")
+		{
+			width.setValueAndDefault( 1024 );
+			width.setLimits( 1, 2048 );
+			height.setValueAndDefault( 1024 );
+			height.setLimits( 1, 2048 );
+		}
+	};
+	Opts m_opts;
 };
 
 
