@@ -156,6 +156,7 @@ add_executable( projectme
 	${projectme_MOC_SRCS}
 	${projectme_RCC_SRCS}
 	${GLUTILS_SOURCES}
+	projectme.rc    # Visual Studio resource(s), e.g. windows application icon	
 )
 target_link_libraries( projectme
 	# projlib

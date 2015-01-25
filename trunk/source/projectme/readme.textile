@@ -3,6 +3,7 @@ h2. Projectme
 Projection mapping of GLSL shaders to several rectangular surfaces.
 
 h3. TODO
+* GIF animation (via QMovie or giflib)
 * Remove redundancy in serialization  of ModuleMapper and Connection
 * Global FPS timing
 * ModuleRenderer shader	(e.g. intensity scaling)

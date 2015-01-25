@@ -160,17 +160,22 @@ bool ParticleSystem::initGL()
 	// - GLSL 101
 	// - Framebuffer object
 	// - Multiple render targets (GL_ARB_draw_buffers, core since GL >= 2.0)
-	if( glewIsSupported("GL_VERSION_2_1  GL_ARB_draw_buffers  GL_EXT_framebuffer_object  GL_ARB_texture_float") )
+	static bool checkExtensions = true;
+	if( checkExtensions )
 	{
-		GLint max_color_attachements;
-		glGetIntegerv( GL_MAX_COLOR_ATTACHMENTS, &max_color_attachements );
-		cout << "ParticleSystem::initGL() : " <<
-			"GL_MAX_COLOR_ATTACHMENTS = " << max_color_attachements << endl;
-	}
-	else
-	{
-		cerr << "ParticleSystem::initGL() : " <<
-			"OpenGL minimum requirements not met!" << endl;
+		if( glewIsSupported("GL_VERSION_2_1  GL_ARB_draw_buffers  GL_EXT_framebuffer_object  GL_ARB_texture_float") )
+		{
+			GLint max_color_attachements;
+			glGetIntegerv( GL_MAX_COLOR_ATTACHMENTS, &max_color_attachements );
+			cout << "ParticleSystem::initGL() : " <<
+				"GL_MAX_COLOR_ATTACHMENTS = " << max_color_attachements << endl;
+		}
+		else
+		{
+			cerr << "ParticleSystem::initGL() : " <<
+				"OpenGL minimum requirements not met!" << endl;
+		}
+		checkExtensions = false;
 	}
 
 	//........................................................................
@@ -341,7 +346,9 @@ void ParticleSystem::render()
 		glEnable( GL_POINT_SPRITE );
 		glTexEnvi( GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE );
 		glEnable( GL_BLEND );
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA ); // classical transparency, no pre-multiplied alpha
+		//glBlendFunc( GL_ONE, GL_ONE_MINUS_SRC_ALPHA ); // over-operator, pre-multiplied alpha
+
 		glActiveTexture( GL_TEXTURE0 + 3 ); glBindTexture( GL_TEXTURE_2D, m_texSprite );
 	}
 	else
@@ -525,7 +532,8 @@ void ParticleSystem::killAllParticles()
 		*ptr = 2.f*frand()-1.f; ptr++;
 		*ptr = 2.f*frand()-1.f; ptr++;
 		*ptr = 0.f; ptr++;  // z = 0
-		*ptr = -1.f; ptr++;  // w = lifetime
+		*ptr = (float)i/500.f; ptr++;  // w = lifetime
+		//*ptr = -1.f; ptr++;  // w = lifetime
 	}
 
 	// Download to GPU

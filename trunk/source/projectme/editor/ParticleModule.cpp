@@ -15,11 +15,16 @@ MODULEFACTORY_REGISTER( ParticleModule, "ParticleModule" )
 ParticleModule::ParticleModule()
 : ModuleRenderer( "ParticleModule" ),
   m_initialized( false ),
-  m_update( true ),
-  m_width(1024), m_height(1024)
+  m_target_initialized(false),
+  m_r2t_initialized   (false),
+  m_ps_initialized    (false),
+  m_update( true )
 {
 	// Add parameters
 	parameters().push_back( &m_params.pointSize );
+	// Add options
+	options().push_back( &m_opts.width  );
+	options().push_back( &m_opts.height );
 }
 
 //----------------------------------------------------------------------------
@@ -40,28 +45,42 @@ int ParticleModule::channel( int idx ) const
 bool ParticleModule::init()
 {
 	// Create texture
-	if( !m_target.Create(GL_TEXTURE_2D) )
+	if( !m_target_initialized )
 	{
-		cerr << "ParticleModule::init() : Couldn't create 2D textures!" << endl;
-		return false;
-	}	
+		if( !m_target.Create(GL_TEXTURE_2D) )
+		{
+			cerr << "ParticleModule::init() : Couldn't create 2D textures!" << endl;
+			return false;
+		}	
+		m_target_initialized = true;
+	}
 
 	// Allocate GPU mem
 	GLint internalFormat = GL_RGBA32F;
-	m_target.Image(0, internalFormat, m_width,m_width, 0, GL_RGBA, GL_FLOAT, NULL );
+	m_target.Image(0, internalFormat, 
+	               m_opts.width.value(), m_opts.height.value(), 
+				   0, GL_RGBA, GL_FLOAT, NULL );
 	
 	// Setup Render-2-Texture
-	if( !m_r2t.init( m_width,m_width, m_target.GetID(), false/* no depthbuffer*/ ) )
+	if( !m_r2t_initialized )
 	{
-		cerr << "ParticleModule::init() : Couldn't setup render-to-texture!" << endl;
-		return false;
+		if( !m_r2t.init_no_depthbuffer( m_target.GetID() ) )
+		{
+			cerr << "ParticleModule::init() : Couldn't setup render-to-texture!" << endl;
+			return false;
+		}
+		m_r2t_initialized = true;
 	}
 
 	// Setup particle system
-	m_ps.setup();
+	if( !m_ps_initialized )
+	{
+		m_ps.setup();
+		m_ps_initialized = true;
+	}
 	m_ps.reseed();
 
-	m_initialized = true;
+	m_initialized = checkGLError( "ParticleModule::init() : GL error at exit!" );
 	return true;
 }
 
@@ -107,7 +126,7 @@ void ParticleModule::render()
 		// Target resolution sized quad
 		int viewport[4];
 		glGetIntegerv( GL_VIEWPORT, viewport );
-		glViewport( 0,0, m_width,m_height );
+		glViewport( 0,0, m_opts.width.value(),m_opts.height.value() );
 
 		glMatrixMode( GL_PROJECTION );
 		glLoadIdentity();
