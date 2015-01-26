@@ -1,4 +1,4 @@
-#version 120
+#version 130
 
 uniform bool doSprite;
 uniform sampler2D sprite;

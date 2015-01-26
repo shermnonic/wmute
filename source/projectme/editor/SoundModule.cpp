@@ -8,6 +8,7 @@ using GL::checkGLError;
 
 #include <cstring> // memcpy
 #include <iostream>
+#include <cmath> // fabs, log
 using std::cerr;
 using std::endl;
 

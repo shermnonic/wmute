@@ -1,6 +1,7 @@
 #include "SoundInput.h"
 #include <bass.h>
 
+#include <cstdlib>
 #include <cstdio>
 #include <iostream>
 

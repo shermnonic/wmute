@@ -200,14 +200,14 @@ public:
 	
 	RenderSet* getActiveRenderSet() 
 	{ 
-		if( m_active >= 0 && m_active < m_set.size() )
+        if( m_active >= 0 && m_active < (int)m_set.size() )
 			return &m_set.at(m_active);
 		return 0; 
 	}
 
 	const RenderSet* getActiveRenderSet() const
 	{ 
-		if( m_active >= 0 && m_active < m_set.size() )
+        if( m_active >= 0 && m_active < (int)m_set.size() )
 			return &m_set.at(m_active);
 		return 0; 
 	}
