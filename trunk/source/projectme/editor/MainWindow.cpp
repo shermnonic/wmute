@@ -364,6 +364,9 @@ QDockWidget* createLogDock( QWidget* parent )
 	QTextEdit* te = new QTextEdit();
 	te->setTextInteractionFlags( Qt::TextBrowserInteraction );
 	te->setWindowTitle(parent->tr("Log"));
+    te->setLineWrapMode( QTextEdit::NoWrap );
+    te->setFontFamily( "Courier" );
+    te->setFontPointSize( 9 );
 
 	// TODO: Somehow consider also stream output before QTextEdit was created.
 	//       E.g. at program start one could redirect cout/cerr to another 
@@ -410,9 +413,6 @@ void MainWindow::createUI()
 	m_nodeEditorWidget = new NodeEditorWidget( this );
 	m_nodeEditorWidget->setWindowTitle(tr("Node Editor"));
 
-	m_soundInputWidget = new SoundInputWidget( this );
-	m_soundInputWidget->setWindowTitle(tr("Audio Input"));
-
 	// --- dock widgets ---
 
 	QDockWidget
@@ -435,6 +435,9 @@ void MainWindow::createUI()
 		  << dockModuleParameters << dockNodeEditor << dockLog;
 
 #ifndef PROJECTME_BASS_DISABLED
+    m_soundInputWidget = new SoundInputWidget( this );
+    m_soundInputWidget->setWindowTitle(tr("Audio Input"));
+
 	QDockWidget *dockSoundInput = createDock( this, m_soundInputWidget );
 	addDockWidget( Qt::TopDockWidgetArea, dockSoundInput );
 	docks << dockSoundInput;

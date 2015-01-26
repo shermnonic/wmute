@@ -99,6 +99,6 @@ private:
 	T m_q[4]; ///< Homogeneous weights for each vertex
 };
 
-}; // namespace Geometry
+} // namespace Geometry
 
 #endif // GEOMETRY_H

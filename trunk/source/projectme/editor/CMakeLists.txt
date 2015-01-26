@@ -26,6 +26,9 @@ if( PROJECTME_USE_BASS )
 		SoundModule.h
 		SoundModule.cpp
 	)
+	target_link_libraries( projectme
+		${BASS_LIBRARY}
+	)
 endif()
 
 #---- qne Qt Node Editor  -----------------------------------------------------
@@ -168,5 +171,4 @@ target_link_libraries( projectme
 	${QT_LIBRARIES}
 	${OPENGL_LIBRARIES}
 	${GLEW_LIBRARY}
-	${BASS_LIBRARY}
 )

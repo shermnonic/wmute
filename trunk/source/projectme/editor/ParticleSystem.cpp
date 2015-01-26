@@ -46,7 +46,7 @@ bool checkGLFramebufferStatus( const char* msg )
 		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
 			cout << "(GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT)" << endl; break;
 		//case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
-		//	cout << "(GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS)" << endl; break;
+        //	cout << "(GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS)" << endl; break;
 		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
 			cout << "(GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT)" << endl; break;
 		case GL_FRAMEBUFFER_UNSUPPORTED:
@@ -67,8 +67,8 @@ ParticleSystem::ParticleSystem()
   m_advectShader( NULL ),
   m_width ( 256 ),
   m_height( 256 ),
-  m_curTargetBuf( 1 ),
-  m_texSprite( -1 )
+  m_texSprite( -1 ),
+  m_curTargetBuf( 1 )
 {
 }
 
@@ -92,7 +92,7 @@ void ParticleSystem::loadForceTexture( const char* filename )
 {
 	// Read raw buffer
 	float* buffer = NULL;
-	unsigned size[3];
+    unsigned size[3];
 	if( !read_hraw( filename, buffer, size ) )
 	{
 		std::cerr << "ParticleSystem::loadForceTexture() : "
@@ -117,7 +117,7 @@ void ParticleSystem::loadForceTexture( const char* filename )
 		data[ p*4 + 3 ] = 1.0;                // w
 	}
 
-	// Download to GPU
+    // Download to GPU
 	glBindTexture( GL_TEXTURE_2D, m_texForce );
 	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA32F, size[0],size[1], 0, 
 					GL_RGBA, GL_FLOAT, (void*)data );
@@ -226,7 +226,7 @@ bool ParticleSystem::initGL()
 	
 	// Setup FBO textures
 #if 0
-	GLuint tex[6] = { m_texPos[0], m_texPos[1], m_texVel[0], m_texVel[1],
+    GLuint tex[6] = { m_texPos[0], m_texPos[1], m_texVel[0], m_texVel[1],
 	                  m_texBirthPos, m_texBirthVel };
 #else
 	std::vector<GLuint> tex;
@@ -263,10 +263,10 @@ bool ParticleSystem::initGL()
 		return false;
 	
 	// Attach textures
-	glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_texPos[1], 0 );
-	if( !checkGLFramebufferStatus( "ParticleSystem::initGL() : Framebuffer status not complete for GL_COLOR_ATTACHMENT0!" ) )
+    glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texPos[1], 0 );
+    if( !checkGLFramebufferStatus( "ParticleSystem::initGL() : Framebuffer status not complete for GL_COLOR_ATTACHMENT0!" ) )
 		return false;
-	glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, m_texVel[1], 0 );	
+    glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_texVel[1], 0 );
 	if( !checkGLFramebufferStatus( "ParticleSystem::initGL() : Framebuffer status not complete for GL_COLOR_ATTACHMENT1!" ) )
 		return false;	
 
@@ -434,8 +434,8 @@ void ParticleSystem::advectParticles()
 	// Attach textures
 	// NOTE: Can we avoid re-attaching the textures?
 	//       Does re-attaching has relevant impact on the performance?
-	glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_texPos[m_curTargetBuf], 0 );
-	glFramebufferTexture( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, m_texVel[m_curTargetBuf], 0 );
+    glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texPos[m_curTargetBuf], 0 );
+    glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_texVel[m_curTargetBuf], 0 );
 	checkGLError("ParticleSystem::advectParticles() : After glFramebufferTexture()");
 	
 	// NOTE on render targets:

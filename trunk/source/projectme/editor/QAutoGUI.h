@@ -18,6 +18,8 @@
 #include <QToolBox>
 #include <QDebug>
 
+#include <limits>
+
 namespace QAutoGUI {
 
 /// @brief The generic (pure virtual) superclass for all parameters

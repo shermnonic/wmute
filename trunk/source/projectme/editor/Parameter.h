@@ -160,20 +160,6 @@ private:
 //	ParameterBaseDefault< T >
 //-----------------------------------------------------------------------------
 
-//#define PARAMETERBASE_DEFAULT_CTORS( NAME, TYPE, TYPENAME )   \	
-//	NAME( const std::string& key )                            \
-//		: ParameterBaseDefault( key )                         \
-//	{}                                                        \
-//	                                                          \
-//	NAME( const std::string& key, TYPE value_and_default )    \
-//		: ParameterBaseDefault( key, value_and_default )      \
-//	{}                                                        \
-//	                                                          \
-//	NAME( const std::string& key, TYPE value, TYPE default_ ) \
-//		: ParameterBaseDefault( key, value, default_ )        \
-//	{}                                                        \
-//	virtual std::string type() const { return TYPENAME; }
-
 /// Templated base parameter class providing value and default value semantics.
 template<class T> // ParameterBase
 class ParameterBaseDefault: public ParameterBase
@@ -593,7 +579,7 @@ public:
 		IntParameter::write( pt ); // call super
 		// Store enum names
 		pt.put( "enumNames.size", m_enumNames.size() );
-		for( int i=0; i < m_enumNames.size(); i++ )
+        for( unsigned i=0; i < m_enumNames.size(); i++ )
 			pt.put( "enumNames.name", m_enumNames[i] );
 	}
 

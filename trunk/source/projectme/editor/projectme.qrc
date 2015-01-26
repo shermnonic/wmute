@@ -1,19 +1,8 @@
-<!DOCTYPE RCC><RCC version="1.0">
-<qresource>
-	<file>style.css</file>
-	<file>projectme.png</file>
-    <file>grid.png</file>
-	<file>particle.png</file>
-	<file>data/icon.png</file>
-<!--
-  <file>data/icons/icon.png</file>
-  <file>data/icons/document-new.png</file>
-  <file>data/icons/document-open.png</file>
-  <file>data/icons/document-save.png</file>
-  <file>data/icons/document-save-as.png</file>
--->
-</qresource>
+<RCC>
+    <qresource prefix="/">
+        <file>style.css</file>
+        <file>projectme.png</file>
+        <file>grid.png</file>
+        <file>particle.png</file>
+    </qresource>
 </RCC>
-
-
-

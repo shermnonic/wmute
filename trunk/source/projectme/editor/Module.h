@@ -86,6 +86,8 @@ public:
 		: ModuleBase( typeName )
 	{}
 
+    virtual ~ModuleRenderer() {}
+
 	///@{ Serialization of node editor hints (e.g. position)
 	virtual PropertyTree& serialize() const;
 	virtual void deserialize( PropertyTree& pt );
@@ -100,8 +102,8 @@ public:
 
 	/// @name Input channels
 	///@{
-	virtual void setChannel( int idx, int texId ) {}
-	virtual int  channel( int idx ) const { return -1; }
+    virtual void setChannel( int /*idx*/, int /*texId*/ ) {}
+    virtual int  channel( int /*idx*/ ) const { return -1; }
 	virtual int  numChannels() const { return 0; }
 	///@}
 
@@ -140,7 +142,7 @@ public:
 
 	void clear()
 	{
-		for( int i=0; i < m_modules.size(); i++ )
+        for( unsigned i=0; i < m_modules.size(); i++ )
 		{
 			// Let's hope that we have a proper OpenGL context!
 			m_modules[i]->destroy();
@@ -190,7 +192,7 @@ public:
 	/// Trigger rendering for *all* modules
 	void render()
 	{
-		for( int i=0; i < m_modules.size(); i++ )
+        for( unsigned i=0; i < m_modules.size(); i++ )
 			m_modules[i]->render();
 	}
 
