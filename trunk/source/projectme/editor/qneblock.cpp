@@ -29,6 +29,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include <QGraphicsScene>
 #include <QFontMetrics>
 #include <QPainter>
+#include <QPalette>
+#include <QApplication>
 
 #include "qneport.h"
 
@@ -39,8 +41,10 @@ QNEBlock::QNEBlock(QGraphicsItem *parent, QGraphicsScene *scene)
 	QPainterPath p;
 	p.addRoundedRect(-50, -15, 100, 30, 5, 5);
 	setPath(p);
-	setPen(QPen(Qt::darkGreen));
-	setBrush(Qt::green);
+    setPen( QApplication::palette().color(QPalette::AlternateBase).darker() );
+    setBrush( QApplication::palette().color(QPalette::AlternateBase) );
+    //setPen(QPen(Qt::darkGreen));
+    //setBrush(Qt::green);
 	setFlag(QGraphicsItem::ItemIsMovable);
 	setFlag(QGraphicsItem::ItemIsSelectable);
 	horzMargin = 20;
@@ -167,11 +171,11 @@ void QNEBlock::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 	Q_UNUSED(widget)
 
 	if (isSelected()) {
-		painter->setPen(QPen(Qt::darkYellow));
-		painter->setBrush(Qt::yellow);
+        painter->setPen( QApplication::palette().color(QPalette::Highlight).darker() );
+        painter->setBrush( QApplication::palette().highlight() );
 	} else {
-		painter->setPen(QPen(Qt::darkGreen));
-		painter->setBrush(Qt::green);
+        painter->setPen( QApplication::palette().color(QPalette::AlternateBase).darker() );
+        painter->setBrush( QApplication::palette().color(QPalette::AlternateBase) );
 	}
 
 	painter->drawPath(path());
@@ -226,7 +230,7 @@ QVector<QNEPort*> QNEBlock::outputPorts()
 	return res;
 }
 
-QVariant QNEBlock::itemChange(GraphicsItemChange change, const QVariant &value)
+QVariant QNEBlock::itemChange(GraphicsItemChange /*change*/, const QVariant &value)
 {
 	return value;
 }
