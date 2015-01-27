@@ -53,7 +53,7 @@ protected:
 	///@name QGLWidget implementation
 	///@{ 
 	void initializeGL();
-	void resizeGL( int w, int h ) {}
+    void resizeGL( int /*w*/, int /*h*/ ) {}
 	void paintGL();
 	QTimer* m_renderUpdateTimer;
 	///@}
