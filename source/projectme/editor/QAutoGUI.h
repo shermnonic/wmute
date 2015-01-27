@@ -488,4 +488,4 @@ private:
 };
 
 
-}; // namespace QAutoGUI
+} // namespace QAutoGUI

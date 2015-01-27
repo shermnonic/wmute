@@ -216,7 +216,7 @@ void MainWindow::createModule( int typeId )
 		ModuleFactory::ref().getAvailableModules();
 
 	// Sanity 
-	if( typeId < 0 || typeId >= availableModules.size() )
+    if( typeId < 0 || typeId >= (int)availableModules.size() )
 	{
 		QMessageBox::warning( this, tr("%1 Warning").arg(APP_NAME),
 			tr("Unknown module type!") );
@@ -525,7 +525,7 @@ void MainWindow::createUI()
 	QSignalMapper* newModuleMapper = new QSignalMapper(this);
 	ModuleFactory::ModuleTypeList availableModules = 
 		ModuleFactory::ref().getAvailableModules();
-	for( int i=0; i < availableModules.size(); i++ )
+    for( unsigned i=0; i < availableModules.size(); i++ )
 	{	
 		// Action
 		QAction* act = new QAction(
@@ -772,7 +772,7 @@ ModuleBase* MainWindow::getActiveModule()
 		QMessageBox::warning( this, tr("Warning"), tr("No module selected!") );
 		return NULL;
 	}
-	if( idx >= m_projectMe.moduleManager().modules().size() )
+    if( idx >= (int)m_projectMe.moduleManager().modules().size() )
 	{
 		QMessageBox::warning( this, tr("Error"), tr("Selection out of range?!") );
 		return NULL;

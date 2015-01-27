@@ -9,7 +9,7 @@ class ParameterList;
 namespace QAutoGUI {
 	class Parameters;
 	class ParametersWidget;
-};
+}
 
 /**
 	\class ModuleParameterWidget
