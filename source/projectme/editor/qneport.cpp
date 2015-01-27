@@ -29,6 +29,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include <QFontMetrics>
 
 #include <QPen>
+#include <QPalette>
+#include <QApplication>
 
 #include "qneconnection.h"
 
@@ -44,8 +46,11 @@ QNEPort::QNEPort(QGraphicsItem *parent, QGraphicsScene *scene):
 	p.addEllipse(-radius_, -radius_, 2*radius_, 2*radius_);
 	setPath(p);
 
-	setPen(QPen(Qt::darkRed));
-	setBrush(Qt::red);
+    QPalette pal = QApplication::palette();
+    setPen( QPen(pal.color(QPalette::Link).darker()) );
+    setBrush( pal.color(QPalette::Link) );
+    //setPen(QPen(Qt::darkRed));
+    //setBrush(Qt::red);
 
 	setFlag(QGraphicsItem::ItemSendsScenePositionChanges);
 
