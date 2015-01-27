@@ -21,20 +21,8 @@ class ModuleBase : public Serializable
 	static std::map<std::string,int> s_typeCount;
 
 public:
-	ModuleBase( std::string typeName )
-		: m_moduleTypeName( typeName )
-	{
-		s_typeCount[typeName]++;
-		setName( getDefaultName() );
-		m_parameterList.setName("ParameterList");
-		m_optionsList.setName("OptionList");
-	}
-
-	~ModuleBase()
-	{
-		if( s_typeCount.count(m_moduleTypeName) )
-			s_typeCount[m_moduleTypeName]--;
-	}
+	ModuleBase( std::string typeName );
+	virtual ~ModuleBase();
 
 	/// Return type of module as string
 	std::string getModuleType() const { return m_moduleTypeName; }
@@ -82,16 +70,16 @@ protected:
 class ModuleRenderer : public ModuleBase
 {
 public:
-	ModuleRenderer( std::string typeName )
-		: ModuleBase( typeName )
-	{}
-
+	ModuleRenderer( std::string typeName );
     virtual ~ModuleRenderer() {}
 
 	///@{ Serialization of node editor hints (e.g. position)
 	virtual PropertyTree& serialize() const;
 	virtual void deserialize( PropertyTree& pt );
 	///@}
+
+	/// This is the poll function invoking render() if the module is active.
+	void update();
 
 	/// Render the effect into a texture
 	virtual void render() = 0;
@@ -120,6 +108,7 @@ public:
 
 private:
 	Position m_position;
+	BoolParameter m_active;
 };
 
 //=============================================================================
@@ -135,26 +124,10 @@ class ModuleManager
 public:
 	typedef std::vector<ModuleRenderer*> ModuleArray;
 
-	~ModuleManager()
-	{
-		clear();
-	}
+	~ModuleManager();
 
-	void clear()
-	{
-        for( unsigned i=0; i < m_modules.size(); i++ )
-		{
-			// Let's hope that we have a proper OpenGL context!
-			m_modules[i]->destroy();
-			delete m_modules[i];
-		}
-		m_modules.clear();
-	}
-
-	void addModule( ModuleRenderer* module )
-	{
-		m_modules.push_back( module );
-	}
+	void clear();
+	void addModule( ModuleRenderer* module );
 
 	///@{ Direct access to module pointers (take care!)
 	ModuleArray& modules() { return m_modules; }
@@ -162,39 +135,13 @@ public:
 	///@}
 
 	/// Returns pointer to first module matching given name and type, else NULL.
-	ModuleRenderer* findModule( std::string name, std::string type )
-	{
-		// Linear search
-		ModuleArray::iterator it = m_modules.begin();
-		for( ; it != m_modules.end(); ++it )
-		{
-			if( name.compare( (*it)->getName() )       == 0 &&
-				type.compare( (*it)->getModuleType() ) == 0 )
-			{
-				return *it;
-			}
-		}
-		return NULL;
-	}
+	ModuleRenderer* findModule( std::string name, std::string type );
 
 	/// Returns index of module or -1 if not found
-	int moduleIndex( ModuleRenderer* m )
-	{
-		ModuleArray::iterator it = m_modules.begin();
-		for( ; it != m_modules.end(); ++it )
-		{
-			if( (*it) == m )
-				return (int)(it - m_modules.begin());
-		}
-		return -1;
-	}
+	int moduleIndex( ModuleRenderer* m );
 
 	/// Trigger rendering for *all* modules
-	void render()
-	{
-        for( unsigned i=0; i < m_modules.size(); i++ )
-			m_modules[i]->render();
-	}
+	void update();
 
 private:
 	ModuleArray m_modules;
