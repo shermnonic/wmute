@@ -35,7 +35,7 @@ RenderSetWidget::RenderSetWidget( QWidget *parent, QGLWidget *share )
 	// Render update timer
 	m_renderUpdateTimer = new QTimer( this );
 	connect( m_renderUpdateTimer, SIGNAL(timeout()), this, SLOT(updateGL()) );
-	m_renderUpdateTimer->start( 42 );
+	m_renderUpdateTimer->start( 16 ); // 16ms=60fps, 42ms=24fps
 
 	// DEBUG
 	qDebug() << "The newly created RenderSetWidget" << 
@@ -90,6 +90,9 @@ void RenderSetWidget::paintGL()
 		if( m_flags & RenderPreview )
 			m_set->drawOutline();
 	}
+	
+	float fps = m_fps.measure();
+	setWindowTitle(tr("Renderer - %1 FPS").arg((unsigned)fps));
 }
 
 //-----------------------------------------------------------------------------

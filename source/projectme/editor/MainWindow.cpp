@@ -96,7 +96,9 @@ SharedGLContextWidget::SharedGLContextWidget( QWidget* parent )
 	// Render update timer
 	m_renderUpdateTimer = new QTimer( this );
 	connect( m_renderUpdateTimer, SIGNAL(timeout()), this, SLOT(updateGL()) );
-	m_renderUpdateTimer->start( 42 );
+	m_renderUpdateTimer->start( 42 ); // 16ms=60fps, 42ms=24fps
+		// This is the "heart-beat" of the module system. No render module will
+		// be updated faster than this rate. 
 }
 
 void SharedGLContextWidget::initializeGL()
@@ -124,13 +126,13 @@ void SharedGLContextWidget::initializeGL()
 
 		glewInitialized = true;
 
-		printf("------------\nOpenGL info:\n");
-		printf(" Vendor  : %s\n",glGetString( GL_VENDOR ));
-		printf(" Renderer: %s\n",glGetString( GL_RENDERER ));
-		printf(" Version : %s\n",glGetString( GL_VERSION ));
-		printf(" GLSL    : %s\n",glGetString( GL_SHADING_LANGUAGE_VERSION ));
+		cout << "------------\nOpenGL info:\n";
+		cout << " Vendor  : " << glGetString( GL_VENDOR ) << "\n";
+		cout << " Renderer: " << glGetString( GL_RENDERER ) << "\n";;
+		cout << " Version : " << glGetString( GL_VERSION ) << "\n";;
+		cout << " GLSL    : " << glGetString( GL_SHADING_LANGUAGE_VERSION ) << "\n";;
 		//printf(" Extensions: %s\n",glGetString( GL_EXTENSIONS ));
-		printf("------------\n");
+		cout << "------------\n";
 		
 	}
 
