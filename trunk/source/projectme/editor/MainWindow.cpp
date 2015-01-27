@@ -146,7 +146,7 @@ void SharedGLContextWidget::paintGL()
 {	
 	// All modules will be updated here
 	if( m_man )		
-		m_man->render();
+		m_man->update();
 }
 
 
