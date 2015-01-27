@@ -26,8 +26,12 @@ if( PROJECTME_USE_BASS )
 		SoundModule.h
 		SoundModule.cpp
 	)
-	target_link_libraries( projectme
+	set( BASS_LIBRARIES
 		${BASS_LIBRARY}
+	)
+else()
+	set( BASS_LIBRARIES
+		""
 	)
 endif()
 
@@ -171,4 +175,5 @@ target_link_libraries( projectme
 	${QT_LIBRARIES}
 	${OPENGL_LIBRARIES}
 	${GLEW_LIBRARY}
+	${BASS_LIBRARIES}
 )

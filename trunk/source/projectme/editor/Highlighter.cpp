@@ -61,13 +61,15 @@ Highlighter::Highlighter(QTextDocument *parent)
                      << "\\bslots\\b" << "\\bstatic\\b" << "\\bstruct\\b"
                      << "\\btemplate\\b" << "\\btypedef\\b" << "\\btypename\\b"
                      << "\\bunion\\b" << "\\bunsigned\\b" << "\\bvirtual\\b"
-                     << "\\bvoid\\b" << "\\bvolatile\\b";
+                     << "\\bvoid\\b" << "\\bvolatile\\b"
+					 << "\\breturn\\b";
 	 // GLSL
 	 keywordPatterns << "\\buniform\\b" << "\\bvarying\\b"
 		             << "\\bvec2\\b" << "\\bvec3\\b" << "\\bvec4\\b"
 					 << "\\bmat2\\b" << "\\bmat3\\b" << "\\bmat4\\b"
 					 << "\\bgl_FragCoord\\b" << "\\bgl_FragColor\\b"
-					 << "\\bsampler2D\\b" << "\\btexture2D\\b";
+					 << "\\bsampler2D\\b" << "\\btexture2D\\b"
+					 << "\\bdiscard\\b";
      
 	 foreach (const QString &pattern, keywordPatterns) {
          rule.pattern = QRegExp(pattern);

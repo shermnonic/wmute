@@ -49,7 +49,7 @@ protected:
 		int pos = 0;
 		while (pos != std::string::npos)
 		{
-			pos = m_string.find('\n');
+			pos = (int)m_string.find('\n');
 			if (pos != std::string::npos)
 			{
 				std::string tmp(m_string.begin(), m_string.begin() + pos);
