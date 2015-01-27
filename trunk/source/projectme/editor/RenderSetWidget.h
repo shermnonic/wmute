@@ -3,6 +3,7 @@
 
 #include "glbase.h"
 #include "RenderSet.h"
+#include "FrameCounter.h"
 #include <QGLWidget>
 #include <QPointF>
 #include <QPoint>
@@ -74,6 +75,7 @@ private:
 	QPointF    m_delta;
 	bool       m_fullscreen;
 	QAction*   m_actFullscreen;
+	FrameCounter m_fps;
 };
 
 #endif // RENDERSETWIDGET_H
