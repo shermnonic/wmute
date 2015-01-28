@@ -411,7 +411,7 @@ std::string ShaderModule::preprocess( std::string shader )
 		if( type.compare("bool")==0 )
 		{
 			BoolParameter p( key );
-			p.setValueAndDefault( !vars[i].value.empty() ? atoi(vars[i].value.c_str()) : true );
+			p.setValueAndDefault( !vars[i].value.empty() ? (bool)atoi(vars[i].value.c_str()) : true );
 			BoolParameter* cur = dynamic_cast<BoolParameter*>( parameters().get_param( key ) );
 			if( cur )
 				p.setValue( cur->value() );
