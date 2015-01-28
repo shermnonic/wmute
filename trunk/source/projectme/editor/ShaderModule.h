@@ -89,6 +89,8 @@ private:
 	struct UniformParameters
 	{
 		std::vector<DoubleParameter> floats;
+		std::vector<IntParameter>    ints;
+		std::vector<BoolParameter>   bools;
 		// Maybe later we'll add support for some more types ...
 	};
 	UniformParameters m_uniformParams;

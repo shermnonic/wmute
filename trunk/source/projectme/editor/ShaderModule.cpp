@@ -368,41 +368,75 @@ int ShaderModule::numChannels() const
 //----------------------------------------------------------------------------
 std::string ShaderModule::preprocess( std::string shader )
 {	
-	using namespace std;	
-	
+	using namespace std;
+
 	ShaderPrecompiler pc;
 	string shaderProcessed = pc.precompile( shader );
 	ShaderPrecompiler::ShaderVariables& vars = pc.vars();
 	
 	// Collect 'float' parameters
-	std::vector<DoubleParameter> floats;	
+	vector<DoubleParameter> floats;	
+	vector<IntParameter>    ints;
+	vector<BoolParameter>   bools; 
 	for( int i=0; i < vars.size(); i++ )
 	{
 		string key = vars[i].name;
+		string type = vars[i].type;
+
+		if( type.compare("float")==0 )
+		{		
+			DoubleParameter p( key );		
+
+			// Set default value (if specified)
+			p.setValueAndDefault( !vars[i].value.empty() ? atof(vars[i].value.c_str()) : 1.0 );
+
+			// Get value from existing 'float' (if available)
+			DoubleParameter* cur = dynamic_cast<DoubleParameter*>( parameters().get_param( key ) );
+			if( cur )
+				p.setValue( cur->value() );
 		
-		// Assume 'float' type
-		DoubleParameter p( key );
-		
-		// Set default value (if specified)
-		p.setValueAndDefault( !vars[i].value.empty() ? atof(vars[i].value.c_str()) : 1.0 );
-		
-		// Get value from existing 'float' (if available)
-		DoubleParameter* cur = dynamic_cast<DoubleParameter*>
-		                                      ( parameters().get_param( key ) );
-		if( cur )
-			p.setValue( dynamic_cast<DoubleParameter*>(cur)->value() );
-		
-		floats.push_back( p );
+			floats.push_back( p );
+		}
+		else
+		if( type.compare("int")==0 )
+		{
+			IntParameter p( key );
+			p.setValueAndDefault( !vars[i].value.empty() ? atoi(vars[i].value.c_str()) : 0 );
+			IntParameter* cur = dynamic_cast<IntParameter*>( parameters().get_param( key ) );
+			if( cur )
+				p.setValue( cur->value() );
+			ints.push_back( p );
+		}
+		else
+		if( type.compare("bool")==0 )
+		{
+			BoolParameter p( key );
+			p.setValueAndDefault( !vars[i].value.empty() ? atoi(vars[i].value.c_str()) : true );
+			BoolParameter* cur = dynamic_cast<BoolParameter*>( parameters().get_param( key ) );
+			if( cur )
+				p.setValue( cur->value() );
+			bools.push_back( p );
+		}
+		else
+		{
+			cerr << "ShaderModule::preprocess() : Unsupported parameter "
+				"type \"" << type << "\"!" << endl;
+		}
 	}	
 	
-	// FIXME: Parameters should not be accessed after changing 'float' instances!
+	// FIXME: Parameters should not be accessed after changing their instances!
 	m_uniformParams.floats = floats;
+	m_uniformParams.ints   = ints;
+	m_uniformParams.bools  = bools;
 	
 	// Re-create parameter list 
-	// (So far it only contains shader 'float' parameters)
 	parameters().clear();
 	for( int i=0; i < m_uniformParams.floats.size(); ++i )
 		parameters().push_back( &m_uniformParams.floats[i] );
+	for( int i=0; i < m_uniformParams.ints.size(); ++i )
+		parameters().push_back( &m_uniformParams.ints[i] );
+	for( int i=0; i < m_uniformParams.bools.size(); ++i )
+		parameters().push_back( &m_uniformParams.bools[i] );
 
 	return shaderProcessed;
 }
