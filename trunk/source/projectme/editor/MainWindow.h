@@ -82,6 +82,8 @@ public slots:
 	void open();
 	void save();
 	void clear();
+	
+	void openStyleSheet();
 
 private slots:
 	void newPreview();

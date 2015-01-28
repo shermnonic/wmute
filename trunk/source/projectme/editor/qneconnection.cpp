@@ -30,10 +30,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include <QBrush>
 #include <QPen>
 #include <QGraphicsScene>
+#include <QApplication>
+#include <QPalette>
 
 QNEConnection::QNEConnection(QGraphicsItem *parent, QGraphicsScene *scene) : QGraphicsPathItem(parent, scene)
 {
-	setPen(QPen(Qt::black, 2));
+	setPen(QPen(qApp->palette().color(QPalette::Text), 2));
 	setBrush(Qt::NoBrush);
 	setZValue(-1);
 	m_port1 = 0;

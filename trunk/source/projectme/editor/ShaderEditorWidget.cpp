@@ -38,6 +38,7 @@ ShaderEditorWidget::ShaderEditorWidget( QWidget* parent )
 	toolbar->addAction( m_actReset );
 	toolbar->addAction( m_actUpdate );	
 	toolbar->addAction( actExport );
+	toolbar->setContentsMargins( 0,0,0,0 );
 	
 	QVBoxLayout* l = new QVBoxLayout();
 	l->addWidget( toolbar );

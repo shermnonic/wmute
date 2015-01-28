@@ -46,9 +46,8 @@ QNEPort::QNEPort(QGraphicsItem *parent, QGraphicsScene *scene):
 	p.addEllipse(-radius_, -radius_, 2*radius_, 2*radius_);
 	setPath(p);
 
-    QPalette pal = QApplication::palette();
-    setPen( QPen(pal.color(QPalette::Link).darker()) );
-    setBrush( pal.color(QPalette::Link) );
+    setPen( QPen(qApp->palette().color(QPalette::Link).darker()) );
+    setBrush( qApp->palette().color(QPalette::Link) );
     //setPen(QPen(Qt::darkRed));
     //setBrush(Qt::red);
 

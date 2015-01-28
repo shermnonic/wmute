@@ -25,6 +25,7 @@
 #include <QGLWidget>
 #include <QDockWidget>
 #include <QTimer>
+#include <QApplication>
 
 const QString APP_NAME        ( "projectme" );
 const QString APP_ORGANIZATION( "www.386dx25.de" );
@@ -459,7 +460,8 @@ void MainWindow::createUI()
 		*actReloadShader,
 		*actEditShader,
 		*actModuleInit,
-		*actNewArea;
+		*actNewArea,
+		*actOpenStyleSheet;
 	
 	actOpen = new QAction( tr("&Open project..."), this );
 	actOpen->setShortcut( tr("Ctrl+O") );
@@ -487,6 +489,8 @@ void MainWindow::createUI()
 
 	actNewArea  = new QAction( tr("New area"), this );
 
+	actOpenStyleSheet = new QAction( tr("Open style sheet..."), this );
+
 	// --- build menu ---
 
 	QMenu
@@ -499,6 +503,8 @@ void MainWindow::createUI()
 	menuFile->addAction( actClear );
 	menuFile->addAction( actOpen );
 	menuFile->addAction( actSave );
+	menuFile->addSeparator();
+	menuFile->addAction( actOpenStyleSheet );
 	menuFile->addSeparator();
 	menuFile->addAction( actQuit );
 
@@ -548,6 +554,8 @@ void MainWindow::createUI()
 	connect( actOpen, SIGNAL(triggered()), this, SLOT(open() ) );
 	connect( actSave, SIGNAL(triggered()), this, SLOT(save() ) );
 	connect( actQuit, SIGNAL(triggered()), qApp, SLOT(closeAllWindows()) );
+
+	connect( actOpenStyleSheet, SIGNAL(triggered()), this, SLOT(openStyleSheet()) );
 
 	connect( actNewPreview, SIGNAL(triggered()), this, SLOT(newPreview()) );
 	connect( actNewScreen,  SIGNAL(triggered()), this, SLOT(newScreen ()) );
@@ -607,6 +615,23 @@ void MainWindow::readSettings()
 	restoreGeometry( settings.value("geometry")   .toByteArray() );
 	restoreState   ( settings.value("windowState").toByteArray() );
 	// for dock widgets use restoreDockWidget( .. );
+}
+
+void MainWindow::openStyleSheet()
+{
+	QString filename = QFileDialog::getOpenFileName( this, tr("Open stylesheet"),
+		m_baseDir, tr("Qt style sheet (*.css;*.qss)") );
+	
+	if( filename.isEmpty() )
+		return;
+
+	QFile f( filename );	
+	if( f.open(QIODevice::ReadOnly | QIODevice::Text) )
+	{		
+		qDebug() << "Setting style sheet" << filename;
+		QString style = QTextStream(&f).readAll();
+		qApp->setStyleSheet( style );
+	}
 }
 
 void MainWindow::open()
