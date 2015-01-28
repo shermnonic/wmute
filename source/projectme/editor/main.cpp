@@ -15,10 +15,10 @@ int main( int argc, char* argv[] )
 	QFile f(":/style.css");	
 	if( f.open(QIODevice::ReadOnly | QIODevice::Text) )
 	{		
-		qDebug("Setting style sheet");
+		qDebug("Setting style sheet style.css");
 		QString style = QTextStream(&f).readAll();
-		qDebug(style.toStdString().c_str());
-		app.setStyleSheet( style );
+		//qDebug(style.toStdString().c_str());
+		QApplication::instance().setStyleSheet( style );
 	}
 #endif
 

@@ -40,9 +40,9 @@ QNEBlock::QNEBlock(QGraphicsItem *parent, QGraphicsScene *scene)
 {
 	QPainterPath p;
 	p.addRoundedRect(-50, -15, 100, 30, 5, 5);
-	setPath(p);
-    setPen( QApplication::palette().color(QPalette::AlternateBase).darker() );
-    setBrush( QApplication::palette().color(QPalette::AlternateBase) );
+	setPath(p); 
+    setPen( qApp->palette().color(QPalette::AlternateBase).darker() );
+    setBrush( qApp->palette().color(QPalette::AlternateBase) );
     //setPen(QPen(Qt::darkGreen));
     //setBrush(Qt::green);
 	setFlag(QGraphicsItem::ItemIsMovable);
@@ -171,11 +171,11 @@ void QNEBlock::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 	Q_UNUSED(widget)
 
 	if (isSelected()) {
-        painter->setPen( QApplication::palette().color(QPalette::Highlight).darker() );
-        painter->setBrush( QApplication::palette().highlight() );
+        painter->setPen( qApp->palette().color(QPalette::Highlight).darker() );
+        painter->setBrush( qApp->palette().highlight() );
 	} else {
-        painter->setPen( QApplication::palette().color(QPalette::AlternateBase).darker() );
-        painter->setBrush( QApplication::palette().color(QPalette::AlternateBase) );
+        painter->setPen( qApp->palette().color(QPalette::AlternateBase).darker() );
+        painter->setBrush( qApp->palette().color(QPalette::AlternateBase) );
 	}
 
 	painter->drawPath(path());
