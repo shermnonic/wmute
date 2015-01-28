@@ -17,6 +17,7 @@
 #include <QDoubleSpinBox>
 #include <QToolBox>
 #include <QDebug>
+#include <QComboBox>
 
 #include <limits>
 
@@ -487,5 +488,42 @@ private:
     }
 };
 
+
+/// @brief a QComboBox linked to an "int"
+class EnumCombobox : public TemplateParameter<int, QComboBox>{
+    Q_OBJECT
+public:
+    static EnumCombobox& New(int& value, QString label){ return *new EnumCombobox(value, label); }
+public slots:
+    void update_gui(){ widget()->setCurrentIndex( value() ); }
+    void collect_gui(){ value() = widget()->currentIndex(); }
+signals:
+    void valueChanged(int);
+public:
+    EnumCombobox& connect_to(const QObject* receiver, const char* signalname){
+        connect( this, SIGNAL(currentIndexChanged(int)), receiver, signalname);
+        return (*this);
+    }
+public:
+	EnumCombobox& setItems( const QStringList& texts ){
+		widget()->clear();
+		widget()->addItems( texts );
+		widget()->setCurrentIndex( value() );
+        /// @todo value() to fit criteria above
+        // collect_gui() ///< not working!!
+		return *this;
+	}
+private:
+    EnumCombobox(int& value, QString label) : Super(value, label){
+        update_gui();
+        /// makes it take a full line
+        QSizePolicy policy = widget()->sizePolicy();
+        policy.setHorizontalPolicy(QSizePolicy::MinimumExpanding);
+        widget()->setSizePolicy(policy);
+        /// connects
+        connect( widget(), SIGNAL(currentIndexChanged(int)), this, SLOT(collect_gui()) );
+        connect( widget(), SIGNAL(currentIndexChanged(int)), this, SIGNAL(valueChanged(int)) );
+    }
+};
 
 } // namespace QAutoGUI

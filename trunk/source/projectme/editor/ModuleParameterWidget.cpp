@@ -63,6 +63,7 @@ void ModuleParameterWidget
 	using QAutoGUI::BooleanCheckbox;
 	using QAutoGUI::IntegerSpinEdit;
 	using QAutoGUI::BooleanIntCheckbox;
+	using QAutoGUI::EnumCombobox;
 
 	QAutoGUI::Parameters& p = *params;
 	
@@ -107,8 +108,13 @@ void ModuleParameterWidget
 		else
 		if( penum ) // handle enum specialization before int
 		{
-			qDebug() << "ModuleParameterWidget::setModule : "
-				"Enum parameters not supported yet!";
+			// Enum names
+			QStringList items;
+			for( int i=0; i < penum->enumNames().size(); i++ )
+				items.append( QString::fromStdString( penum->enumNames()[i] ) );
+
+			p << EnumCombobox::New( penum->valueRef(), name )
+				.setItems( items );
 		}
 		else
 		if( pint ) // handle int after its specializations bool and enum

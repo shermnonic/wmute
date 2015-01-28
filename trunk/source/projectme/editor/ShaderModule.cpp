@@ -69,6 +69,8 @@ ShaderModule::ShaderModule()
 {
 	options().push_back( &m_opts.width  );
 	options().push_back( &m_opts.height );
+	m_superOptions = options();
+	m_superParameters = parameters();
 }
 
 //----------------------------------------------------------------------------
@@ -122,12 +124,13 @@ bool ShaderModule::init()
 			return false;
 		}
 		m_shader_initialized = true;
+	}	
 
-		// Compile shader
+	// Compile shader
+	if( m_shader )
 		if( !compile() )
 			// On this call we currently require the shader to compile correctly!
 			return false;
-	}	
 
 	// If the end of init() is reached once, we consider the module initialized
 	m_initialized = checkGLError( "ShaderModule::init() : GL error at exit!" );
@@ -371,10 +374,62 @@ std::string ShaderModule::preprocess( std::string shader )
 	using namespace std;
 
 	ShaderPrecompiler pc;
+
+	// Only treat variables and not defines
 	string shaderProcessed = pc.precompile( shader );
 	ShaderPrecompiler::ShaderVariables& vars = pc.vars();
+
+#if 1
+	// Precompile twice - in 1st run defines are parsed and set in the 2nd round
+	ShaderPrecompiler::ShaderDefines defs = pc.defs();
+
+	// Collect enum defines
+	bool defValueChanged = false;
+	vector<EnumParameter> enums;
+	for( int i=0; i < defs.size(); i++ )
+	{
+		string key = defs[i].name;
+
+		// Get enum names
+		vector<string> enumNames = defs[i].values;
+		if( enumNames.empty() )
+		{
+			// Set some default enum names
+			enumNames.push_back("Default0");
+			enumNames.push_back("Default1");
+		}
+
+		// Create enum parameter
+		EnumParameter p( key, 
+			!defs[i].value.empty() ? atoi(defs[i].value.c_str()) : 0, // value & default
+			enumNames );
+
+		// Get existing value from options (if available)
+		EnumParameter* cur = dynamic_cast<EnumParameter*>( options().get_param( key ) );
+		if( cur )
+		{
+			p.setValue( cur->value() );
+			// Set also ShaderDefine value for 2nd precompilation pass
+			stringstream ss; ss << cur->value();
+			defs[i].value = ss.str();
+			defValueChanged = true;
+		}
+
+		enums.push_back( p );
+	}
 	
-	// Collect 'float' parameters
+	// Second precompilation only necessary on define value change
+	if( defValueChanged )
+		shaderProcessed = pc.precompile( shader, defs );
+
+	// Update options
+	m_defineOpts.enums = enums;
+	options() = m_superOptions; // Reset module options
+	for( int i=0; i < enums.size(); i++ ) // Add define enums
+		options().push_back( &m_defineOpts.enums[i] );
+#endif
+	
+	// Collect 'float', 'int' and 'bool' parameters
 	vector<DoubleParameter> floats;	
 	vector<IntParameter>    ints;
 	vector<BoolParameter>   bools; 
@@ -411,7 +466,7 @@ std::string ShaderModule::preprocess( std::string shader )
 		if( type.compare("bool")==0 )
 		{
 			BoolParameter p( key );
-			p.setValueAndDefault( !vars[i].value.empty() ? (bool)atoi(vars[i].value.c_str()) : true );
+			p.setValueAndDefault( !vars[i].value.empty() ? atoi(vars[i].value.c_str()) : true );
 			BoolParameter* cur = dynamic_cast<BoolParameter*>( parameters().get_param( key ) );
 			if( cur )
 				p.setValue( cur->value() );
@@ -429,8 +484,8 @@ std::string ShaderModule::preprocess( std::string shader )
 	m_uniformParams.ints   = ints;
 	m_uniformParams.bools  = bools;
 	
-	// Re-create parameter list 
-	parameters().clear();
+	// Update parameter list 
+	parameters() = m_superParameters; // Reset to inherited state
 	for( int i=0; i < m_uniformParams.floats.size(); ++i )
 		parameters().push_back( &m_uniformParams.floats[i] );
 	for( int i=0; i < m_uniformParams.ints.size(); ++i )
