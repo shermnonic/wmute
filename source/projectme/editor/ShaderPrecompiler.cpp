@@ -44,6 +44,11 @@ string remove_trailing_whitespaces( const string& line )
 	return line;
 }
 
+bool starts_with( const string& line, const string& prefix )
+{
+	string tmp = remove_trailing_whitespaces( line );
+	return tmp.find(prefix) == 0;
+}
 
 /**
 	Parse a one-line statement of the form
@@ -117,7 +122,7 @@ string parseShaderDefine( string line, string comment,
 
 	// Return processed line
 	stringstream os;
-	os << "#define " << def.name << " " << def.value << ";\n";
+	os << "#define " << def.name << " " << def.value << "\n";
 	return os.str();
 }
 
@@ -189,7 +194,6 @@ std::string ShaderPrecompiler
 {
 	ShaderDefines defs;
 	std::string s = precompile( shader, defs );
-	m_defs = defs;
 	return s;
 }
 
@@ -212,31 +216,23 @@ std::string ShaderPrecompiler
 	{
 		lineCount++;
 
-		if( line.empty() )
-			continue;
-
-		// Remove trailing spaces
-		line = remove_trailing_whitespaces( line );
-
-		// Ignore single-line comments (multi-line comment blocks are not detected!)
-		if( line.find("//") == 0 )
-			continue;
-
 		// Look for marker
+		// Ignore single-line comments (multi-line comment blocks are not detected!)
 		size_t found = line.find( MARKER );
-		if( found != string::npos )
+		if( found != string::npos && !starts_with(line,"//") )
 		{
 			// Marker found
 			comment = line.substr( found+MARKER.length() );
 			line = line.substr( 0, found );
 
-			// Distinguish between define statement and variable definition
 			bool ok;
-			if( line.find('#')==0 )
+
+			// Distinguish between define statement and variable definition
+			if( starts_with(line,"#") )
 			{
 				// Define statement
 				ShaderDefine def;
-				os << parseShaderDefine( line, comment, def, m_defs, ok );
+				os << parseShaderDefine( line, comment, def, defines, ok );
 				if( ok )
 				{
 					// Add define
@@ -246,7 +242,6 @@ std::string ShaderPrecompiler
 			else
 			{
 				// Variable definition
-				bool ok;
 				ShaderVariable var;
 				os << parseShaderVariable( line, comment, var, ok );
 				if( ok )

@@ -85,6 +85,9 @@ private:
 	std::string     m_lastCompileMessage;
 	std::vector<int> m_channels;
 
+	ParameterList m_superParameters; // Inherited parameters
+	ParameterList m_superOptions;
+
 	/// Live shader parameters
 	struct UniformParameters
 	{
@@ -94,6 +97,12 @@ private:
 		// Maybe later we'll add support for some more types ...
 	};
 	UniformParameters m_uniformParams;
+
+	struct DefineOptions
+	{
+		std::vector<EnumParameter> enums;
+	};
+	DefineOptions m_defineOpts;
 
 	/// Setup options
 	struct Opts
