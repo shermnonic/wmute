@@ -599,7 +599,7 @@ void MainWindow::destroy()
 	m_sharedGLWidget->makeCurrent(); // Get OpenGL context
 
 	// Close screens
-	for( unsigned i=0; i < m_screens.size(); i++ )
+	for( int i=0; i < m_screens.size(); i++ )
 	{
 		if( m_screens[i] )
 			m_screens[i]->close();

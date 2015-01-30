@@ -3,13 +3,46 @@
 #include <QFile>
 #include <QString>
 #include <QDebug>
+
+#include <exception>
+
 #include "MainWindow.h"
+
+/// Derived QApplication to catch exceptions via notify()
+/// See http://stackoverflow.com/questions/4661883/qt-c-error-handling
+class QMyApplication : public QApplication
+{
+public:
+	QMyApplication( int & argc, char ** argv )
+		: QApplication( argc, argv  )
+	{}
+
+protected:
+	bool notify( QObject* receiver, QEvent* event )
+	{
+		try {
+			return QApplication::notify( receiver, event );
+		} catch (std::exception &e) {
+			qFatal("Error %s sending event %s to object %s (%s)", 
+				e.what(), typeid(*event).name(), qPrintable(receiver->objectName()),
+				typeid(*receiver).name());
+		} catch (...) {
+			qFatal("Error <unknown> sending event %s to object %s (%s)", 
+				typeid(*event).name(), qPrintable(receiver->objectName()),
+				typeid(*receiver).name());
+		}
+
+		// qFatal aborts, so this isn't really necessary
+		// but you might continue if you use a different logging lib
+		return false;
+	}
+};
 
 int main( int argc, char* argv[] )
 {
 	Q_INIT_RESOURCE( projectme );
 
-	QApplication app( argc, argv );
+	QMyApplication app( argc, argv );
 
 #if 0
 	QFile f(":/style.css");	

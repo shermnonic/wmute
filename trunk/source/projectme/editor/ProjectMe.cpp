@@ -211,16 +211,26 @@ void ProjectMe::deserialize( Serializable::PropertyTree& pt )
 
 	// Deserialize connections
 	int conCount = 0;
-	BOOST_FOREACH( PropertyTree::value_type& v, pt.get_child("ProjectMe.Connections") )
-	{		
-		if( v.first.compare("Connection")==0 )
-		{
-			Connection con;
-			con.setProjectMe( this ); // IMPORTANT WORKAROUND!
-			con.deserialize( v.second );
-			m_connections.push_back( con );
+	int nCon = pt.get("ProjectMe.NumConnections",0);
+	if( nCon > 0 )
+	{
+		BOOST_FOREACH( PropertyTree::value_type& v, pt.get_child("ProjectMe.Connections") )
+		{		
+			if( v.first.compare("Connection")==0 )
+			{
+				Connection con;
+				con.setProjectMe( this ); // IMPORTANT WORKAROUND!
+				con.deserialize( v.second );
+				m_connections.push_back( con );
+			}
+			conCount++;
 		}
-		conCount++;
+		if( conCount != nCon )
+		{
+			// Warning
+			std::cerr << "ProjectMe::deserialize() : "
+				"Mismatch in number of connections?" << std::endl;
+		}
 	}
 }
 

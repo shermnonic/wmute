@@ -20,8 +20,6 @@ ModuleBase::ModuleBase( std::string typeName )
 
 ModuleBase::~ModuleBase()
 {
-	if( s_typeCount.count(m_moduleTypeName) )
-		s_typeCount[m_moduleTypeName]--;
 }
 
 
@@ -68,7 +66,7 @@ ModuleRenderer::ModuleRenderer( std::string typeName )
 : ModuleBase( typeName ),
 	m_active( "active", true )
 {
-	//parameters().push_back( &m_active );
+	parameters().push_back( &m_active );
 }
 
 void ModuleRenderer::update() 
