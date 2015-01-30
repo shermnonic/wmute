@@ -301,33 +301,6 @@ void MainWindow::customModuleInit( ModuleBase* m )
 		if( !filename.isEmpty() )
 			im->loadImage( filename.toStdString().c_str() );
 	}
-
-#if 0 // OBSOLETE input texture for particle system can be set via node editor
-	// Velocity texture for particle system
-	if( dynamic_cast<ParticleModule*>(m) )
-	{
-		ParticleModule* pm = dynamic_cast<ParticleModule*>(m);
-		ModuleManager& mm = m_projectMe.moduleManager();
-
-		// Get list of modules
-		QStringList sl;
-		for( int i=0; i < mm.modules().size(); i++ )
-		{
-			const ModuleRenderer* mr = mm.modules()[i];
-			sl << (mr ? QString::fromStdString(mr->getName()) : "<Invalid module>");
-		}
-
-		// Let the user select a module
-		bool ok;
-		QString sel = QInputDialog::getItem( this, tr("Select input module"), 
-			tr("Select input module for particle velocities"), sl, 0, false, &ok );
-		if( ok )
-		{
-			int idx = sl.indexOf(sel);			
-			pm->setForceTexture( mm.modules()[idx]->target() );
-		}
-	}
-#endif
 }
 
 void MainWindow::newArea()
