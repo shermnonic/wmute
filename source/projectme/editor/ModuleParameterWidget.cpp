@@ -113,8 +113,15 @@ void ModuleParameterWidget
 			for( int i=0; i < penum->enumNames().size(); i++ )
 				items.append( QString::fromStdString( penum->enumNames()[i] ) );
 
-			p << EnumCombobox::New( penum->valueRef(), name )
+			// WORKAROUND: Somehow the value is set to zero when creating a 
+			//             EnumCombobox. Therefore we store the value in 
+			//             advance, reset it afterwards and call update_gui().
+			int val = penum->value();
+			EnumCombobox& ecb = EnumCombobox::New( penum->valueRef(), name )
 				.setItems( items );
+			p << ecb;
+			penum->setValue( val );
+			ecb.update_gui();
 		}
 		else
 		if( pint ) // handle int after its specializations bool and enum
