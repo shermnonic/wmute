@@ -87,6 +87,8 @@ typedef boost::property_tree::ptree PTree;
 class ParameterBase;
 
 /// List of pointers to parameter instances.
+/// FIXME: We should not derive from a std::vector but use composition and 
+///        provide a standard container compliant interface!
 class ParameterList : public std::vector<ParameterBase*>
 {
 public:

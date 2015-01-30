@@ -95,6 +95,7 @@ public:
 
 	/// C'tor, creates a single default RenderArea nearly covering the full domain
 	RenderSet();
+	virtual ~RenderSet() {};
 
 	void clear() { m_areas.clear(); m_mapper.clear(); }
 
@@ -192,47 +193,20 @@ private:
 class RenderSetManager
 {
 public:
-	RenderSetManager()
-	: m_active(-1)
-	{
-		setup();
-	}
+	RenderSetManager();
+	~RenderSetManager();
 	
-	RenderSet* getActiveRenderSet() 
-	{ 
-        if( m_active >= 0 && m_active < (int)m_set.size() )
-			return &m_set.at(m_active);
-		return 0; 
-	}
+	RenderSet* getActiveRenderSet();
+	const RenderSet* getActiveRenderSet() const;
 
-	const RenderSet* getActiveRenderSet() const
-	{ 
-        if( m_active >= 0 && m_active < (int)m_set.size() )
-			return &m_set.at(m_active);
-		return 0; 
-	}
-
-	void clear()
-	{
-		std::vector<RenderSet>::iterator it = m_set.begin();
-		for( ; it != m_set.end(); ++it )
-			it->clear();
-		m_set.clear();
-
-		setup();
-	}
+	void clear();
 
 protected:
-	void setup()
-	{
-		// Provide a single RenderSet by default
-		m_set.push_back( RenderSet() );
-		m_active = 0;
-	}
+	void setup();
 
 private:
 	int m_active;
-	std::vector<RenderSet> m_set;
+	std::vector<RenderSet*> m_set;
 };
 
 #endif // RENDERSET_H

@@ -586,3 +586,53 @@ int  RenderSet::numChannels() const
 {
 	return (int)m_channels.size();
 }
+
+//=============================================================================
+//  RenderSetManager
+//=============================================================================
+
+RenderSetManager::RenderSetManager()
+: m_active(-1)
+{
+	setup();
+}
+
+RenderSetManager::~RenderSetManager()
+{
+	// Free memory
+	clear();
+}
+	
+RenderSet* RenderSetManager::getActiveRenderSet() 
+{ 
+    if( m_active >= 0 && m_active < (int)m_set.size() )
+		return m_set.at(m_active);
+	return 0; 
+}
+
+const RenderSet* RenderSetManager::getActiveRenderSet() const
+{ 
+    if( m_active >= 0 && m_active < (int)m_set.size() )
+		return m_set.at(m_active);
+	return 0; 
+}
+
+void RenderSetManager::clear()
+{
+	std::vector<RenderSet*>::iterator it = m_set.begin();
+	for( ; it != m_set.end(); ++it )
+	{
+		(*it)->clear();
+		delete *it; // Free memory
+	}
+	m_set.clear();
+
+	setup();
+}
+
+void RenderSetManager::setup()
+{
+	// Provide a single RenderSet by default
+	m_set.push_back( new RenderSet() );
+	m_active = 0;
+}
