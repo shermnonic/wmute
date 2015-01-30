@@ -28,8 +28,8 @@ void main(void)
   #if 1
 	// Smooth box border blend out
 	vec2 dir = abs(2.0*uv - vec2(1.0,1.0));
-	//float r = max(dir.x,dir.y); // box blend
-	float r = length(2.0*uv - vec2(1.0,1.0)); // radial blend
+	float r = max(dir.x,dir.y); // box blend
+	//float r = length(2.0*uv - vec2(1.0,1.0)); // radial blend
 	float border = 1.0 - smoothstep( 0.7, 1.0, r );
   #else
 	float border = 1.0;
