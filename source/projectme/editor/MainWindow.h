@@ -49,6 +49,8 @@ public:
 
 	void setModuleManager( ModuleManager* man ) { m_man = man; }
 
+	void setUpdateEnabled( bool b );
+
 protected:
 	///@name QGLWidget implementation
 	///@{ 
@@ -86,6 +88,8 @@ public slots:
 	void openStyleSheet();
 
 private slots:
+	void destroy();
+
 	void newPreview();
 	void newScreen();
 	void updateViewMenu();

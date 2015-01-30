@@ -71,6 +71,11 @@ ShaderModule::ShaderModule()
 	options().push_back( &m_opts.height );
 	m_superOptions = options();
 	m_superParameters = parameters();
+
+	setChannelResolution( 0, 512,512 );
+	setChannelResolution( 1, 512,512 );
+	setChannelResolution( 2, 512,512 );
+	setChannelResolution( 3, 512,512 );
 }
 
 //----------------------------------------------------------------------------
@@ -227,7 +232,8 @@ void ShaderModule::render()
 		iChannel0   = m_shader->getUniformLocation("iChannel0"),
 		iChannel1   = m_shader->getUniformLocation("iChannel1"),
 		iChannel2   = m_shader->getUniformLocation("iChannel2"),
-		iChannel3   = m_shader->getUniformLocation("iChannel3");
+		iChannel3   = m_shader->getUniformLocation("iChannel3"),
+		iChannelResolution = m_shader->getUniformLocation("iChannelResolution");
 	if( iResolution >= 0 )
 	{
 		GLfloat res[3]; 
@@ -248,6 +254,10 @@ void ShaderModule::render()
 	if( iChannel1 >= 0 ) glUniform1i( iChannel1, 1 );
 	if( iChannel2 >= 0 ) glUniform1i( iChannel2, 2 );
 	if( iChannel3 >= 0 ) glUniform1i( iChannel3, 3 );
+	if( iChannelResolution >= 0 )
+	{
+		glUniform3fv( iChannelResolution, 4, m_channelResolution );
+	}
 	checkGLError( "ShaderModule::render() - After shader uniform setup" );
 
 	// Set custom uniforms (found and defined in preprocessing)	
@@ -345,6 +355,42 @@ bool ShaderModule::setShaderSource( const std::string& shader )
 {
 	m_fshader = shader;
 	return compile();
+}
+
+//-----------------------------------------------------------------------------
+void ShaderModule::setChannelResolution( int idx, int w, int h, int d )
+{
+	assert( idx>=0 && idx < 4 );
+	m_channelResolution[3*idx  ] = (GLfloat)w;
+	m_channelResolution[3*idx+1] = (GLfloat)h;
+	m_channelResolution[3*idx+2] = (GLfloat)d;
+
+#ifdef _DEBUG
+	// DEBUG
+	std::cout << "ShaderModule " << this->getName() << " channel " << idx 
+		<< " set resolution (" << w << "," << h << "," << d << ")" << std::endl;
+#endif
+}
+
+//-----------------------------------------------------------------------------
+void ShaderModule::setChannel( int idx, ModuleRenderer* m )
+{
+	assert(m);
+	setChannel( idx, m->target() );
+
+	// Try to extract width/height from options
+	IntParameter 
+	*pw = dynamic_cast<IntParameter*>( m->options().get_param("targetWidth") ),
+	*ph = dynamic_cast<IntParameter*>( m->options().get_param("targetHeight") );
+	if( pw && ph ) 
+	{
+		setChannelResolution( idx, pw->value(), ph->value() );
+	}
+	else
+	{
+		// Set some default resolution
+		setChannelResolution( idx, 512, 512 );
+	}	
 }
 
 //-----------------------------------------------------------------------------

@@ -68,9 +68,7 @@ ModuleRenderer::ModuleRenderer( std::string typeName )
 : ModuleBase( typeName ),
 	m_active( "active", true )
 {
-	// We put nothing into parameters because they may be cleared in the
-	// derived module implementation (for instance ShaderModule does this).
-	options().push_back( &m_active );
+	//parameters().push_back( &m_active );
 }
 
 void ModuleRenderer::update() 

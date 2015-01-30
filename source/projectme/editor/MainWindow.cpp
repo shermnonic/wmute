@@ -102,6 +102,15 @@ SharedGLContextWidget::SharedGLContextWidget( QWidget* parent )
 		// be updated faster than this rate. 
 }
 
+void SharedGLContextWidget::setUpdateEnabled( bool b )
+{
+	if( !b )
+		m_renderUpdateTimer->stop();
+	else
+		if( !m_renderUpdateTimer->isActive() )
+			m_renderUpdateTimer->start( 42 );
+}
+
 void SharedGLContextWidget::initializeGL()
 {
 	// At first creation of the (shared) GL context, we have to initialize GLEW		
@@ -553,7 +562,7 @@ void MainWindow::createUI()
 	connect( actClear,SIGNAL(triggered()), this, SLOT(clear()) );
 	connect( actOpen, SIGNAL(triggered()), this, SLOT(open() ) );
 	connect( actSave, SIGNAL(triggered()), this, SLOT(save() ) );
-	connect( actQuit, SIGNAL(triggered()), qApp, SLOT(closeAllWindows()) );
+	connect( actQuit, SIGNAL(triggered()), this, SLOT(close()) );
 
 	connect( actOpenStyleSheet, SIGNAL(triggered()), this, SLOT(openStyleSheet()) );
 
@@ -579,25 +588,41 @@ void MainWindow::createUI()
 	connect( m_nodeEditorWidget, SIGNAL(selectionChanged(ModuleRenderer*)), m_moduleWidget, SLOT(setActiveModule(ModuleRenderer*)) );
 }
 
-void MainWindow::closeEvent( QCloseEvent* event )
-{	
+void MainWindow::destroy()
+{
+	static bool destroyed = false;
+	if( destroyed ) return;
+
 	// Destroy OpenGL resources
+	m_sharedGLWidget->setUpdateEnabled( false );
+	qApp->processEvents();
 	m_sharedGLWidget->makeCurrent(); // Get OpenGL context
 
-	m_mdiArea->closeAllSubWindows();
-	if( m_mdiArea->currentSubWindow() )
+	// Close screens
+	for( unsigned i=0; i < m_screens.size(); i++ )
 	{
-		event->ignore();
+		if( m_screens[i] )
+			m_screens[i]->close();
 	}
-	else
-	{
-		m_sharedGLWidget->makeCurrent(); // Get OpenGL context
-		m_projectMe.clear();
+	m_screens.clear();
 
-		writeSettings();
-		event->accept();
-	}
-	//QMainWindow::closeEvent( event );
+	// Close MDI windows
+	m_mdiArea->closeAllSubWindows();
+	//for( unsigned i=0; i < m_mdiArea->subWindowList().size(); i++ )
+		//m_mdiArea->subWindowList()[i]->close();
+
+
+	m_sharedGLWidget->makeCurrent(); // Get OpenGL context
+	m_projectMe.clear();
+
+	destroyed = true;
+}
+
+void MainWindow::closeEvent( QCloseEvent* event )
+{
+	destroy();
+	writeSettings();
+	QMainWindow::closeEvent( event );
 }
 
 void MainWindow::writeSettings()
@@ -734,6 +759,7 @@ void MainWindow::newPreview()
 	RenderSetWidget* w = new RenderSetWidget( m_mdiArea, m_sharedGLWidget );
 	w->setRenderSet( m_projectMe.renderSetManager().getActiveRenderSet() );
 	QMdiSubWindow* sub = m_mdiArea->addSubWindow( w );
+	sub->setAttribute( Qt::WA_DeleteOnClose );
 	w->setWindowTitle("Preview #"+QString::number(windowCount++));
 	w->show();
 	sub->resize( 640, 480 );
@@ -747,6 +773,7 @@ void MainWindow::newScreen()
 	static int screenCount = 1;
 	
 	RenderSetWidget* w = new RenderSetWidget( 0, m_sharedGLWidget );
+	w->setAttribute( Qt::WA_DeleteOnClose );
 	w->setRenderSet( m_projectMe.renderSetManager().getActiveRenderSet() );
 	w->setWindowTitle("Screen #"+QString::number(screenCount++));
 	w->show();

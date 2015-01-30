@@ -1,5 +1,6 @@
 #include "Connection.h"
 #include "ProjectMe.h"
+#include "ShaderModule.h"
 #include <iostream>
 #include <string>
 using std::cerr;
@@ -11,7 +12,16 @@ void Connection::update()
 {
 	if( isConnected() )
 	{
-		m_dst.module->setChannel( m_dst.channel, m_src.module->target() );
+		ShaderModule* sm = dynamic_cast<ShaderModule*>( m_dst.module );
+		if( sm )
+		{
+			// WORKAROUND:
+			// ShaderModules have special setChannel() function to also
+			// extract information about channel texture size
+			sm->setChannel( m_dst.channel, m_src.module );
+		}
+		else
+			m_dst.module->setChannel( m_dst.channel, m_src.module->target() );
 	}
 }
 
