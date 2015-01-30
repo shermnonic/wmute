@@ -38,6 +38,7 @@ public:
 
 	///@name ModuleRenderer channels implementation
 	///@{
+	void setChannel( int idx, ModuleRenderer* m );
 	void setChannel( int idx, int texId );
 	int  channel( int idx ) const;
 	int  numChannels() const;
@@ -65,6 +66,8 @@ public:
 	///@}
 
 protected:
+	void setChannelResolution( int idx, int w, int h, int d=0 );
+
 	/// Invoked in first render() call and on each size change of render texture.
 	bool init();
 
@@ -84,6 +87,8 @@ private:
 	std::string     m_vshader, m_fshader;
 	std::string     m_lastCompileMessage;
 	std::vector<int> m_channels;
+
+	GLfloat m_channelResolution[4*3]; // 4 channels with vec3 resolution
 
 	ParameterList m_superParameters; // Inherited parameters
 	ParameterList m_superOptions;
