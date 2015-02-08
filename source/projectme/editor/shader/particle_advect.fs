@@ -53,7 +53,7 @@ void main(void)
 		vec3 rot  = vec3( -pos.y, pos.x, 0.0 );
 		
 		// Euler step
-		vel.xyz = dt * ( force.xyz*700.0 + rot*230.0 + grav*0.0 );
+		vel.xyz = dt * ( force.xyz*700.0 + rot*100.0 + grav*0.0 );
 		//vel.xyz = force.xyz; // Alternatively define velocity directly from input
 		pos.xyz += dt * vel.xyz;
 		
@@ -75,7 +75,7 @@ void main(void)
 	  #else // Clamp
 		pos.x = clamp( pos.x, -1.0, 1.0 );
 		pos.y = clamp( pos.y, -1.0, 1.0 );
-		pos.z = clamp( pos.z, -1.0, 1.0 );		
+		pos.z = vel.z; //clamp( pos.z, -1.0, 1.0 );		
 	  #endif
 	
 	}
