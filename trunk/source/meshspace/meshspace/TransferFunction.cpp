@@ -31,8 +31,8 @@ void TransferFunction::getColor( float scalar, float& r, float &g, float &b ) co
 	
 	// Compute indices into lookup tables
 	float s = scalar * (n-1);
-	int i0 = floor(s);
-	int i1 = ceil (s);
+	int i0 = (int)floor(s);
+	int i1 = (int)ceil (s);
 
 	// Mixture coefficient
 	float alpha = s - i0;
@@ -52,7 +52,7 @@ bool TransferFunction::create()
 	int n = sizeof(tf_poettkow) / (3 * sizeof(float));
 	
 	// Create texture
-	if( !m_tex.Create( GL_TEXTURE_1D ) )
+	if( !m_tex.create( GL_TEXTURE_1D ) )
 	{
 		std::cerr << "TransferFunction::createTexture() : Could not create "
 			"GL texture for color lookup table!" << std::endl;
@@ -60,28 +60,28 @@ bool TransferFunction::create()
 	}	
 	
 	// Download data to GPU
-	m_tex.Image( 0, GL_RGBA32F, n, 0, GL_RGB, GL_FLOAT, (void*)tf_poettkow );
+	m_tex.image( 0, GL_RGBA32F, n, 0, GL_RGB, GL_FLOAT, (void*)tf_poettkow );
 		
 	// Set texture parameters
-	m_tex.SetWrapMode( GL_CLAMP_TO_EDGE );
-	m_tex.SetFilterMode( GL_LINEAR );
+	m_tex.setWrapMode( GL_CLAMP_TO_EDGE );
+	m_tex.setFilterMode( GL_LINEAR );
 	
 	return true;
 }
 
 void TransferFunction::destroy()
 {
-	m_tex.Destroy();
+	m_tex.destroy();
 }
 
 void TransferFunction::bind( int tex_unit )
 {
-	m_tex.Bind( tex_unit );
+	m_tex.bind( tex_unit );
 }
 
 void TransferFunction::release()
 {
-	m_tex.Unbind();
+	m_tex.unbind();
 	GL::CheckGLError("TransferFunction::release()");
 }
 
@@ -97,7 +97,7 @@ void TransferFunction::draw() const
 
 	float x0,y0, x1,y1;
 	{
-		float pos = outer ? (1. - border) : border;
+		float pos = (float)(outer ? (1. - border) : border);
 
 		// define horizontal bar
 		if( centered )
@@ -153,7 +153,7 @@ void TransferFunction::draw() const
 	glDisable( GL_CULL_FACE );
 	glDisable( GL_DEPTH_TEST );
 	glDisable( GL_LIGHTING );
-	glBindTexture( GL_TEXTURE_1D, m_tex.GetID() ); 	// <- bind() is not const!
+	glBindTexture( GL_TEXTURE_1D, m_tex.name() ); 	// <- bind() is not const!
 	glBegin( GL_QUADS );
 	glMultiTexCoord1f( GL_TEXTURE0, vertical ? 0.f : 0.f );	glVertex2f( x0, y0 );
 	glMultiTexCoord1f( GL_TEXTURE0, vertical ? 1.f : 0.f );	glVertex2f( x0, y1 );

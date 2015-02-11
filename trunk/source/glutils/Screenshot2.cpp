@@ -9,16 +9,6 @@
 #include <exception>
 
 //-----------------------------------------------------------------------------
-//  Helper functions
-//-----------------------------------------------------------------------------
-std::string autoName( std::string prefix, std::string postfix )
-{
-	std::stringstream ss;
-	ss << prefix << time(0) << postfix;
-	return ss.str();
-}
-
-//-----------------------------------------------------------------------------
 //  GLGrabFramebuffer
 //-----------------------------------------------------------------------------
 struct GLGrabFramebuffer
@@ -123,8 +113,9 @@ struct GLGrabFramebuffer
 //-----------------------------------------------------------------------------
 //  grabTGA()
 //-----------------------------------------------------------------------------
-void grabTGA( std::string filename, bool fromActiveTexture,
-			  int width, int height )
+void Screenshot2
+  ::grabTGA( std::string filename, bool fromActiveTexture,
+ 		     int width, int height )
 {
 	using namespace std;
 	
@@ -183,6 +174,17 @@ void grabTGA( std::string filename, bool fromActiveTexture,
 	{
 		cerr << "Error: Unable to open " << filename << " in saveTGA()!" << endl;
 	}	
+}
+
+//-----------------------------------------------------------------------------
+//  autoName()
+//-----------------------------------------------------------------------------
+std::string Screenshot2
+  ::autoName( std::string prefix, std::string postfix )
+{
+	std::stringstream ss;
+	ss << prefix << time(0) << postfix;
+	return ss.str();
 }
 
 //-----------------------------------------------------------------------------

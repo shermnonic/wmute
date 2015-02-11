@@ -78,9 +78,9 @@ void main(void)
 	//ambient = ambient + gl_FrontLightModelProduct.sceneColor;
 
 	// Custom color-coding
-#if 1
 	diffuse.rgb = vColor.rgb; //gl_FrontLightProduct[0].diffuse.rgb;	
 	
+#if 1
 	// Apply transfer function to scalar value
 	if( mapScalars )
 	#if 1

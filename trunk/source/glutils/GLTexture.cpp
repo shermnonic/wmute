@@ -7,225 +7,182 @@
 #include <iostream>
 #include <iomanip>
 
-#define GL_GLTEXTURE_UNDEFINED_DIMENSION_SIZE 0
-
 #ifdef GL_NAMESPACE
 using namespace GL;
 #endif
 
 GLTexture::GLTexture()
-: m_width(0),m_height(0),m_depth(0)
+: m_valid( false ),
+  m_id    ( 0 ),
+  m_width ( 0 ),
+  m_height( 0 ),
+  m_depth ( 0 )
 {
-#ifdef GL_USE_REFCOUNT
-	m_texture.New< GLTextureRefCount >();
-#else
-	m_texture = new GLTextureRef;
   #ifdef DEBUG
 	std::cout << "GLTexture::GLTexture() new m_texture = 0x" << std::hex << m_texture << std::endl;
   #endif
-#endif
 }
 
-#ifndef GL_USE_REFCOUNT
 GLTexture::~GLTexture()
 {
   #ifdef DEBUG
 	std::cout << "GLTexture::GLTexture() delete m_texture = 0x" << std::hex << m_texture << std::endl;
   #endif
-	delete m_texture; m_texture=NULL;
 }
-#endif
 
-// Convenience extensions
-void GLTexture::SetWrapMode( GLint wrapMode )
+void GLTexture::setWrapMode( GLint wrapMode )
 {
-	switch( m_texture->m_target )
+	switch( m_target )
 	{
 	case GL_TEXTURE_3D:
-		SetParameter( GL_TEXTURE_WRAP_R, wrapMode );
+		setParameter( GL_TEXTURE_WRAP_R, wrapMode );
 	default:
 	case GL_TEXTURE_2D:
-		SetParameter( GL_TEXTURE_WRAP_T, wrapMode );
+		setParameter( GL_TEXTURE_WRAP_T, wrapMode );
 	case GL_TEXTURE_1D:
-		SetParameter( GL_TEXTURE_WRAP_S, wrapMode );
+		setParameter( GL_TEXTURE_WRAP_S, wrapMode );
 	}
 }
 
-void GLTexture::SetFilterMode( GLint mode )
+void GLTexture::setFilterMode( GLint mode )
 {
 	// Set same filtering for MAG/MIN
-	SetFilterMode( mode, mode );
+	setFilterMode( mode, mode );
 }
 
-void GLTexture::SetFilterMode( GLint min_mode, GLint mag_mode )
+void GLTexture::setFilterMode( GLint min_mode, GLint mag_mode )
 {
-	SetParameter( GL_TEXTURE_MIN_FILTER, min_mode );
-	SetParameter( GL_TEXTURE_MAG_FILTER, mag_mode );	
+	setParameter( GL_TEXTURE_MIN_FILTER, min_mode );
+	setParameter( GL_TEXTURE_MAG_FILTER, mag_mode );	
 }
-// End: Convenience extensions
 
-
-bool GLTexture::Create(GLenum target)
+bool GLTexture::create( GLenum target )
 {
-	glGenTextures(1, &m_texture->m_id);
-	m_texture->m_target = target;
+	glGenTextures(1, &m_id);
+	m_target = target;
 
 	// Convenience: Set default parameters
-	SetWrapMode( GL_CLAMP );
-	SetFilterMode( GL_LINEAR );
-
-	return CheckGLError("GLTexture::Create()");
+	setWrapMode( GL_CLAMP );
+	setFilterMode( GL_LINEAR );
+	
+	m_valid = CheckGLError("GLTexture::create()");
+	return m_valid;
 }
 
-bool GLTexture::Destroy()
-{
-#ifdef GL_USE_REFCOUNT
-	m_texture = (GLTextureRefCount *)NULL;
-#else
-	assert(m_texture);
-	glDeleteTextures(1, &m_texture->m_id);
-	//delete m_texture; m_texture=NULL; //--> FIX: why should we delete m_texture here?
-	                                    //         moved this to d'tor!
-#endif
+bool GLTexture::destroy()
+{	
+	if( m_valid )
+	{
+		glDeleteTextures( 1, &m_id );
+		return CheckGLError("GLTexture::destroy()");
+	}
+	invalidate();
 	return true;
 }
 
-bool GLTexture::Bind( int texunit )
+bool GLTexture::bind( int texunit )
 {
-	assert(m_texture);
+	if( !m_valid ) return true;
 	if( texunit >= 0 )
 		glActiveTexture( GL_TEXTURE0 + texunit );
-	glBindTexture(m_texture->m_target, m_texture->m_id);
+	glBindTexture( m_target, m_id );
 	return CheckGLError("GLTexture::Bind()");
 }
 
-void GLTexture::Unbind()
+void GLTexture::unbind()
 {
-	assert(m_texture);
-	glBindTexture(m_texture->m_target, 0);
+	glBindTexture( m_target, 0 );
 }
 
-bool GLTexture::Image(GLint level, GLint internalformat,
+bool GLTexture::image( GLint level, GLint internalformat,
 	GLsizei width, GLsizei height, GLsizei depth, GLint border,
-	GLenum format, GLenum type, void *data)
+	GLenum format, GLenum type, void *data )
 {
-	assert(m_texture);
-	if(!Bind()) return false;
-	glTexImage3D(m_texture->m_target, level, internalformat, width, height,
-		depth, border, format, type, data);
-	SetSize( width, height, depth );
+	if( !m_valid ) return true;
+	if( !bind() ) return false;
+	glTexImage3D( m_target, level, internalformat, width, height, depth, border, 
+	             format, type, data );
+	setSize( width, height, depth );
 	return CheckGLError("GLTexture::Image()");
 }
 
-bool GLTexture::Image(GLint level, GLint internalformat,
+bool GLTexture::image( GLint level, GLint internalformat,
 	GLsizei width, GLsizei height, GLint border,
-	GLenum format, GLenum type, void *data)
+	GLenum format, GLenum type, void *data )
 {
-	assert(m_texture);
-	if(!Bind()) return false;
-	glTexImage2D(m_texture->m_target, level, internalformat, width, height,
-		border, format, type, data);
-	SetSize( width, height, GL_GLTEXTURE_UNDEFINED_DIMENSION_SIZE );
+	if( !m_valid ) return true;
+	if( !bind() ) return false;
+	glTexImage2D( m_target, level, internalformat, width, height, border, 
+	              format, type, data);
+	setSize( width, height );
 	return CheckGLError("GLTexture::Image()");
 }
 
-bool GLTexture::Image(GLint level, GLint internalformat,
-	GLsizei width, GLint border, GLenum format, GLenum type, void *data)
+bool GLTexture::image( GLint level, GLint internalformat,
+	GLsizei width, GLint border, GLenum format, GLenum type, void *data )
 {
-	assert(m_texture);
-	if(!Bind()) return false;
-	glTexImage1D(m_texture->m_target, level, internalformat, width,
-		border, format, type, data);
-	SetSize( width, GL_GLTEXTURE_UNDEFINED_DIMENSION_SIZE, GL_GLTEXTURE_UNDEFINED_DIMENSION_SIZE );
+	if( !m_valid ) return true;
+	if( !bind() ) return false;
+	glTexImage1D( m_target, level, internalformat, width, border, 
+	              format, type, data );
+	setSize( width );
 	return CheckGLError("GLTexture::Image()");
 }
 
-bool GLTexture::SubImage(GLint level, GLint xoffset, GLint yoffset, GLint zoffset,
+bool GLTexture::subImage( GLint level, GLint xoffset, GLint yoffset, GLint zoffset,
 	GLsizei width, GLsizei height, GLsizei depth,
-	GLenum format, GLenum type, void *data, bool bind )
+	GLenum format, GLenum type, void *data, bool doBind )
 {
-	assert(m_texture);
-	if( bind )
-		if(!Bind()) return false;
-	glTexSubImage3D(m_texture->m_target, level, xoffset, yoffset, zoffset,
-		width, height, depth, format, type, data);
+	if( !m_valid ) return true;	
+	if( doBind && !bind() ) return false;
+	glTexSubImage3D( m_target, level, xoffset, yoffset, zoffset,
+		width, height, depth, format, type, data );
 	return CheckGLError("GLTexture::SubImage()");
 }
 
-bool GLTexture::SubImage(GLint level, GLint xoffset, GLint yoffset,
+bool GLTexture::subImage( GLint level, GLint xoffset, GLint yoffset,
 	GLsizei width, GLsizei height,
-	GLenum format, GLenum type, void *data, bool bind )
+	GLenum format, GLenum type, void *data, bool doBind )
 {
-	assert(m_texture);
-	if( bind )
-		if(!Bind()) return false;
-	glTexSubImage2D(m_texture->m_target, level, xoffset, yoffset,
-		width, height, format, type, data);
+	if( !m_valid ) return true;	
+	if( doBind && !bind() ) return false;
+	glTexSubImage2D( m_target, level, xoffset, yoffset,
+		width, height, format, type, data );
 	return CheckGLError("GLTexture::SubImage()");
 }
 
-bool GLTexture::SubImage(GLint level, GLint xoffset,
-	GLsizei width, GLenum format, GLenum type, void *data, bool bind )
+bool GLTexture::subImage( GLint level, GLint xoffset,
+	GLsizei width, GLenum format, GLenum type, void *data, bool doBind )
 {
-	assert(m_texture);
-	if( bind )
-		if(!Bind()) return false;
-	glTexSubImage1D(m_texture->m_target, level, xoffset,
-		width, format, type, data);
+	if( !m_valid ) return true;	
+	if( doBind && !bind() ) return false;
+	glTexSubImage1D( m_target, level, xoffset,
+		width, format, type, data );
 	return CheckGLError("GLTexture::SubImage()");
 }
 
-bool GLTexture::SetParameter(GLenum pname, GLint value)
+bool GLTexture::setParameter( GLenum pname, GLint value )
 {
-	assert(m_texture);
-	Bind();
-	glTexParameteri(m_texture->m_target, pname, value);
+	if( !m_valid ) return true;	
+	if( bind() ) return false;
+	glTexParameteri( m_target, pname, value );
 	return CheckGLError("GLTexture::SetParameter()");
 }
 
-bool GLTexture::SetParameter(GLenum pname, GLfloat value)
+bool GLTexture::setParameter( GLenum pname, GLfloat value )
 {
-	assert(m_texture);
-	Bind();
-	glTexParameterf(m_texture->m_target, pname, value);
+	if( !m_valid ) return true;	
+	if( bind() ) return false;
+	glTexParameterf( m_target, pname, value );
 	return CheckGLError("GLTexture::SetParameter()");
 }
 
-bool GLTexture::ActivateLinearMagnification()
+GLenum GLTexture::target() const
 {
-	return SetParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	return m_target;
 }
 
-GLenum GLTexture::Target() const
+GLuint GLTexture::name() const
 {
-	assert(m_texture);
-	return m_texture->m_target;
+	return m_id;
 }
-
-GLuint GLTexture::Name() const
-{
-	assert(m_texture);
-	return m_texture->m_id;
-}
-
-#ifdef GL_USE_REFCOUNT
-GLTexture::GLTextureRefCount::GLTextureRefCount()
-: m_id(0)
-, m_target(0)
-{}
-
-GLTexture::GLTextureRefCount::~GLTextureRefCount()
-{
-	if(m_id)
-	{
-#ifdef _WIN32
-		if(::wglGetCurrentContext() == NULL)
-			return;
-#endif
-		glDeleteTextures(1, &m_id);
-		if(glGetError() != GL_NO_ERROR)
-			throw bad_delete();
-	}
-}
-#endif // GL_USE_REFCOUNT
-

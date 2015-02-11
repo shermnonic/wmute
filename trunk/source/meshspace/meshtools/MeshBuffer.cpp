@@ -233,7 +233,7 @@ void MeshBuffer::downloadGPU()
 		std::cout << "MeshBuffer::downloadGPU() : Invalid mesh frame!" << std::endl;
 		return;
 	}
-	if( m_ibuffer.empty() || m_vbuffer.empty() || m_nbuffer.empty() )
+	if( m_vbuffer.empty() || m_nbuffer.empty() )
 	{
 		std::cout << "MeshBuffer::donwloadGPU() : Empty buffers!" << std::endl;
 		return;
@@ -262,10 +262,13 @@ void MeshBuffer::downloadGPU()
 			GL_STATIC_DRAW );
 		
 		// Download index buffer (static for all frames)
-		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_ibo );
-		glBufferData( GL_ELEMENT_ARRAY_BUFFER,
-			sizeof(unsigned) * m_ibuffer.size(), &(m_ibuffer[0]),
-			GL_STATIC_DRAW );
+		if( !m_ibuffer.empty() ) // We also support point clouds w/o connectivity
+		{
+			glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_ibo );
+			glBufferData( GL_ELEMENT_ARRAY_BUFFER,
+				sizeof(unsigned) * m_ibuffer.size(), &(m_ibuffer[0]),
+				GL_STATIC_DRAW );
+		}
 		
 		m_dirty = false;
 
@@ -312,21 +315,27 @@ void MeshBuffer::downloadGPU()
 }
 
 //------------------------------------------------------------------------------
-void MeshBuffer::draw()
+void MeshBuffer::sanity()
 {
-	// Draw from GPU buffers
-
 	// Sanity checks
 	if( !m_initialized || m_dirty || m_frameUpdateRequired )
 	{
 		downloadGPU();
 		m_frameUpdateRequired = false;
 	}
+}
 
-	bool useCBuffer = m_cbufferEnabled && !m_cbuffer.empty();
+//------------------------------------------------------------------------------
+void MeshBuffer::draw()
+{
+	// Draw from GPU buffers
+	sanity();
+
+	bool useCBuffer = false; // HACK, was: m_cbufferEnabled && !m_cbuffer.empty();
 	
 	glBindBuffer( GL_ARRAY_BUFFER, m_vbo );
-	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_ibo );
+	if( !m_ibuffer.empty() ) // We also support point clouds w/o connectivity
+		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_ibo );
 
 	GL::CheckGLError( "MeshBuffer::draw() - glBindBuffer()" );
 	
@@ -349,7 +358,16 @@ void MeshBuffer::draw()
 
 	GL::CheckGLError( "MeshBuffer::draw() - gl[Normal/Vertex/Index]Pointer()" );
 	
-	glDrawElements( GL_TRIANGLES, (GLsizei)m_ibuffer.size(), GL_UNSIGNED_INT, 0 );
+	if( !m_ibuffer.empty() )
+	{
+		// Indexed triangle face set
+		glDrawElements( GL_TRIANGLES, (GLsizei)m_ibuffer.size(), GL_UNSIGNED_INT, 0 );
+	}
+	else
+	{
+		// Point cloud
+		glDrawArrays( GL_POINTS, (GLint)0, (GLsizei)(m_vbuffer.size()/3) );
+	}
 
 	GL::CheckGLError( "MeshBuffer::draw() - glDrawElements( GL_TRIANGELS, ... )" );
 	

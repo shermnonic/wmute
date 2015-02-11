@@ -34,7 +34,8 @@ QAction* genSeparator( QWidget* parent )
 SceneViewer::SceneViewer( QWidget* parent )
   : QGLViewer(parent),
 	m_selectionMode(SelectNone),
-	m_selectFrontFaces(true)
+	m_selectFrontFaces(true),
+	m_pointSize(4.2f)
 {
 	// --- Widgets ---
 
@@ -284,6 +285,7 @@ meshtools::Mesh* SceneViewer::loadMeshInternal( QString filename )
 	qDebug() << "Loaded mesh " << filename;
 	qDebug() << "#Vertices = " << mesh->n_vertices();
 	qDebug() << "#Faces    = " << mesh->n_faces();
+	qDebug() << "Mesh has vertex normals : " << (mesh->has_vertex_normals() ? "yes" : "no");
 
 	return mesh;
 }
@@ -533,6 +535,7 @@ void SceneViewer::draw()
 		//glDisable( GL_CULL_FACE );
 
 	// Draw scene objects
+	glPointSize( m_pointSize ); // Point size for point cloud objects
 	m_scene.render();
 
 	GL::CheckGLError("SceneViewer::draw() - after rendering the scene");
@@ -830,6 +833,21 @@ void SceneViewer::mouseReleaseEvent( QMouseEvent* e )
 	QGLViewer::mouseReleaseEvent(e);
 }
 
+void SceneViewer::wheelEvent( QWheelEvent* e )
+{
+	if( e->modifiers() == Qt::AltModifier )
+	{
+		// Modify point size
+		int steps = e->delta() / 120;
+		m_pointSize += steps;
+		if( m_pointSize <= 0.5 ) m_pointSize = 0.5;
+		if( m_pointSize > 20.0 ) m_pointSize = 20.0;
+		updateScene(); // Force re-render
+		e->accept();
+	}
+	else
+		e->ignore();
+}
 
 //----------------------------------------------------------------------------
 // Helpers

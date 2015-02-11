@@ -3,12 +3,14 @@
 
 #include <string>
 
-void grabTGA( std::string filename, bool fromActiveTexture=false,
-			  int width=-1, int height=-1 );
-std::string autoName( std::string prefix, std::string postfix );
-
+/// OpenGL screen capture utility
 class Screenshot2
 {
+protected:
+	static void grabTGA( std::string filename, bool fromActiveTexture=false,
+				  int width=-1, int height=-1 );
+	static std::string autoName( std::string prefix, std::string postfix );
+	
 public:
 	Screenshot2();
 

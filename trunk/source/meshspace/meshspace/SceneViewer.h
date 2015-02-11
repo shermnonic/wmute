@@ -116,6 +116,7 @@ protected:
 	void mousePressEvent  ( QMouseEvent* e );
 	void mouseReleaseEvent( QMouseEvent* e );
 	void mouseMoveEvent   ( QMouseEvent* e );
+	void wheelEvent       ( QWheelEvent* e );
 	///@}
 
 	///@{ Mesh functions
@@ -148,6 +149,8 @@ private:
 	bool           m_selectFrontFaces;///< Select only vertices on front-faces?
 
 	QList<QAction*> m_actions;
+
+	float m_pointSize; ///< Point size for point cloud rendering, change via via mouse wheel + alt
 };
 
 /** @} */ // end group
