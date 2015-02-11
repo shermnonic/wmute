@@ -516,15 +516,11 @@ vec3 superquadric_tensor( double cp, double cl, double gamma, double theta, doub
 	return qz( theta, phi, pow(1.-cl,gamma), pow(1.-cp,gamma) );
 }
 
-void Superquadric::create( int res )
+void Superquadric::create( int unused )
 {
-	m_mode = TensorGlyph;
-	double cp = .27,
-	       cl = .33,
-	       gamma = 3.0;
+	clear();
 
-	m_mode = TensorGlyph;
-	res = 16;
+	int res = 32;
 
 	double theta_step = (2.*M_PI)/(double)res;
 	double phi_step = M_PI/(double)res;

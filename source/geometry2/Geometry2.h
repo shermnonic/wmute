@@ -19,6 +19,11 @@
 class SimpleGeometry
 {
 public:
+	virtual void create( int param ) {}
+
+	virtual void setLevels( int levels ) {}
+	virtual int getLevels() const { return 0; }
+
 	/// Return number of vertices/normals
 	int num_vertices() const;
 	/// Return number of faces
@@ -135,10 +140,6 @@ public:
 	void setDefaultGenerator();
 	void setGenerator( const SimpleGeometry& geom );
 
-	void setPlatonicConstants( double X, double Z ) {}
-	double getPlatonicConstantsX() const { return 0; }
-	double getPlatonicConstantsZ() const { return 0; }
-
 	void setLevels( int levels ) 
 		{ 
 			m_levels = levels; 
@@ -169,11 +170,15 @@ private:
 class Superquadric : public SimpleGeometry
 {
 public:	
-	Superquadric() {};
-
 	enum Mode { Quadric, TensorGlyph };
 
-	void create( int res=16 );
+	Superquadric()
+	: m_mode( Quadric ), m_alpha(1.0), m_beta(1.0), m_gamma(6.0) {};
+
+	void create( int unused=-1 );
+
+	double alpha() const { return m_alpha; }
+	double beta()  const { return m_beta; }
 
 	void setQuadric( double alpha, double beta )
 	{
@@ -198,14 +203,6 @@ private:
 	int m_mode;
 	double m_alpha, m_beta;     ///< Quadric parameters
 	double m_cl, m_cp, m_gamma; ///< Tensor glyph parameters
-
-public:
-	void setPlatonicConstants( double X, double Z ) {}
-	double getPlatonicConstantsX() const { return 0; }
-	double getPlatonicConstantsZ() const { return 0; }
-
-	void setLevels( int levels ) {}
-	int getLevels() const { return 0; }
 };
 
 #endif
