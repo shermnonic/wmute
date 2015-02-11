@@ -82,8 +82,11 @@ void MeshObject::render( int flags )
 {
 	bool useShader = (m_shaderMode != NoShader);
 
+	//bool isPointCloud = m_meshBuffer.ibuffer().empty();
+
 	glPushAttrib( GL_CURRENT_BIT );
-	glColor3f( (GLfloat)getColor().r, (GLfloat)getColor().g, (GLfloat)getColor().b );
+	scene::Color color = getColor();
+	glColor3f( (GLfloat)color.r, (GLfloat)color.g, (GLfloat)color.b );
 
 	// Render shaded scene
 	if( flags & Object::RenderSurface )

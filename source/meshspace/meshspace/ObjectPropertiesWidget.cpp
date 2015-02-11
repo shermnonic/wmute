@@ -210,10 +210,12 @@ void ObjectPropertiesWidget::setSceneObject( scene::Object* obj )
 			tr("Mesh object\n"
 		       "#Vertices = %1\n"
 			   "#Faces = %2\n"
-			   "#Frames = %3\n")
+			   "#Frames = %3\n"
+			   "Vertex normals = %4\n")
 			.arg( meshobj->numVertices() )
 			.arg( meshobj->numFaces() ) 
 			.arg( meshobj->numFrames() )
+			.arg( meshobj->hasVertexNormals() ? QString("true") : QString("false") )
 		);
 	}
 

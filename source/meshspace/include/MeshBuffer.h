@@ -111,6 +111,10 @@ public:
 	///@}
 
 protected:
+	/// Makes sure buffers are downloaded to GPU.
+	/// Should be called first in every render/draw function.
+	void sanity(); 
+
 	/// Called internally in \a draw() function
 	void downloadGPU();
 

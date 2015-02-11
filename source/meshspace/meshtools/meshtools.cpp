@@ -9,10 +9,18 @@ namespace meshtools {
 //  Mesh functions
 //-----------------------------------------------------------------------------
 
-OpenMesh::IO::Options meshIOdefaultOptions( OpenMesh::IO::Options::VertexColor );
+OpenMesh::IO::Options meshIOdefaultOptions( 
+	OpenMesh::IO::Options::VertexColor | 
+	OpenMesh::IO::Options::VertexNormal
+	);
 
 bool loadMesh( Mesh& mesh, const char* filename )
 {	
+	OpenMesh::IO::Options opts( meshIOdefaultOptions );
+	
+	mesh.request_vertex_colors();
+	mesh.request_vertex_normals();
+
 	std::string file_in( filename );
 	try
 	{
@@ -30,6 +38,14 @@ bool loadMesh( Mesh& mesh, const char* filename )
 		          << "Exception: " << x.what() << std::endl;
 		return false;
 	}
+
+	if( opts.check( OpenMesh::IO::Options::FaceNormal ) )
+		std::cout << "meshtools::loadMesh() : Found face normals" << std::endl;
+	if( opts.check( OpenMesh::IO::Options::VertexNormal ) )
+		std::cout << "meshtools::loadMesh() : Found vertex normals" << std::endl;
+	if( opts.check( OpenMesh::IO::Options::VertexColor ) )
+		std::cout << "meshtools::loadMesh() : Found vertex color" << std::endl;
+
 	return true;
 }
 
@@ -60,15 +76,20 @@ void printMeshInfo( const Mesh& mesh, std::ostream& os )
 	std::cout << "# Vertices: " << mesh.n_vertices() << std::endl;
 	std::cout << "# Edges   : " << mesh.n_edges   () << std::endl;
 	std::cout << "# Faces   : " << mesh.n_faces   () << std::endl;
+	std::cout << "Mesh has vertex normals : " << 
+		(mesh.has_vertex_normals() ? "yes" : "no") << std::endl;
 }
 
 void updateMeshVertexNormals( Mesh* m )
 {
 	// Sometimes normals are not stored and have to be computed explicitly
-	m->request_vertex_normals();		
-	m->request_face_normals(); // Face normals required to update vertex normals
-	m->update_normals();       // Compute vertex normals
-	m->release_face_normals(); // Dispose the face normals, as we don't need them anymore
+	if( !m->has_vertex_normals() )
+	{
+		m->request_vertex_normals();
+		m->request_face_normals(); // Face normals required to update vertex normals
+		m->update_normals();       // Compute vertex normals
+		m->release_face_normals(); // Dispose the face normals, as we don't need them anymore
+	}
 }
 
 double computeMeshVolume( Mesh* m )

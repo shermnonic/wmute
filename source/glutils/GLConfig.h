@@ -7,8 +7,5 @@
 // Put all function in GL:: namespace
 #define GL_NAMESPACE
 
-// Use Misc::RefCountPtr for reference counting
-//#ifdef GL_USE_REFCOUNT
-
 #endif
 

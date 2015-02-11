@@ -86,6 +86,12 @@ public:
 	/// Return number of (triangle) faces in (reference) mesh
 	int numFaces()    const { return m_mesh ? (int)m_mesh->n_faces() : 0; }
 
+	/// Returns true if per vertex normals are present, else false
+	bool hasVertexNormals() const { return m_mesh ? m_mesh->has_vertex_normals() : false; }
+	/// Returns true if per face normals are present, else false
+	/// Note that face normals are not used in shading but per vertex normals.
+	bool hasFaceNormals()   const { return m_mesh ? m_mesh->has_face_normals() : false; }
+
 	///@{ Direct access to the underlying \a MeshBuffer instance
 	MeshBuffer& meshBuffer() { return m_meshBuffer; }
 	const MeshBuffer& meshBuffer() const { return m_meshBuffer; }
