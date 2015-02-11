@@ -100,7 +100,7 @@ void PotentialFromImageModule::updateTexture()
 		return;
 	
 	GLint internalFormat = GL_RGBA32F;
-	m_target.Image( 0, internalFormat, m_width,m_height, 0, GL_RGBA, GL_FLOAT, 
+	m_target.image( 0, internalFormat, m_width,m_height, 0, GL_RGBA, GL_FLOAT, 
 		(void*)m_data );
 }
 
@@ -108,7 +108,7 @@ void PotentialFromImageModule::updateTexture()
 bool PotentialFromImageModule::init()
 {
 	// Create texture
-	if( !m_target.Create(GL_TEXTURE_2D) )
+	if( !m_target.create(GL_TEXTURE_2D) )
 	{
 		cerr << "PotentialFromImageModule::init() : Couldn't create 2D textures!" << endl;
 		return false;
@@ -121,7 +121,7 @@ bool PotentialFromImageModule::init()
 //----------------------------------------------------------------------------
 void PotentialFromImageModule::destroy()
 {
-	m_target.Destroy();
+	m_target.destroy();
 	delete [] m_data; m_data = NULL;
 }
 

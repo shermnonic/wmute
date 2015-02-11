@@ -85,7 +85,7 @@ bool ShaderModule::init()
 	if( !m_target_initialized )
 	{
 		// Create texture id only once!
-		if( !m_target.Create(GL_TEXTURE_2D) )
+		if( !m_target.create(GL_TEXTURE_2D) )
 		{
 			cerr << "ShaderModule::init() : Couldn't create 2D textures!" << endl;
 			return false;
@@ -100,7 +100,7 @@ bool ShaderModule::init()
 	GLint internalFormat = GL_RGBA32F; //GL_RGB12;
 
 	// Allocate GPU mem
-	m_target.Image( 0, internalFormat, 
+	m_target.image( 0, internalFormat, 
 	                m_opts.width.value(), m_opts.height.value(), 
 	                0, GL_RGBA, GL_FLOAT, NULL );
 	
@@ -109,7 +109,7 @@ bool ShaderModule::init()
 	{
 		// Since we are using no depth-buffer attachement, r2t has not be
 		// setup again on size change. 
-		if( !m_r2t.init_no_depthbuffer( m_target.GetID() ) )
+		if( !m_r2t.init_no_depthbuffer( m_target.name() ) )
 		{
 			cerr << "ShaderModule::init() : Couldn't setup render-to-texture!" << endl;
 			return false;
@@ -147,7 +147,7 @@ void ShaderModule::destroy()
 {
 	delete m_shader; m_shader = 0;
 	m_r2t.deinit();
-	m_target.Destroy();
+	m_target.destroy();
 }
 
 //----------------------------------------------------------------------------
@@ -281,7 +281,7 @@ void ShaderModule::render()
 	glActiveTexture( GL_TEXTURE0 );
 	checkGLError( "ShaderModule::render() - After setting texture channels" );
 	
-	if( m_r2t.bind( m_target.GetID() ) )
+	if( m_r2t.bind( m_target.name() ) )
 	{
 		// Render target resolution sized quad
 
