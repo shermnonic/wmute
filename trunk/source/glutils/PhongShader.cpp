@@ -49,12 +49,12 @@ void PhongShader::setDefaultLighting()
 	
 	// Default ambience
 	
-	GLfloat lmKa[] = {0.2, 0.2, 0.2, 1.0 };
+	GLfloat lmKa[] = {0.2f, 0.2f, 0.2f, 1.0f };
 	glLightModelfv( GL_LIGHT_MODEL_AMBIENT, lmKa );	
 	
 	// Default spotlight
 
-	GLfloat spot_direction[] = {.0, .0, -1.0 };
+	GLfloat spot_direction[] = {.0f, .0f, -1.0f };
 	GLint spot_exponent =   0;   
 	GLint spot_cutoff   = 180;
 
@@ -62,16 +62,16 @@ void PhongShader::setDefaultLighting()
 	glLighti ( light, GL_SPOT_EXPONENT , spot_exponent );
 	glLighti ( light, GL_SPOT_CUTOFF   , spot_cutoff   );
 	
-	glLightf( light, GL_CONSTANT_ATTENUATION , 1.0 );
-	glLightf( light, GL_LINEAR_ATTENUATION   ,  .0 );
-	glLightf( light, GL_QUADRATIC_ATTENUATION,  .0 );
+	glLightf( light, GL_CONSTANT_ATTENUATION , 1.0f );
+	glLightf( light, GL_LINEAR_ATTENUATION   ,  .0f );
+	glLightf( light, GL_QUADRATIC_ATTENUATION,  .0f );
 		
 	// Light
 	
-	GLfloat light_ambient[]  = {  .0,  .0,  .0, 1.0 };
-	GLfloat light_diffuse[]  = { 1.0, 1.0, 1.0, 1.0 };
-	GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
-	GLfloat light_position[] = {  .0,  .0, -1.0 };  
+	GLfloat light_ambient[]  = {  .0f,  .0f,  .0f, 1.0f };
+	GLfloat light_diffuse[]  = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat light_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat light_position[] = {  .0f,  .0f,-1.0f };  
 	
 	glLightfv( light, GL_AMBIENT,  light_ambient  );
 	glLightfv( light, GL_DIFFUSE,  light_diffuse  );
@@ -80,11 +80,11 @@ void PhongShader::setDefaultLighting()
 
 	// Default material parameters
 	
-	GLfloat material_Ka[] = {0.2, 0.2, 0.2, 1.0};
-	GLfloat material_Kd[] = {0.8, 0.8, 0.8, 1.0};
-	GLfloat material_Ks[] = {0.0, 0.0, 0.0, 1.0};
-	GLfloat material_Ke[] = {0.0, 0.0, 0.0, 1.0};
-	GLfloat material_Se = 0.1;
+	GLfloat material_Ka[] = {0.2f, 0.2f, 0.2f, 1.0f};
+	GLfloat material_Kd[] = {0.8f, 0.8f, 0.8f, 1.0f};
+	GLfloat material_Ks[] = {0.0f, 0.0f, 0.0f, 1.0f};
+	GLfloat material_Ke[] = {0.0f, 0.0f, 0.0f, 1.0f};
+	GLfloat material_Se = 0.1f;
 
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT  , material_Ka);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE  , material_Kd);
