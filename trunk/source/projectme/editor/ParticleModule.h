@@ -31,7 +31,7 @@ public:
 	///@name ModuleRenderer implementation
 	///@{
 	void render();
-	int  target() const { return m_target.GetID(); }
+	int  target() const { return m_target.name(); }
 	void destroy() { m_ps.destroy(); }
 	void touch();
 	void applyOptions() { /* Call init again to change texture size */ init(); }

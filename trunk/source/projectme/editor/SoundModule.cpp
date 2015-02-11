@@ -66,7 +66,7 @@ void SoundModule::updateTexture()
 	}
 	
 	// Download data to GPU
-	m_target.Image( 0, GL_LUMINANCE16, 512,2, 0, 
+	m_target.image( 0, GL_LUMINANCE16, 512,2, 0, 
 	//m_target.SubImage( 0, 0,0, 512,2, 
 		GL_LUMINANCE, GL_FLOAT, (void*)m_data );	
 }
@@ -74,7 +74,7 @@ void SoundModule::updateTexture()
 bool SoundModule::init()
 {
 	// Create texture
-	if( !m_target.Create(GL_TEXTURE_2D) )
+	if( !m_target.create(GL_TEXTURE_2D) )
 	{
 		cerr << "ImageModule::init() : Couldn't create 2D textures!" << endl;
 		return false;
@@ -82,7 +82,7 @@ bool SoundModule::init()
 	
 	// Fix format and size
 	GLint internalFormat = GL_LUMINANCE16; // GL_R16F;
-	m_target.Image( 0, internalFormat, 512, 2, 0, 
+	m_target.image( 0, internalFormat, 512, 2, 0, 
 		GL_LUMINANCE, GL_FLOAT, (void*)NULL );	
 	
 	m_initialized = checkGLError( "ShaderModule::init() : GL error at exit!" );
@@ -91,7 +91,7 @@ bool SoundModule::init()
 
 void SoundModule::destroy()
 {
-	m_target.Destroy();
+	m_target.destroy();
 	//delete [] m_data; m_data = NULL;
 }
 

@@ -47,7 +47,7 @@ bool ParticleModule::init()
 	// Create texture
 	if( !m_target_initialized )
 	{
-		if( !m_target.Create(GL_TEXTURE_2D) )
+		if( !m_target.create(GL_TEXTURE_2D) )
 		{
 			cerr << "ParticleModule::init() : Couldn't create 2D textures!" << endl;
 			return false;
@@ -57,14 +57,14 @@ bool ParticleModule::init()
 
 	// Allocate GPU mem
 	GLint internalFormat = GL_RGBA32F;
-	m_target.Image(0, internalFormat, 
+	m_target.image(0, internalFormat, 
 	               m_opts.width.value(), m_opts.height.value(), 
 				   0, GL_RGBA, GL_FLOAT, NULL );
 	
 	// Setup Render-2-Texture
 	if( !m_r2t_initialized )
 	{
-		if( !m_r2t.init_no_depthbuffer( m_target.GetID() ) )
+		if( !m_r2t.init_no_depthbuffer( m_target.name() ) )
 		{
 			cerr << "ParticleModule::init() : Couldn't setup render-to-texture!" << endl;
 			return false;
@@ -117,7 +117,7 @@ void ParticleModule::render()
 
 	m_ps.update();
 
-	if( m_r2t.bind( m_target.GetID() ) )
+	if( m_r2t.bind( m_target.name() ) )
 	{
 		glDisable( GL_DEPTH_TEST );
 

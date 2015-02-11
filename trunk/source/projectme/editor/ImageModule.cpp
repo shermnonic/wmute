@@ -74,7 +74,7 @@ void ImageModule::updateTexture()
 		return;
 	
 	GLint internalFormat = GL_RGBA8;
-	m_target.Image( 0, internalFormat, m_width,m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 
+	m_target.image( 0, internalFormat, m_width,m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 
 		(void*)m_data );
 }
 
@@ -82,7 +82,7 @@ void ImageModule::updateTexture()
 bool ImageModule::init()
 {
 	// Create texture
-	if( !m_target.Create(GL_TEXTURE_2D) )
+	if( !m_target.create(GL_TEXTURE_2D) )
 	{
 		cerr << "ImageModule::init() : Couldn't create 2D textures!" << endl;
 		return false;
@@ -95,7 +95,7 @@ bool ImageModule::init()
 //----------------------------------------------------------------------------
 void ImageModule::destroy()
 {
-	m_target.Destroy();
+	m_target.destroy();
 	delete [] m_data; m_data = NULL;
 }
 
