@@ -14,14 +14,18 @@
 
 using namespace std;
 
-const int ICO_MAX_LEVELS = 6;
-const int IMG_WIDTH = 8096;
+const int MAX_LEVELS = 6;
+const int IMG_WIDTH  = 8096;
 const int IMG_HEIGHT = 8096;
 const char IMG_PREFIX[] = "geometry-";
 
 const char usage[] = "\
 geometry2 by www.386dx25.de, 2011 \n\
 Keys:\n\
+	1    Icosahedron            \n\
+	2    Penrose tiling         \n\
+	3    Superquadric           \n\
+	\n\
 	w    wireframe				\n\
 	s    shade model			\n\
 	i    light inside/outside	\n\
@@ -31,10 +35,10 @@ Keys:\n\
 	m    immediate mode			\n\
 	(/)  line width				\n\
 	\n\
-	R    randomize Platonic constants \n\
-	r    icosahedron constants	\n\
-	x/X  adjust constant 1		\n\
-	y/Y  adjust constant 2		\n\
+	r    reset parameters       \n\
+	R    randomize parameters   \n\
+	x/X  adjust parameter 1		\n\
+	y/Y  adjust parameter 2		\n\
 	\n\
 	,/.  adjust subdivision level \n\
 	\n\
@@ -82,6 +86,13 @@ float frand()
 
 	return (float)(rand()%RAND_MAX)/(float)RAND_MAX;
 };
+
+template<typename T> T clamp( const T& val, T min, T max )
+{
+	if( val < min ) return min; else
+	if( val > max ) return max; else
+	return val;
+}
 
 void setGeometry( SimpleGeometry* g )
 {
@@ -190,13 +201,6 @@ void icosahedronControls()
 	if( toggle['X'] ) { g_geomIco.clear(); g_geomIco.setPlatonicConstants( cx+dx, cz ); g_geomIco.create(); toggle['X']=false; }
 }
 
-template<typename T> T clamp( const T& val, T min, T max )
-{
-	if( val < min ) return min; else
-	if( val > max ) return max; else
-	return val;
-}
-
 void quadricControls()
 {
 	Superquadric& sq = g_geomSuperquadric;
@@ -208,6 +212,7 @@ void quadricControls()
 	if( toggle['y'] ) { beta  -= dx; toggle['y']=false; }
 	if( toggle['Y'] ) { beta  += dx; toggle['Y']=false; }
 	if( toggle['r'] ) { alpha = 0.5; beta = 0.5; toggle['r']=false; }
+	if( toggle['R'] ) { alpha = frand()*4.0; beta = frand()*4.0; toggle['R'] = false; }
 	alpha = clamp(alpha,0.01,3.99);
 	beta  = clamp(beta ,0.01,3.99);
 	if( alpha != sq.alpha() || beta != sq.beta() )
@@ -252,7 +257,7 @@ bool frame()
 		setupColors( g_geomPtr->num_vertices(), g_colors, (int)g_colorMode );
 		toggle[','] = false;
 	}
-	if( toggle['.'] && g_geomPtr->getLevels() < ICO_MAX_LEVELS )
+	if( toggle['.'] && g_geomPtr->getLevels() < MAX_LEVELS )
 	{
 		g_geomPtr->clear();
 		g_geomPtr->create( g_geomPtr->getLevels()+1 );
