@@ -43,13 +43,11 @@ Keys:\n\
 ";
 
 // globals
-#define TEST_PENROSE
-#ifdef TEST_PENROSE
-//Penrose g_ico;
-Superquadric g_ico;
-#else
-Icosahedron g_ico;
-#endif
+SimpleGeometry* g_geomPtr = NULL;
+Penrose      g_geomPenrose;
+Superquadric g_geomSuperquadric;
+Icosahedron  g_geomIco;
+
 std::vector<float> g_colors;
 double g_linewidth = 1.0;
 std::string g_switches = "wsilcB";  // switches for serialization
@@ -85,6 +83,13 @@ float frand()
 	return (float)(rand()%RAND_MAX)/(float)RAND_MAX;
 };
 
+void setGeometry( SimpleGeometry* g )
+{
+	if( g_geomPtr == g ) return;
+	g_geomPtr = g;
+	if( !g ) return;
+	setupColors( g->num_vertices(), g_colors, (int)g_colorMode );
+}
 
 //------------------------------------------------------------------------------
 // Implementation of glutmain.cpp functions:
@@ -140,33 +145,26 @@ void internal_render_frame()
 	// toggle immediate / array
 	float* colorPtr = NULL;
 	if( toggle['c'] ) colorPtr = &g_colors[0];
-	if( toggle['m'] )
-		draw_immediate( &g_ico, colorPtr );
-	else
-		draw_array( &g_ico, colorPtr );
+	if( g_geomPtr )
+	{
+		if( toggle['m'] )
+			draw_immediate( g_geomPtr, colorPtr );
+		else
+			draw_array( g_geomPtr, colorPtr );
+	}
 }
 
 void createIcosahedron( float cx, float cz )
 {
 	printf("Platonic constants (%.9f, %.9f)\n",cx,cz);
-	g_ico.clear();
-	g_ico.setPlatonicConstants( cx, cz );
-	g_ico.create();
-	setupColors( g_ico.num_vertices(), g_colors, (int)g_colorMode );
+	g_geomIco.clear();
+	g_geomIco.setPlatonicConstants( cx, cz );
+	g_geomIco.create();
+	setupColors( g_geomIco.num_vertices(), g_colors, (int)g_colorMode );
 }
 
-bool frame()
+void icosahedronControls()
 {
-	internal_render_frame();
-
-	if( toggle['C'] )
-	{
-		g_colorMode = (g_colorMode+1)%NumColorModes;
-		setupColors( g_ico.num_vertices(), g_colors, (int)g_colorMode );
-		printf("Color mode %d\n", g_colorMode);
-		toggle['C'] = false;
-	}
-
 	// randomize Platonic constants
 	if( toggle['R'] )
 	{
@@ -182,28 +180,83 @@ bool frame()
 		createIcosahedron( cx, cz );
 		toggle['r'] = false;
 	}
-
+	
 	double dx = 0.01;
-	double cx = g_ico.getPlatonicConstantsX(),
-		   cz = g_ico.getPlatonicConstantsZ();
-	if( toggle['y'] ) { g_ico.clear(); g_ico.setPlatonicConstants( cx, cz-dx ); g_ico.create(); toggle['y']=false; }
-	if( toggle['Y'] ) { g_ico.clear(); g_ico.setPlatonicConstants( cx, cz+dx ); g_ico.create(); toggle['Y']=false; }
-	if( toggle['x'] ) { g_ico.clear(); g_ico.setPlatonicConstants( cx-dx, cz ); g_ico.create(); toggle['x']=false; }
-	if( toggle['X'] ) { g_ico.clear(); g_ico.setPlatonicConstants( cx+dx, cz ); g_ico.create(); toggle['X']=false; }
+	double cx = g_geomIco.getPlatonicConstantsX(),
+		   cz = g_geomIco.getPlatonicConstantsZ();
+	if( toggle['y'] ) { g_geomIco.clear(); g_geomIco.setPlatonicConstants( cx, cz-dx ); g_geomIco.create(); toggle['y']=false; }
+	if( toggle['Y'] ) { g_geomIco.clear(); g_geomIco.setPlatonicConstants( cx, cz+dx ); g_geomIco.create(); toggle['Y']=false; }
+	if( toggle['x'] ) { g_geomIco.clear(); g_geomIco.setPlatonicConstants( cx-dx, cz ); g_geomIco.create(); toggle['x']=false; }
+	if( toggle['X'] ) { g_geomIco.clear(); g_geomIco.setPlatonicConstants( cx+dx, cz ); g_geomIco.create(); toggle['X']=false; }
+}
+
+template<typename T> T clamp( const T& val, T min, T max )
+{
+	if( val < min ) return min; else
+	if( val > max ) return max; else
+	return val;
+}
+
+void quadricControls()
+{
+	Superquadric& sq = g_geomSuperquadric;
+	double alpha = sq.alpha(),
+		   beta  = sq.beta(),
+		   dx = 0.1;
+	if( toggle['x'] ) { alpha -= dx; toggle['x']=false; }
+	if( toggle['X'] ) { alpha += dx; toggle['X']=false; }
+	if( toggle['y'] ) { beta  -= dx; toggle['y']=false; }
+	if( toggle['Y'] ) { beta  += dx; toggle['Y']=false; }
+	if( toggle['r'] ) { alpha = 0.5; beta = 0.5; toggle['r']=false; }
+	alpha = clamp(alpha,0.01,3.99);
+	beta  = clamp(beta ,0.01,3.99);
+	if( alpha != sq.alpha() || beta != sq.beta() )
+	{
+		sq.setQuadric( alpha, beta );
+		sq.create();
+	}
+}
+
+bool frame()
+{
+	// Controls to select geometry
+	if( toggle['1'] ) { setGeometry(&g_geomIco);          toggle['1']=false; }
+	if( toggle['2'] ) { setGeometry(&g_geomPenrose);      toggle['2']=false; }
+	if( toggle['3'] ) { setGeometry(&g_geomSuperquadric); toggle['3']=false; }
+
+	// Render
+
+	if( !g_geomPtr ) return true;
+
+	internal_render_frame();
+
+	if( toggle['C'] )
+	{
+		g_colorMode = (g_colorMode+1)%NumColorModes;
+		setupColors( g_geomPtr->num_vertices(), g_colors, (int)g_colorMode );
+		printf("Color mode %d\n", g_colorMode);
+		toggle['C'] = false;
+	}
+
+	// specific controls
+	if( dynamic_cast<Icosahedron*>(g_geomPtr) )
+		icosahedronControls();
+	if( dynamic_cast<Superquadric*>(g_geomPtr) )
+		quadricControls();
 
 	// adjust subdivision levels
-	if( toggle[','] && g_ico.getLevels()>0 )
+	if( toggle[','] && g_geomPtr->getLevels()>0 )
 	{
-		g_ico.clear();
-		g_ico.create( g_ico.getLevels()-1 );
-		setupColors( g_ico.num_vertices(), g_colors, (int)g_colorMode );
+		g_geomPtr->clear();
+		g_geomPtr->create( g_geomPtr->getLevels()-1 );
+		setupColors( g_geomPtr->num_vertices(), g_colors, (int)g_colorMode );
 		toggle[','] = false;
 	}
-	if( toggle['.'] && g_ico.getLevels()<ICO_MAX_LEVELS )
+	if( toggle['.'] && g_geomPtr->getLevels() < ICO_MAX_LEVELS )
 	{
-		g_ico.clear();
-		g_ico.create( g_ico.getLevels()+1 );
-		setupColors( g_ico.num_vertices(), g_colors, (int)g_colorMode );
+		g_geomPtr->clear();
+		g_geomPtr->create( g_geomPtr->getLevels()+1 );
+		setupColors( g_geomPtr->num_vertices(), g_colors, (int)g_colorMode );
 		toggle['.'] = false;
 	}
 
@@ -221,6 +274,7 @@ bool frame()
 		toggle['S'] = false;
 	}
 
+	// reshape to specific window size
 	if( toggle[' '] )
 	{
 		glutReshapeWindow( 1024, 1024 );		
@@ -241,14 +295,18 @@ bool init( int argc, char** argv )
 {
 	glutSetWindowTitle("geometry2");
 
-#ifdef TEST_PENROSE
-	//Icosahedron mico2;
-	//mico2.create( 0 );
-	//g_ico.setGenerator( mico2 );
-#endif
+	// Setup all geometries
 
-	// generate geometry
-	g_ico.setPlatonicConstants( // New golden ratio method
+	// setup Penrose tiling
+#if 0
+	Icosahedron penroseGenerator;
+	penroseGenerator.create( 0 );
+	g_geomPenrose.setGenerator( penroseGenerator );
+#endif
+	g_geomPenrose.create( 4 );
+
+	// setup Icosahedron
+	g_geomIco.setPlatonicConstants( // New golden ratio method
 		1.6180339887498948482045, // golden ratio
 		1.0                       // subdivision re-scaling
 		);
@@ -256,23 +314,29 @@ bool init( int argc, char** argv )
 		//  .587654321, -0.723456789    the moon
 		// 1.287654321, 1.723456789     spikes
 		//  .525731112119133606, .850650808352039932   icosahedron
-	g_ico.create( 4 );	
+	g_geomIco.create( 4 );
 
-	// set GL states	
-	glEnable( GL_DEPTH_TEST );
-	glDisable( GL_CULL_FACE );
-	setupLight();
-		
-	setupColors( g_ico.num_vertices(), g_colors, (int)g_colorMode );
+	// setup Superquadric
+	g_geomSuperquadric.setQuadric( 0.1, 0.1 );
+	g_geomSuperquadric.create();
+
+	// setup colors
+	setGeometry( &g_geomIco );
 
 	g_screenshot.setup( IMG_WIDTH, IMG_HEIGHT, IMG_PREFIX );
 
+	// set GL states
+	glEnable( GL_DEPTH_TEST );
+	glDisable( GL_CULL_FACE );
+	setupLight();
+
+	// restore state (currently only Icosahedron supported)
 	if( argc > 1 ) {
 		if( load_state( argv[1] ) )
 		{
 			cout << "Succesfully applied state from " << argv[1] << endl;
-			g_ico.clear();
-			g_ico.create();
+			g_geomIco.clear();
+			g_geomIco.create();
 		}
 		else
 			cout << "Failed to apply state from " << argv[1] << endl;
@@ -287,7 +351,7 @@ void shutdown()
 }
 
 //------------------------------------------------------------------------------
-//	Serialization
+//	Serialization (currently only Icosahedron supported)
 //------------------------------------------------------------------------------
 
 void save_state( const char* filename )
@@ -308,9 +372,9 @@ void save_state( const char* filename )
 
 	// TODO: save camera
 
-	f << "ico.levels " << g_ico.getLevels() << endl
-	  << "ico.platonicX " << g_ico.getPlatonicConstantsX() << endl
-	  << "ico.platonicZ " << g_ico.getPlatonicConstantsZ() << endl;
+	f << "ico.levels " << g_geomIco.getLevels() << endl
+	  << "ico.platonicX " << g_geomIco.getPlatonicConstantsX() << endl
+	  << "ico.platonicZ " << g_geomIco.getPlatonicConstantsZ() << endl;
 
 	f.close();
 }
@@ -353,8 +417,8 @@ bool load_state( const char* filename )
 		else if( token.find("ico.platonicZ")==0 ) { ss >> y; y_=true; }
 	}
 
-	if( levels_ ) g_ico.setLevels(levels);
-	if( x_&&y_  ) g_ico.setPlatonicConstants(x,y);
+	if( levels_ ) g_geomIco.setLevels(levels);
+	if( x_&&y_  ) g_geomIco.setPlatonicConstants(x,y);
 
 	return true;
 
@@ -403,7 +467,8 @@ void export_ps()
 	  glColor3f( 1,0,0 );
 	  gl2psText( info, "Helvetica", 11 );
 	#endif
-	  draw_immediate( &g_ico, toggle['c'] ? &g_colors[0] : NULL );
+	  if( g_geomPtr )
+		draw_immediate( g_geomPtr, toggle['c'] ? &g_colors[0] : NULL );
       state = gl2psEndPage();
     }
     fclose(fp);
