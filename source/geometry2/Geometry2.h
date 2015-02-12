@@ -19,6 +19,9 @@
 class SimpleGeometry
 {
 public:
+	SimpleGeometry() {}
+	virtual ~SimpleGeometry() {}
+
 	virtual void create( int param ) {}
 
 	virtual void setLevels( int levels ) {}
@@ -57,7 +60,9 @@ public:
 	vec3 get_vertex( int i ) const;
 	vec3 get_normal( int i ) const;
 	Face get_face  ( int j ) const;
-	
+
+	void set_vertex( int i, vec3 v );
+
 	/// Insert face
 	virtual int  add_face( Face f );
 
@@ -87,9 +92,12 @@ class Icosahedron : public SimpleGeometry
 public:
 	Icosahedron():
 		m_levels(4),
-		m_platonicConstantX(.525731112119133606),
-		m_platonicConstantZ(.850650808352039932)
+		m_platonicConstantX(1.6180339887498948482045), // golden ratio
+		m_platonicConstantZ(1.0)
+//		m_platonicConstantX(.525731112119133606),
+//		m_platonicConstantZ(.850650808352039932)
 		{}
+	virtual ~Icosahedron() {}
 
 	void setPlatonicConstants( double X, double Z )
 		{
@@ -108,7 +116,7 @@ public:
 
 	/// Create an Icosahedron model where each face is subdivided level times
 	/// In the limit the subdivision surface is a sphere.
-	void create( int level=-1 );
+	virtual void create( int level=-1 );
 
 protected:
 	/// Recursive face subdivision routine
@@ -203,6 +211,24 @@ private:
 	int m_mode;
 	double m_alpha, m_beta;     ///< Quadric parameters
 	double m_cl, m_cp, m_gamma; ///< Tensor glyph parameters
+};
+
+//==============================================================================
+//	SphericalHarmonics
+//==============================================================================
+class SphericalHarmonics : public Icosahedron
+{
+public:
+	SphericalHarmonics() : m_l(4),m_m(0) {}
+
+	void create( int level=-1 );
+	void update();
+	void setLM( int l, int m );
+	int getL() const { return m_l; }
+	int getM() const { return m_m; }
+
+private:
+	int m_l, m_m;
 };
 
 #endif

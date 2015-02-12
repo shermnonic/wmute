@@ -47,10 +47,11 @@ Keys:\n\
 ";
 
 // globals
-SimpleGeometry* g_geomPtr = NULL;
-Penrose      g_geomPenrose;
-Superquadric g_geomSuperquadric;
-Icosahedron  g_geomIco;
+SimpleGeometry*    g_geomPtr = NULL;
+Penrose            g_geomPenrose;
+Superquadric       g_geomSuperquadric;
+Icosahedron        g_geomIco;
+SphericalHarmonics g_geomSH;
 
 std::vector<float> g_colors;
 double g_linewidth = 1.0;
@@ -222,12 +223,29 @@ void quadricControls()
 	}
 }
 
+void shControls()
+{
+	SphericalHarmonics& sh = g_geomSH;
+	int l = sh.getL(),
+		m = sh.getM();
+	if( toggle['x'] ) { l--; toggle['x']=false;	}
+	if( toggle['X'] ) { l++; toggle['X']=false; }
+	if( toggle['y'] ) { m--; toggle['y']=false; }
+	if( toggle['Y'] ) { m++; toggle['Y']=false; }
+	if( l!=sh.getL() || m!=sh.getM() )
+	{
+		sh.setLM( l, m );
+		sh.update();
+	}
+}
+
 bool frame()
 {
 	// Controls to select geometry
 	if( toggle['1'] ) { setGeometry(&g_geomIco);          toggle['1']=false; }
 	if( toggle['2'] ) { setGeometry(&g_geomPenrose);      toggle['2']=false; }
 	if( toggle['3'] ) { setGeometry(&g_geomSuperquadric); toggle['3']=false; }
+	if( toggle['4'] ) { setGeometry(&g_geomSH);           toggle['4']=false; }
 
 	// Render
 
@@ -244,6 +262,9 @@ bool frame()
 	}
 
 	// specific controls
+	if( dynamic_cast<SphericalHarmonics*>(g_geomPtr) )
+		shControls();
+	else
 	if( dynamic_cast<Icosahedron*>(g_geomPtr) )
 		icosahedronControls();
 	if( dynamic_cast<Superquadric*>(g_geomPtr) )
@@ -325,8 +346,12 @@ bool init( int argc, char** argv )
 	g_geomSuperquadric.setQuadric( 0.1, 0.1 );
 	g_geomSuperquadric.create();
 
+	// setup Spherical Harmonics
+	g_geomSH.setLevels( 4 );
+	g_geomSH.create();
+
 	// setup colors
-	setGeometry( &g_geomIco );
+	setGeometry( &g_geomSH );
 
 	g_screenshot.setup( IMG_WIDTH, IMG_HEIGHT, IMG_PREFIX );
 

@@ -76,6 +76,14 @@ void SimpleGeometry::reserve_faces( int n )
 int SimpleGeometry::num_vertices() const { return m_vdata.size()/3; }
 int SimpleGeometry::num_faces()    const { return m_fdata.size()/3; }
 
+void SimpleGeometry::set_vertex( int i, vec3 v )
+{
+	assert( i < m_vdata.size()/3 );
+	m_vdata[i*3  ] = v.x;
+	m_vdata[i*3+1] = v.y;
+	m_vdata[i*3+2] = v.z;
+}
+
 vec3 SimpleGeometry::get_vertex( int i ) const
 {
 	return vec3( m_vdata[i*3], m_vdata[i*3+1], m_vdata[i*3+2] );
@@ -571,4 +579,128 @@ void Superquadric::create( int unused )
 			add_face( Face(v0,v1,v3) );
 			add_face( Face(v1,v2,v3) );
 		}
+}
+
+
+//==============================================================================
+//	SphericalHarmonics
+//==============================================================================
+
+// See "Spherical Harmonic Lighting: The Gritty Details" by Robin Green, 2003
+
+double P(int l,int m,double x) 
+{ 
+	// evaluate an Associated Legendre Polynomial P(l,m,x) at x 
+	double pmm = 1.0; 
+	if(m>0) 
+	{ 
+		double somx2 = sqrt((1.0-x)*(1.0+x));
+		double fact = 1.0; 
+		for(int i=1; i<=m; i++) 
+		{ 
+			pmm *= (-fact) * somx2; 
+			fact += 2.0; 
+		} 
+	} 
+	if(l==m) return pmm; 
+	double pmmp1 = x * (2.0*m+1.0) * pmm; 
+	if(l==m+1) return pmmp1; 
+	double pll = 0.0; 
+	for(int ll=m+2; ll<=l; ++ll) 
+	{ 
+		pll = ( (2.0*ll-1.0)*x*pmmp1-(ll+m-1.0)*pmm ) / (ll-m); 
+		pmm = pmmp1; 
+		pmmp1 = pll; 
+	} 
+	return pll; 
+} 
+
+unsigned factorial( unsigned x )
+{
+	const int N = 33;
+	static bool first_call = true;
+	static unsigned table[N];
+	if( first_call )
+	{
+		// Compute table in first call
+		table[0] = 1;
+		for( int i=1; i < N; i++ )
+			table[i] = table[i-1]*i;
+
+		first_call = false;
+	}
+
+	// Return tabulated value
+	if( x < N )
+		return table[x];
+	
+	// Compute factorial on-the-fly
+	int fac = table[N-1];
+	for( int i=N; i <= x; i++ )
+		fac *= i;
+	return fac;
+}
+
+double K(int l, int m) 
+{ 
+	// renormalisation constant for SH function 
+	double temp = ((2.0*l+1.0)*(double)factorial(l-m)) / (4.0*M_PI*(double)factorial(l+m)); 
+	return sqrt(temp); 
+}
+
+double SH(int l, int m, double theta, double phi) 
+{ 
+	// return a point sample of a Spherical Harmonic basis function 
+	// l is the band, range [0..N] 
+	// m in the range [-l..l] 
+	// theta in the range [0..Pi] 
+	// phi in the range [0..2*Pi] 
+	const double sqrt2 = sqrt(2.0); 
+	if(m==0) 
+		return K(l,0)*P(l,m,cos(theta)); 
+	else if(m>0) 
+		return sqrt2*K(l,m)*cos(m*phi)*P(l,m,cos(theta)); 
+	else 
+		return sqrt2*K(l,-m)*sin(-m*phi)*P(l,-m,cos(theta)); 
+}
+
+template<typename T> T clamp( const T& val, T min, T max )
+{
+	return (val < min) ? min : ((val > max) ? max : val);
+}
+
+void SphericalHarmonics::setLM( int l, int m )
+{
+	m_l = clamp( l, 0, 12 );
+	m_m = clamp( m, -l, l );
+}
+
+void SphericalHarmonics::update()
+{
+	// Evaluate SH function on vertices (translated into spherical coordinates)
+	for( int i=0; i < num_vertices(); ++i )
+	{
+		vec3 v = get_vertex( i );
+		v.normalize(); // Normalize to project onto unit sphere
+		vec3 w(v.x,v.y,0.0); // Project onto xz plane
+		w.normalize();
+		double         // Spherical coordinates
+			theta = acos((double)v.scalarprod(vec3(0.0,1.0,0.0))),
+			phi   = acos((double)w.scalarprod(vec3(1.0,0.0,0.0)));
+
+		float r = abs(SH( m_l,m_m, theta,phi ));
+		set_vertex( i, v*r );
+	}
+
+	// TODO: Update normals!
+}
+
+void SphericalHarmonics::create( int level )
+{
+	clear();
+
+	// Sample vertices on sphere via an subdivided icosahedron
+	Icosahedron::create( level );
+
+	update();
 }
