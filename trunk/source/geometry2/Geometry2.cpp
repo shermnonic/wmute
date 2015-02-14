@@ -84,6 +84,14 @@ void SimpleGeometry::set_vertex( int i, vec3 v )
 	m_vdata[i*3+2] = v.z;
 }
 
+void SimpleGeometry::set_normal( int i, vec3 n )
+{
+	assert( i < m_ndata.size()/3 );
+	m_ndata[i*3  ] = n.x;
+	m_ndata[i*3+1] = n.y;
+	m_ndata[i*3+2] = n.z;
+}
+
 vec3 SimpleGeometry::get_vertex( int i ) const
 {
 	return vec3( m_vdata[i*3], m_vdata[i*3+1], m_vdata[i*3+2] );
@@ -675,6 +683,16 @@ void SphericalHarmonics::setLM( int l, int m )
 	m_m = clamp( m, -l, l );
 }
 
+double SH( vec3 v, int l, int m )
+{
+	// Assume v is normalized
+	// Polar coordinates
+	double 
+		theta = acos( v.z ),
+		phi = atan2( v.y, v.x );
+	return abs(SH( l,m, theta,phi ));
+}
+
 void SphericalHarmonics::update()
 {
 	// Evaluate SH function on vertices (translated into spherical coordinates)
@@ -682,14 +700,20 @@ void SphericalHarmonics::update()
 	{
 		vec3 v = get_vertex( i );
 		v.normalize(); // Normalize to project onto unit sphere
-		vec3 w(v.x,v.y,0.0); // Project onto xz plane
-		w.normalize();
-		double         // Spherical coordinates
-			theta = acos((double)v.scalarprod(vec3(0.0,1.0,0.0))),
-			phi   = acos((double)w.scalarprod(vec3(1.0,0.0,0.0)));
+		set_vertex( i, v*(float)SH( v, m_l,m_m ) );
 
-		float r = abs(SH( m_l,m_m, theta,phi ));
-		set_vertex( i, v*r );
+	  #if 1
+		// Finite difference normal (too tired to implement SH gradient)
+		float delta = 0.0001;
+		vec3 dx(delta,0.f,0.f),
+			 dy(0.f,delta,0.f),
+			 dz(0.f,0.f,delta);
+		vec3 grad( .5*(SH( v+dx, m_l,m_m ) - SH( v-dx, m_l,m_m )),
+			       .5*(SH( v+dy, m_l,m_m ) - SH( v-dy, m_l,m_m )),
+				   .5*(SH( v+dz, m_l,m_m ) - SH( v-dz, m_l,m_m )) );
+		grad.normalize();
+		set_normal( i, grad );
+	  #endif
 	}
 
 	// TODO: Update normals!
