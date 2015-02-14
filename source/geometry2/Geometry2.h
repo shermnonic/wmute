@@ -62,6 +62,7 @@ public:
 	Face get_face  ( int j ) const;
 
 	void set_vertex( int i, vec3 v );
+	void set_normal( int i, vec3 n );
 
 	/// Insert face
 	virtual int  add_face( Face f );
