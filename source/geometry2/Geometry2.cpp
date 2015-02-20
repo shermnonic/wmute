@@ -728,3 +728,96 @@ void SphericalHarmonics::create( int level )
 
 	update();
 }
+
+
+//==============================================================================
+//	SphericalHarmonics
+//==============================================================================
+
+void polar( const vec3& v, double& theta, double & phi )
+{
+	// Normalize to project onto unit sphere
+	double l = v.magnitude();
+	theta = acos( v.z / l ),
+	phi = atan2( v.y / l, v.x / l );
+}
+
+void SHF::create( int level )
+{
+	clear();
+
+	// Sample vertices on sphere via an subdivided icosahedron
+	Icosahedron::create( level );
+
+	// Compute SH basis (expensive, depending on order)
+	createBasis();
+}
+
+void SHF::randomizeCoefficients()
+{
+#if 0
+	double N = m_coeffs.size(); // we normalize with basis dimension
+	for( int i=0; i < m_coeffs.size(); i++ )
+	{
+		double r = (double)(rand()%RAND_MAX)/(double)RAND_MAX; // random [0,1]
+		m_coeffs[i] = (2.*r - 1.) / N;
+	}
+#else
+	for( int j=0, l=0; l < m_order; l++ ) // band l, linear index j
+		for( int m=-l; m <= l; m++, j++ ) // range m
+		{
+			assert( j < m_coeffs.size() );
+			double r = (double)(rand()%RAND_MAX)/(double)RAND_MAX; // random [0,1]
+			r = 2.*r - 1.; // map to [-1,1]
+			m_coeffs[j] = 3.*r / (double)(2*l+1); // normalize with band range
+		}
+
+	m_coeffs[0] = 2.0;
+
+#endif
+}
+
+void SHF::update()
+{
+	for( int i=0; i < num_vertices(); ++i )
+	{
+		// Evalute function in SH basis
+		double val = 0.0;
+		for( int j=0; j < m_shb.size(); j++ )
+			val += m_coeffs[j] * m_shb[j][i];
+
+		// Displace vertex
+		vec3 v = get_vertex( i );
+		v.normalize(); // Project onto unit sphere (sanity)
+		set_vertex( i, v*val );
+	}
+}
+
+void SHF::createBasis()
+{
+	// Allocate memory for sample SH basis functions
+	m_shb.resize( (size_t)m_order*m_order );
+	for( int j=0; j < m_shb.size(); j++ )
+		m_shb[j].resize( (size_t)num_vertices() );
+
+	// Resize coefficient vector
+	m_coeffs.resize( m_shb.size() );
+
+	// Evaluate SH function on vertices (translated into spherical coordinates)
+	for( int i=0; i < num_vertices(); ++i )
+	{
+		// Sample sphere in polar coordinates 
+		double theta, phi;
+		vec3 v = get_vertex( i );
+		polar( v, theta, phi );
+
+		// Compute all basis coefficients for current (theta,phi)
+		for( int j=0, l=0; l < m_order; l++ ) // band l, linear index j
+			for( int m=-l; m <= l; m++, j++ ) // range m
+			{
+				assert( j  < m_shb.size() ); // sanity
+				m_shb[j][i] = SH( l, m, theta, phi );
+			}
+	}
+}
+
