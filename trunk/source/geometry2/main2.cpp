@@ -52,6 +52,7 @@ Penrose            g_geomPenrose;
 Superquadric       g_geomSuperquadric;
 Icosahedron        g_geomIco;
 SphericalHarmonics g_geomSH;
+SHF                g_geomSHF;
 
 std::vector<float> g_colors;
 double g_linewidth = 1.0;
@@ -61,7 +62,7 @@ Screenshot2 g_screenshot;
 extern void reshape( int width, int height ); // defined in glutmain.cpp
 
 // lighting
-GLfloat light0_position[] = {0.0,0.0,-1.0, 0.0 };
+GLfloat light0_position[] = {0.0,-1.0,-1.0, 0.0 };
 
 // color modes
 enum ColorFunc { RandomColors=0, RainbowGradient, GrayGradient, RandomTint, 
@@ -239,6 +240,18 @@ void shControls()
 	}
 }
 
+void shfControls()
+{
+	SHF& shf = g_geomSHF;
+	if( toggle['r'] ) 
+	{
+		shf.create( shf.getLevels() ); // WORKAROUND: update() alone breaks mesh?
+		shf.randomizeCoefficients();
+		shf.update();
+		toggle['r'] = false;
+	}
+}
+
 bool frame()
 {
 	// Controls to select geometry
@@ -246,6 +259,7 @@ bool frame()
 	if( toggle['2'] ) { setGeometry(&g_geomPenrose);      toggle['2']=false; }
 	if( toggle['3'] ) { setGeometry(&g_geomSuperquadric); toggle['3']=false; }
 	if( toggle['4'] ) { setGeometry(&g_geomSH);           toggle['4']=false; }
+	if( toggle['5'] ) { setGeometry(&g_geomSHF);          toggle['5']=false; }
 
 	// Render
 
@@ -264,6 +278,9 @@ bool frame()
 	// specific controls
 	if( dynamic_cast<SphericalHarmonics*>(g_geomPtr) )
 		shControls();
+	else
+	if( dynamic_cast<SHF*>(g_geomPtr) )
+		shfControls();
 	else
 	if( dynamic_cast<Icosahedron*>(g_geomPtr) )
 		icosahedronControls();
@@ -349,9 +366,14 @@ bool init( int argc, char** argv )
 	// setup Spherical Harmonics
 	g_geomSH.setLevels( 4 );
 	g_geomSH.create();
+	
+	g_geomSHF.setLevels( 4 );
+	g_geomSHF.create();
+//	g_geomSHF.randomizeCoefficients();
+//	g_geomSHF.update();
 
 	// setup colors
-	setGeometry( &g_geomSH );
+	setGeometry( &g_geomSHF );
 
 	g_screenshot.setup( IMG_WIDTH, IMG_HEIGHT, IMG_PREFIX );
 

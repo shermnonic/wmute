@@ -232,5 +232,26 @@ private:
 	int m_l, m_m;
 };
 
+//==============================================================================
+//	SHF (SphericalHarmonicsFunction)
+//==============================================================================
+class SHF : public Icosahedron
+{
+public:
+	SHF() : m_order(6) {}
+
+	void create( int level=-1 );
+	void update();
+
+	void randomizeCoefficients();
+
+private:
+	void createBasis();
+
+	std::vector<std::vector<float> > m_shb; // SH basis
+	std::vector<float> m_coeffs; // SH coefficients
+	int m_order; // number of SH bands
+};
+
 #endif
 
