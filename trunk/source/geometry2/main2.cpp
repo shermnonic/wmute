@@ -245,7 +245,6 @@ void shfControls()
 	SHF& shf = g_geomSHF;
 	if( toggle['r'] ) 
 	{
-		shf.create( shf.getLevels() ); // WORKAROUND: update() alone breaks mesh?
 		shf.randomizeCoefficients();
 		shf.update();
 		toggle['r'] = false;

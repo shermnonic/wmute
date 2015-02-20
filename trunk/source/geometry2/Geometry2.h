@@ -56,6 +56,8 @@ protected:
 		int vi[3];
 	};
 
+	const std::vector<float>& vbuffer() const { return m_vdata; };
+
 public:
 	vec3 get_vertex( int i ) const;
 	vec3 get_normal( int i ) const;
@@ -238,7 +240,7 @@ private:
 class SHF : public Icosahedron
 {
 public:
-	SHF() : m_order(6) {}
+	SHF() : m_order(12) {}
 
 	void create( int level=-1 );
 	void update();
@@ -249,8 +251,10 @@ private:
 	void createBasis();
 
 	std::vector<std::vector<float> > m_shb; // SH basis
+	std::vector<float> m_radius;
 	std::vector<float> m_coeffs; // SH coefficients
 	int m_order; // number of SH bands
+	std::vector<float> m_vcache; // vertex cache for icosahedron
 };
 
 #endif
