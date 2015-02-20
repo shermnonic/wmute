@@ -749,32 +749,26 @@ void SHF::create( int level )
 	// Sample vertices on sphere via an subdivided icosahedron
 	Icosahedron::create( level );
 
+	// Cache vertices	
+	m_vcache = vbuffer();
+
 	// Compute SH basis (expensive, depending on order)
 	createBasis();
 }
 
 void SHF::randomizeCoefficients()
 {
-#if 0
-	double N = m_coeffs.size(); // we normalize with basis dimension
-	for( int i=0; i < m_coeffs.size(); i++ )
-	{
-		double r = (double)(rand()%RAND_MAX)/(double)RAND_MAX; // random [0,1]
-		m_coeffs[i] = (2.*r - 1.) / N;
-	}
-#else
 	for( int j=0, l=0; l < m_order; l++ ) // band l, linear index j
 		for( int m=-l; m <= l; m++, j++ ) // range m
 		{
 			assert( j < m_coeffs.size() );
 			double r = (double)(rand()%RAND_MAX)/(double)RAND_MAX; // random [0,1]
 			r = 2.*r - 1.; // map to [-1,1]
-			m_coeffs[j] = 3.*r / (double)(2*l+1); // normalize with band range
+			double h = (double)(2*l+1); // normalize with band range
+			m_coeffs[j] = 10.*r / (m_radius[j]*h*m_order);
 		}
 
-	m_coeffs[0] = 2.0;
-
-#endif
+	m_coeffs[0] = 5.0;
 }
 
 void SHF::update()
@@ -786,8 +780,8 @@ void SHF::update()
 		for( int j=0; j < m_shb.size(); j++ )
 			val += m_coeffs[j] * m_shb[j][i];
 
-		// Displace vertex
-		vec3 v = get_vertex( i );
+		// Displace vertex		
+		vec3 v = vec3( m_vcache[i*3], m_vcache[i*3+1], m_vcache[i*3+2] ); //get_vertex( i );
 		v.normalize(); // Project onto unit sphere (sanity)
 		set_vertex( i, v*val );
 	}
@@ -799,6 +793,8 @@ void SHF::createBasis()
 	m_shb.resize( (size_t)m_order*m_order );
 	for( int j=0; j < m_shb.size(); j++ )
 		m_shb[j].resize( (size_t)num_vertices() );
+
+	m_radius.resize( m_shb.size() );
 
 	// Resize coefficient vector
 	m_coeffs.resize( m_shb.size() );
@@ -816,7 +812,9 @@ void SHF::createBasis()
 			for( int m=-l; m <= l; m++, j++ ) // range m
 			{
 				assert( j  < m_shb.size() ); // sanity
-				m_shb[j][i] = SH( l, m, theta, phi );
+				double sh = SH( l, m, theta, phi );
+				m_shb[j][i] = sh;
+				m_radius[j] = (i==0 || sh>m_radius[j]) ? sh : m_radius[j];
 			}
 	}
 }
