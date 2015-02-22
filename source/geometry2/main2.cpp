@@ -235,6 +235,7 @@ void shControls()
 	if( toggle['Y'] ) { m++; toggle['Y']=false; }
 	if( l!=sh.getL() || m!=sh.getM() )
 	{
+		sh.create( sh.getLevels() ); // WORKAROUND
 		sh.setLM( l, m );
 		sh.update();
 	}

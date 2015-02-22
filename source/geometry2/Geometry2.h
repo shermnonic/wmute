@@ -240,7 +240,7 @@ private:
 class SHF : public Icosahedron
 {
 public:
-	SHF() : m_order(12) {}
+	SHF() : m_order(10) {}
 
 	void create( int level=-1 );
 	void update();
@@ -250,8 +250,15 @@ public:
 private:
 	void createBasis();
 
-	std::vector<std::vector<float> > m_shb; // SH basis
-	std::vector<float> m_radius;
+	struct SHB { 
+		SHB() : r(0.),dtheta(0.),dphi(0.) {}
+		double r;       // SH value (=radius)
+		double dtheta;  // Gradient in theta
+		double dphi;    // Gradient in phi
+	};
+
+	std::vector<std::vector<SHB> > m_shb; // SH basis
+	std::vector<float> m_radius; // Scaling factor
 	std::vector<float> m_coeffs; // SH coefficients
 	int m_order; // number of SH bands
 	std::vector<float> m_vcache; // vertex cache for icosahedron

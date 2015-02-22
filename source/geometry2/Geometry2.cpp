@@ -672,6 +672,62 @@ double SH(int l, int m, double theta, double phi)
 		return sqrt2*K(l,-m)*sin(-m*phi)*P(l,-m,cos(theta)); 
 }
 
+double dPlm_mu( int l, int m, double cos_theta, double Plm )
+{
+	return (l*cos_theta*Plm - (l+m)*P(l-1,m,cos_theta)) / sqrt(1.-cos_theta*cos_theta);
+}
+
+double dSH( int l, int m, double theta, double phi, double& dtheta, double& dphi )
+{
+	const double sqrt2 = sqrt(2.0); 
+	double sh = 0.0;	
+	if( m == 0 )
+	{	
+		double u = cos(theta);
+		double Plm = P(l,m,u);
+		double Klm = K(l,0);
+		sh = Klm*Plm;
+
+		dphi   = 0.0;
+		dtheta = Klm * dPlm_mu(l,m,u,Plm) * (-sin(theta));
+	}
+	else 
+	if( m > 0 ) 
+	{
+		double u = cos(theta);
+		double Plm = P(l,m,u);
+		double Klm = K(l,m);
+		double cosm = cos(m*phi);
+		sh = sqrt2*Klm*cosm*Plm; 
+
+		dphi   = sqrt2*Klm*( -m*sin(m*phi) )*Plm;
+		dtheta = sqrt2*Klm*cosm * dPlm_mu(l,m,u,Plm) * (-sin(theta));
+	}
+	else // m < 0
+	{
+		double u = cos(theta);
+		double Plm = P(l,-m,u);
+		double Klm = K(l,-m);
+		sh = sqrt2*Klm*sin(-m*phi)*Plm; 
+
+		dphi   = sqrt2*Klm*( -m*cos(m*phi) )*Plm;
+		dtheta = sqrt2*Klm*sin(-m*phi) * dPlm_mu(l,-m,u,Plm) * (-sin(theta));
+
+	}
+	return sh;
+}
+
+
+double SH( vec3 v, int l, int m )
+{
+	// Assume v is normalized
+	// Polar coordinates
+	double 
+		theta = acos( v.z ),
+		phi = atan2( v.y, v.x );
+	return SH( l,m, theta,phi );
+}
+
 template<typename T> T clamp( const T& val, T min, T max )
 {
 	return (val < min) ? min : ((val > max) ? max : val);
@@ -683,16 +739,6 @@ void SphericalHarmonics::setLM( int l, int m )
 	m_m = clamp( m, -l, l );
 }
 
-double SH( vec3 v, int l, int m )
-{
-	// Assume v is normalized
-	// Polar coordinates
-	double 
-		theta = acos( v.z ),
-		phi = atan2( v.y, v.x );
-	return abs(SH( l,m, theta,phi ));
-}
-
 void SphericalHarmonics::update()
 {
 	// Evaluate SH function on vertices (translated into spherical coordinates)
@@ -700,17 +746,33 @@ void SphericalHarmonics::update()
 	{
 		vec3 v = get_vertex( i );
 		v.normalize(); // Normalize to project onto unit sphere
-		set_vertex( i, v*(float)SH( v, m_l,m_m ) );
 
 	  #if 1
+		double dtheta, dphi; // Gradient
+		double theta = acos( v.z ), phi = atan2( v.y, v.x );
+		double sh = dSH( m_l, m_m, theta, phi, dtheta, dphi );
+		vec3 n;
+	   #if 0
+		n = vec3( sin(dtheta)*cos(dphi), sin(dtheta)*sin(dphi), cos(dtheta) );
+	   #else
+		theta -= dtheta;
+		phi   -= dphi;
+		n = vec3( sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta) );
+	   #endif
+		n.normalize();
+		set_vertex( i, v*sh );
+		set_normal( i, n );
+	  #else
+		set_vertex( i, v*(float)abs(SH( v, m_l,m_m )) );
+
 		// Finite difference normal (too tired to implement SH gradient)
 		float delta = 0.0001;
 		vec3 dx(delta,0.f,0.f),
 			 dy(0.f,delta,0.f),
 			 dz(0.f,0.f,delta);
-		vec3 grad( .5*(SH( v+dx, m_l,m_m ) - SH( v-dx, m_l,m_m )),
-			       .5*(SH( v+dy, m_l,m_m ) - SH( v-dy, m_l,m_m )),
-				   .5*(SH( v+dz, m_l,m_m ) - SH( v-dz, m_l,m_m )) );
+		vec3 grad( .5*(abs(SH( v+dx, m_l,m_m )) - abs(SH( v-dx, m_l,m_m ))),
+			       .5*(abs(SH( v+dy, m_l,m_m )) - abs(SH( v-dy, m_l,m_m ))),
+				   .5*(abs(SH( v+dz, m_l,m_m )) - abs(SH( v-dz, m_l,m_m ))) );
 		grad.normalize();
 		set_normal( i, grad );
 	  #endif
@@ -771,19 +833,40 @@ void SHF::randomizeCoefficients()
 	m_coeffs[0] = 5.0;
 }
 
+vec3 fromPolar( double theta, double phi )
+{
+	return vec3( sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta) );
+}
+
 void SHF::update()
 {
 	for( int i=0; i < num_vertices(); ++i )
 	{
 		// Evalute function in SH basis
-		double val = 0.0;
+		SHB s;
 		for( int j=0; j < m_shb.size(); j++ )
-			val += m_coeffs[j] * m_shb[j][i];
+		{
+			s.r     += m_coeffs[j] * m_shb[j][i].r;
+			s.dphi  += m_coeffs[j] * m_shb[j][i].dphi;
+			s.dtheta+= m_coeffs[j] * m_shb[j][i].dtheta;
+		}
 
 		// Displace vertex		
-		vec3 v = vec3( m_vcache[i*3], m_vcache[i*3+1], m_vcache[i*3+2] ); //get_vertex( i );
+		vec3 v( m_vcache[i*3], m_vcache[i*3+1], m_vcache[i*3+2] ); //get_vertex( i );
 		v.normalize(); // Project onto unit sphere (sanity)
-		set_vertex( i, v*val );
+		set_vertex( i, v*s.r );
+
+		// Normal from gradient
+		vec3 n;
+	  #if 0
+		n = fromPolar( s.dtheta, s.dphi );
+	  #else
+		double theta, phi;
+		polar(v,theta,phi);
+		n = fromPolar( theta-=s.dtheta, phi-=s.dphi );
+	  #endif
+		n.normalize();
+		set_normal( i, n );
 	}
 }
 
@@ -805,16 +888,21 @@ void SHF::createBasis()
 		// Sample sphere in polar coordinates 
 		double theta, phi;
 		vec3 v = get_vertex( i );
-		polar( v, theta, phi );
+		polar( v, theta, phi );	
 
 		// Compute all basis coefficients for current (theta,phi)
 		for( int j=0, l=0; l < m_order; l++ ) // band l, linear index j
 			for( int m=-l; m <= l; m++, j++ ) // range m
 			{
 				assert( j  < m_shb.size() ); // sanity
-				double sh = SH( l, m, theta, phi );
-				m_shb[j][i] = sh;
-				m_radius[j] = (i==0 || sh>m_radius[j]) ? sh : m_radius[j];
+
+				// Compute SH radius and gradient
+				SHB s;
+				s.r = dSH( l, m, theta, phi, s.dtheta, s.dphi );
+				m_shb[j][i] = s;
+
+				// Store max. radius for each SH basis for later normalization
+				m_radius[j] = (i==0 || s.r>m_radius[j]) ? s.r : m_radius[j];
 			}
 	}
 }
