@@ -113,6 +113,32 @@ void setGeometry( SimpleGeometry* g )
 
 extern bool toggle[256]; // keystate as provided by glutmain.cpp
 
+void reshape_push()
+{
+	glMatrixMode( GL_MODELVIEW );
+	glPushMatrix();
+	glMatrixMode( GL_PROJECTION );
+	glPushMatrix();
+	glMatrixMode( GL_MODELVIEW );
+}
+
+void reshape_pop()
+{
+	glMatrixMode( GL_PROJECTION );
+	glPopMatrix();
+	glMatrixMode( GL_MODELVIEW );
+	glPopMatrix();
+}
+
+void reshape_ortho()
+{
+	glMatrixMode( GL_PROJECTION );
+	glLoadIdentity();
+	gluOrtho2D( 0., 1., 0., 1. );
+	glMatrixMode( GL_MODELVIEW );
+	glLoadIdentity();
+}
+
 void internal_render_frame()
 {
 	// toggle BW / WB
@@ -249,6 +275,39 @@ void shfControls()
 		shf.randomizeCoefficients();
 		shf.update();
 		toggle['r'] = false;
+	}
+
+	if( toggle['D'] )
+	{
+		std::vector<float> coeffs = shf.getCoeffs();
+
+		reshape_push();
+		reshape_ortho();
+		glDisable( GL_LIGHTING );
+		
+		// Zero line
+		glLineWidth( 1.f );
+		glColor3f( 0.0, 0.6, 0.0 );
+		glBegin( GL_LINE_STRIP );
+		glVertex2f( 0., .5 );
+		glVertex2f( 1., .5 );
+		glEnd();
+
+		// Spectrum
+		glLineWidth( 2.f );
+		glColor3f( 0.0, 1.0, 0.0 );
+		glBegin( GL_LINE_STRIP );
+		for( int i=0; i < coeffs.size(); i++ )
+		{
+			float 
+				x = (float)i/(float)(coeffs.size()-1),
+				y = coeffs[i] * 0.1 + 0.5;
+
+			glVertex2f( x, y );
+		}
+		glEnd();
+		glEnable( GL_LIGHTING );
+		reshape_pop();
 	}
 }
 

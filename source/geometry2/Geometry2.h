@@ -247,6 +247,9 @@ public:
 
 	void randomizeCoefficients();
 
+	std::vector<float>& getCoeffs() { return m_coeffs; }
+	const std::vector<float>& getCoeffs() const { return m_coeffs; }
+
 private:
 	void createBasis();
 

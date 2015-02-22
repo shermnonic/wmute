@@ -760,7 +760,7 @@ void SphericalHarmonics::update()
 		n = vec3( sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta) );
 	   #endif
 		n.normalize();
-		set_vertex( i, v*sh );
+		set_vertex( i, v*abs(sh) ); // FIXME: Why absolute value of SH?
 		set_normal( i, n );
 	  #else
 		set_vertex( i, v*(float)abs(SH( v, m_l,m_m )) );
@@ -830,7 +830,7 @@ void SHF::randomizeCoefficients()
 			m_coeffs[j] = 10.*r / (m_radius[j]*h*m_order);
 		}
 
-	m_coeffs[0] = 5.0;
+	m_coeffs[0] = 4.0;
 }
 
 vec3 fromPolar( double theta, double phi )
