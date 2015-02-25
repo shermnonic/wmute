@@ -17,7 +17,7 @@ OpenMesh::IO::Options meshIOdefaultOptions(
 bool loadMesh( Mesh& mesh, const char* filename )
 {	
 	OpenMesh::IO::Options opts( meshIOdefaultOptions );
-	
+
 	mesh.request_vertex_colors();
 	mesh.request_vertex_normals();
 

@@ -17,7 +17,17 @@ set(WINTERMUTE_GLUTILS_PATH       "${CMAKE_CURRENT_LIST_DIR}/..") # /glutils
 set(GLM_INCLUDE_DIR  "${WINTERMUTE_3RDPARTY_LIBS_PATH}/glm"    CACHE PATH "glm include path")
 set(GLUTILS_PATH     "${WINTERMUTE_GLUTILS_PATH}"              CACHE PATH "path to authors custom glutils")
 
-file(GLOB_RECURSE GLUTILS_SOURCES ${GLUTILS_PATH}/glutils/*.cpp)
+#file(GLOB_RECURSE GLUTILS_SOURCES ${GLUTILS_PATH}/glutils/*.cpp)
+set(GLUTILS_SOURCES
+	${GLUTILS_PATH}/glutils/GLConfig.h
+	${GLUTILS_PATH}/glutils/GLTexture.h
+	${GLUTILS_PATH}/glutils/GLTexture.cpp
+	${GLUTILS_PATH}/glutils/GLSLProgram.h
+	${GLUTILS_PATH}/glutils/GLSLProgram.cpp
+	${GLUTILS_PATH}/glutils/GLError.h	
+	${GLUTILS_PATH}/glutils/GLError.cpp
+	${GLUTILS_PATH}/glutils/Trackball2.h	
+	${GLUTILS_PATH}/glutils/Trackball2.cpp)	
 
 include_directories( ${GLUTILS_PATH} )
 include_directories( ${GLM_INCLUDE_DIR} )
