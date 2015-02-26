@@ -311,6 +311,63 @@ void shfControls()
 	}
 }
 
+enum Mode {
+    ModeCamera,
+    ModeDrawSpectrum,
+    ModeZeroSpectrum
+};
+int g_mode;
+
+bool frame(); // forward
+
+void updateSHF( int x, int y )
+{
+    GLint viewport[4];
+    glGetIntegerv( GL_VIEWPORT, viewport );
+
+    double
+        nx = (double)x / (double)viewport[2],
+        ny = (double)y / (double)viewport[3];
+
+    int coeff = floor(nx * (g_geomSHF.getCoeffs().size()-1));
+    double value = ((1.-ny) - .5) * 10.;
+    //std::cout << "Setting coeff " << coeff << " to " << value << std::endl;
+
+    g_geomSHF.getCoeffs()[coeff] = value;
+    g_geomSHF.update();
+
+    frame();
+    glutPostRedisplay();
+}
+
+void mouse_special( int button, int state, int x, int y )
+{
+    g_mode = ModeCamera;
+    SHF* shf = dynamic_cast<SHF*>(g_geomPtr);
+    if( shf )
+    {
+        if( (button==GLUT_LEFT_BUTTON)&&(state==GLUT_DOWN) )
+        {
+            updateSHF(x,y);
+            g_mode = ModeDrawSpectrum;
+        }
+        if( (button==GLUT_LEFT_BUTTON)&&(state==GLUT_UP) )
+        {
+            g_mode = ModeCamera;
+        }
+    }
+}
+
+bool motion_special( int x, int y )
+{
+    if( g_mode == ModeDrawSpectrum )
+    {
+        updateSHF(x,y);
+        return true;
+    }
+    return false;
+}
+
 bool frame()
 {
 	// Controls to select geometry
@@ -549,7 +606,7 @@ void export_ps()
 	time_t seconds = time(NULL);
 	
 	char filename[1024];
-	sprintf( filename, "%s-%d.pdf", IMG_PREFIX, seconds );
+    sprintf( filename, "%s-%d.pdf", IMG_PREFIX, (int)seconds );
 	
 	fp = fopen( filename, "wb" );
 	if( !fp )
