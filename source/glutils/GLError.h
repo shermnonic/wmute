@@ -22,7 +22,7 @@ namespace GL
 	std::string getGLErrorString( GLenum errcode );
 
 #ifdef GL_NAMESPACE
-};
+}
 #endif
 
 #endif

@@ -1,10 +1,14 @@
 #include "Geometry2.h"
 #include <cassert>
 #include <iostream>
+#include <cmath>
+#include <cstdlib> // for rand() and RAND_MAX
 
 #ifndef M_PI
 #define M_PI 3.1415926535897932384626433832795
 #endif
+
+using std::abs;
 
 //==============================================================================
 //	SimpleGeometry

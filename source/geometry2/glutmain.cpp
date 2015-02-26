@@ -50,9 +50,13 @@ extern void welcome();
 extern bool init( int argc, char** argv );
 extern bool frame();
 extern void shutdown();
+extern void mouse_special( int button, int state, int x, int y );
+extern bool motion_special( int x, int y );
 #ifdef USE_GLUI
 	extern void setupGLUI();
 #endif
+
+#define MOUSE_SPECIAL_KEY 'n'
 
 //-----------------------------------------------------------------------------
 
@@ -126,6 +130,12 @@ void keyboard( unsigned char key, int x, int y )
 
 void mouse( int button, int state, int mousex, int mousey )
 {
+    if( toggle[MOUSE_SPECIAL_KEY] )
+    {
+        mouse_special( button, state, mousex, mousey );
+        return;
+    }
+
 	if( state==GLUT_UP )
 	{
 		mousekey = 0;
@@ -169,6 +179,7 @@ void mouse( int button, int state, int mousex, int mousey )
 
 void motion( int mousex, int mousey )
 {
+    if( motion_special( mousex, mousey ) ) return;
 #ifdef USE_MICHAELS_TRACKBALL
 	switch( mousekey )
 	{
