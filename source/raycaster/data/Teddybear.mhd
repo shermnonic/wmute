@@ -1,0 +1,8 @@
+NDims = 3
+DimSize = 128 128 62
+ElementSpacing = 2.8 2.8 5
+HeaderSize = -1
+ElementByteOrderMSB = False
+ElementType = MET_UCHAR
+ElementNumberOfChannels = 4
+ElementDataFile = Teddybear.raw
