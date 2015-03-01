@@ -1,0 +1,8 @@
+NDims = 3
+DimSize = 256 256 110
+ElementSpacing = 1 1 1
+HeaderSize = -1
+ElementByteOrderMSB = False
+ElementType = MET_UCHAR
+ElementNumberOfChannels = 1
+ElementDataFile = Engine.raw
