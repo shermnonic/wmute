@@ -91,6 +91,9 @@ bool ShaderModule::init()
 			return false;
 		}
 		m_target_initialized = true;
+
+		m_target.setParameter( GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		m_target.setParameter( GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	}
 	
 	// Note on texture format:
@@ -103,6 +106,7 @@ bool ShaderModule::init()
 	m_target.image( 0, internalFormat, 
 	                m_opts.width.value(), m_opts.height.value(), 
 	                0, GL_RGBA, GL_FLOAT, NULL );
+	m_target.unbind();
 	
 	// Setup Render-2-Texture
 	if( !m_r2t_initialized )
