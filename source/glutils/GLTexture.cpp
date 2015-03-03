@@ -74,10 +74,9 @@ bool GLTexture::destroy()
 	if( m_valid )
 	{
 		glDeleteTextures( 1, &m_id );
-		return CheckGLError("GLTexture::destroy()");
-	}
-	invalidate();
-	return true;
+		invalidate();		
+	}	
+	return CheckGLError("GLTexture::destroy()");
 }
 
 bool GLTexture::bind( int texunit )
