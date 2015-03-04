@@ -102,7 +102,7 @@ SharedGLContextWidget::SharedGLContextWidget( QWidget* parent )
 		// be updated faster than this rate. 
 }
 
-void SharedGLContextWidget::setUpdateEnabled( bool b )
+void SharedGLContextWidget::setRenderUpdateEnabled( bool b )
 {
 	if( !b )
 		m_renderUpdateTimer->stop();
@@ -566,9 +566,13 @@ void MainWindow::destroy()
 	static bool destroyed = false;
 	if( destroyed ) return;
 
-	// Destroy OpenGL resources
-	m_sharedGLWidget->setUpdateEnabled( false );
+	// Avoid any GL render calls
+	disconnect( m_moduleWidget );
+	m_sharedGLWidget->setRenderUpdateEnabled( false ); // Stop timer update
+	m_sharedGLWidget->setUpdatesEnabled( false ); // Prohibit updateGL() calls
 	qApp->processEvents();
+
+	// Destroy OpenGL resources
 	m_sharedGLWidget->makeCurrent(); // Get OpenGL context
 
 	// Close screens

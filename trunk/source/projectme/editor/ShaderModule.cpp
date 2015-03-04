@@ -91,9 +91,6 @@ bool ShaderModule::init()
 			return false;
 		}
 		m_target_initialized = true;
-
-		m_target.setParameter( GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-		m_target.setParameter( GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	}
 	
 	// Note on texture format:
@@ -218,17 +215,17 @@ void ShaderModule::render()
 	// OpenGL context.
 	if( !m_initialized && !init() ) return;
 
+	int width  = m_opts.width .value(),
+		height = m_opts.height.value();
+
 	if( !m_shader ) return;
-	
+
 	// Time is measured w.r.t. to first render() call
 	static clock_t t0 = clock();	
 	
 	// Bind shader and set default uniforms
 	m_shader->bind();
 	checkGLError( "ShaderModule::render() - After shader bind" );
-
-	int width  = m_opts.width .value(),
-		height = m_opts.height.value();
 
 	GLint 
 		iResolution = m_shader->getUniformLocation("iResolution"),
@@ -284,7 +281,7 @@ void ShaderModule::render()
 	}
 	glActiveTexture( GL_TEXTURE0 );
 	checkGLError( "ShaderModule::render() - After setting texture channels" );
-	
+
 	if( m_r2t.bind( m_target.name() ) )
 	{
 		// Render target resolution sized quad

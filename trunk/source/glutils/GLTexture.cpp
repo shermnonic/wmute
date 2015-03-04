@@ -30,43 +30,48 @@ GLTexture::~GLTexture()
   #endif
 }
 
-void GLTexture::setWrapMode( GLint wrapMode )
+bool GLTexture::setWrapMode( GLint wrapMode )
 {
+	bool ok = true;
 	switch( m_target )
 	{
 	case GL_TEXTURE_3D:
-		setParameter( GL_TEXTURE_WRAP_R, wrapMode );
+		ok &= setParameter( GL_TEXTURE_WRAP_R, wrapMode );
 	default:
 	case GL_TEXTURE_2D:
-		setParameter( GL_TEXTURE_WRAP_T, wrapMode );
+		ok &= setParameter( GL_TEXTURE_WRAP_T, wrapMode );
 	case GL_TEXTURE_1D:
-		setParameter( GL_TEXTURE_WRAP_S, wrapMode );
+		ok &= setParameter( GL_TEXTURE_WRAP_S, wrapMode );
 	}
+	return ok;
 }
 
-void GLTexture::setFilterMode( GLint mode )
+bool GLTexture::setFilterMode( GLint mode )
 {
 	// Set same filtering for MAG/MIN
-	setFilterMode( mode, mode );
+	return setFilterMode( mode, mode );
 }
 
-void GLTexture::setFilterMode( GLint min_mode, GLint mag_mode )
+bool GLTexture::setFilterMode( GLint min_mode, GLint mag_mode )
 {
-	setParameter( GL_TEXTURE_MIN_FILTER, min_mode );
-	setParameter( GL_TEXTURE_MAG_FILTER, mag_mode );	
+	bool ok = true;
+	ok &= setParameter( GL_TEXTURE_MIN_FILTER, min_mode );
+	ok &= setParameter( GL_TEXTURE_MAG_FILTER, mag_mode );	
+	return ok;
 }
 
 bool GLTexture::create( GLenum target )
 {
 	glGenTextures(1, &m_id);
 	m_target = target;
+	m_valid = CheckGLError("GLTexture::create()");
 
 	// Convenience: Set default parameters
-	setWrapMode( GL_CLAMP );
-	setFilterMode( GL_LINEAR );
+	bool ok = true;
+	ok &= setWrapMode( GL_CLAMP );
+	ok &= setFilterMode( GL_LINEAR );	
 	
-	m_valid = CheckGLError("GLTexture::create()");
-	return m_valid;
+	return m_valid & ok;
 }
 
 bool GLTexture::destroy()
@@ -81,7 +86,7 @@ bool GLTexture::destroy()
 
 bool GLTexture::bind( int texunit )
 {
-	if( !m_valid ) return true;
+	if( !m_valid ) return false;
 	if( texunit >= 0 )
 		glActiveTexture( GL_TEXTURE0 + texunit );
 	glBindTexture( m_target, m_id );
@@ -163,7 +168,7 @@ bool GLTexture::subImage( GLint level, GLint xoffset,
 bool GLTexture::setParameter( GLenum pname, GLint value )
 {
 	if( !m_valid ) return true;	
-	if( bind() ) return false;
+	if( !bind() ) return false;
 	glTexParameteri( m_target, pname, value );
 	return CheckGLError("GLTexture::SetParameter()");
 }
@@ -171,7 +176,7 @@ bool GLTexture::setParameter( GLenum pname, GLint value )
 bool GLTexture::setParameter( GLenum pname, GLfloat value )
 {
 	if( !m_valid ) return true;	
-	if( bind() ) return false;
+	if( !bind() ) return false;
 	glTexParameterf( m_target, pname, value );
 	return CheckGLError("GLTexture::SetParameter()");
 }
