@@ -74,9 +74,9 @@ public:
 		std::swap( m_depth , tex.m_depth  );
 	}
 	
-	void setWrapMode( GLint mode );
-	void setFilterMode( GLint mode );
-	void setFilterMode( GLint min_mode, GLint mag_mode );
+	bool setWrapMode( GLint mode );
+	bool setFilterMode( GLint mode );
+	bool setFilterMode( GLint min_mode, GLint mag_mode );
 	///@} Convenience
 
 protected:

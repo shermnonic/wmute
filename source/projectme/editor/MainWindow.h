@@ -49,7 +49,7 @@ public:
 
 	void setModuleManager( ModuleManager* man ) { m_man = man; }
 
-	void setUpdateEnabled( bool b );
+	void setRenderUpdateEnabled( bool b );
 
 protected:
 	///@name QGLWidget implementation
