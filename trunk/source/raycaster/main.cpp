@@ -197,6 +197,7 @@ void destroy()
 
 void render()
 {
+	glClearColor( .24f, .24f, .24f, 1.f );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	glEnable( GL_DEPTH_TEST );
 
@@ -206,6 +207,9 @@ void render()
 	glRotatef( g_rotx, 1,0,0 );
 	glRotatef( g_roty, 0,1,0 );
 	
+	glEnable( GL_BLEND );
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+
 	// Perform raycasting
 	g_raycaster.render();
 

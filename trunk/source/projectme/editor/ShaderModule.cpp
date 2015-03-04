@@ -302,6 +302,8 @@ void ShaderModule::render()
 		glMatrixMode( GL_MODELVIEW );
 		glLoadIdentity();
 		
+		glColor3f( 1.0, 1.0, 0.0 );
+
 		glBegin(GL_QUADS );
 		glTexCoord2f( 0, 0 );	glVertex3i(-1, -1, 0);			
 		glTexCoord2f( 1, 0 );	glVertex3i(1, -1, 0);
