@@ -797,7 +797,7 @@ void SphericalHarmonics::create( int level )
 
 
 //==============================================================================
-//	SphericalHarmonics
+//	SHF
 //==============================================================================
 
 void polar( const vec3& v, double& theta, double & phi )
@@ -822,6 +822,17 @@ void SHF::create( int level )
 	createBasis();
 }
 
+void SHF::resetCoefficients()
+{
+	for( int j=0, l=0; l < m_order; l++ ) // band l, linear index j
+		for( int m=-l; m <= l; m++, j++ ) // range m
+		{
+			m_coeffs[j] = 0.;
+		}
+
+	m_coeffs[0] = 4.0;
+}
+
 void SHF::randomizeCoefficients()
 {
 	for( int j=0, l=0; l < m_order; l++ ) // band l, linear index j
@@ -835,6 +846,32 @@ void SHF::randomizeCoefficients()
 		}
 
 	m_coeffs[0] = 4.0;
+}
+
+void SHF::symmetrizeCoefficients()
+{
+	for( int j=0, l=0; l < m_order; l++ ) // band l, linear index j
+		for( int m=-l; m <= l; m++, j++ ) // range m
+		{
+			int center = j + l; // index of (l,m=0)
+			if( m < 0 )
+			{
+				m_coeffs[j] = 0.0;
+				
+				// Average negative and positive order
+				//int j_dash = center - m;
+				//m_coeffs[j] = .5*(m_coeffs[j] + m_coeffs[j_dash]);
+			}
+			else
+			if( m > 0 )
+			{
+				m_coeffs[j] = m_coeffs[j];
+
+				// Copy average stored in left half to right half
+				//int j_dash = center - m;
+				//m_coeffs[j] = m_coeffs[j_dash];
+			}
+		}
 }
 
 vec3 fromPolar( double theta, double phi )
