@@ -245,7 +245,9 @@ public:
 	void create( int level=-1 );
 	void update();
 
+	void resetCoefficients();
 	void randomizeCoefficients();
+	void symmetrizeCoefficients();
 
 	std::vector<float>& getCoeffs() { return m_coeffs; }
 	const std::vector<float>& getCoeffs() const { return m_coeffs; }

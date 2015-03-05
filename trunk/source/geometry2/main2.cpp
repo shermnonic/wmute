@@ -277,6 +277,20 @@ void shfControls()
 		toggle['r'] = false;
 	}
 
+	if( toggle['R'] )
+	{
+		shf.resetCoefficients();
+		shf.update();
+		toggle['R'] = false;
+	}
+
+	if( toggle['t'] )
+	{
+		shf.symmetrizeCoefficients();
+		shf.update();
+		toggle['t'] = false;
+	}
+
 	if( toggle['D'] )
 	{
 		std::vector<float> coeffs = shf.getCoeffs();
