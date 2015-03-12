@@ -4,7 +4,10 @@
 #include <iostream>
 #include <OpenMesh/Core/IO/MeshIO.hh> // must be included before any mesh type
 #include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
+
+#ifndef MESHTOOLS_WITHOUT_EIGEN_SUPPORT
 #include <Eigen/Dense>
+#endif
 
 /** @addtogroup meshtools_grp meshtools library
   * @{ */
@@ -54,6 +57,7 @@ double computeMeshVolume( Mesh* m );
 ///@}
 
 
+#ifndef MESHTOOLS_WITHOUT_EIGEN_SUPPORT
 ///@name Matrix functions
 ///@{ 
 
@@ -77,6 +81,8 @@ void writeMatrix( const Eigen::Matrix3Xd& mat, std::ostream& os );
 
 /// Read matrix from a text stream.
 void readMatrix( Eigen::Matrix3Xd& mat, std::istream& is );
+
+#endif // MESHTOOLS_WITHOUT_EIGEN_SUPPORT
 
 
 } // namespace meshtools
