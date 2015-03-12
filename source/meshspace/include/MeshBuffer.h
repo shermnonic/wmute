@@ -72,6 +72,7 @@ public:
 	int      curFrame() const { return m_curFrame; }
 	unsigned numFrames() const { return m_numFrames; }
 	unsigned numVertices() const { return m_numVertices; }
+	unsigned numIndices() const { return (unsigned)m_ibuffer.size(); }
 	///@}
 
 	/** @name File IO 
@@ -110,11 +111,18 @@ public:
 	const IndexBuffer& ibuffer() const { return m_ibuffer; }
 	///@}
 
-protected:
+	/// @name Access to OpenGL buffer handles
+	///@{
+	unsigned vbo() const { return m_vbo; }
+	unsigned ibo() const { return m_ibo; }
+	///@}
+
+//protected:
 	/// Makes sure buffers are downloaded to GPU.
-	/// Should be called first in every render/draw function.
+	/// Should be called first in every render/draw function (internally!).
 	void sanity(); 
 
+protected:
 	/// Called internally in \a draw() function
 	void downloadGPU();
 

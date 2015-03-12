@@ -123,6 +123,9 @@ double computeMeshVolume( Mesh* m )
 	return fabs(vol);
 }
 
+
+#ifndef MESHTOOLS_WITHOUT_EIGEN_SUPPORT
+
 //-----------------------------------------------------------------------------
 //  Matrix functions
 //-----------------------------------------------------------------------------
@@ -230,5 +233,8 @@ void readMatrix( Eigen::Matrix3Xd& mat, std::istream& is )
 	if( col != lines )
 		std::cerr << "readMatrix() mismatch in matrix format!" << std::endl;
 }
+
+#endif // MESHTOOLS_WITHOUT_EIGEN_SUPPORT
+
 
 } // namespace meshspace

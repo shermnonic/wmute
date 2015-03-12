@@ -226,7 +226,7 @@ void setupGLUT( int argc, char** argv )
 {
 	glutInit( &argc, argv );
 	glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH );
-	glutInitWindowSize( 512, 512 );
+	glutInitWindowSize( 1024, 1024 );
 	main_window = glutCreateWindow( "GLUT" );
 
 #ifdef USE_GLUI
