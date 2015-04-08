@@ -31,8 +31,10 @@ void main(void)
 	
 	// Color (pass through)
 	gl_FrontColor = gl_Color * tc.x;
+  #if 0
 	if( data.z < 0.01 ) // If size scale = 0 ...
 		gl_PointSize = 0.0; // ... do not draw this particle
 	else
+  #endif
 		gl_PointSize = pointSize*(0.5+2.0*data.z); // Enforce minimum size
 }

@@ -49,11 +49,11 @@ void main(void)
 		
 		// Forces
 		vec4 force = getForce( pos );
-		vec3 grav = vec3(0.0,-1.0,0.0);
+		vec3 grav = vec3(1.0,0.0,0.0);
 		vec3 rot  = vec3( -pos.y, pos.x, 0.0 );
 		
 		// Euler step
-		vel.xyz = dt * ( force.xyz*700.0 + rot*100.0 + grav*0.0 );
+		vel.xyz = dt * ( force.xyz*700.0 + rot*0.0 + grav*150.0 );
 		//vel.xyz = force.xyz; // Alternatively define velocity directly from input
 		pos.xyz += dt * vel.xyz;
 		
