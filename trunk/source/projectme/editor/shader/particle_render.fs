@@ -5,6 +5,8 @@ uniform sampler2D sprite;
 
 in vec2 lifetime;
 
+float blendDuration = 0.23; //###
+
 void main(void)
 {  	
 	vec2 uv = gl_FragCoord.xy / vec2(1024.0); // FIXME: Hardcoded texture size!
@@ -18,12 +20,12 @@ void main(void)
 		color = gl_Color;
 	
 	// Blend in/out
-  #if 1
-	float blendDuration = 0.23; 
-	float blendIn  = smoothstep( 0.0, blendDuration, lifetime.x );
-	float blendOut = smoothstep( 0.0, blendDuration, lifetime.y );	
-	color.a = min(color.a, blendIn*blendOut);
-  #endif	
+	if( blendDuration > 0.0 )
+	{
+		float blendIn  = smoothstep( 0.0, blendDuration, lifetime.x );
+		float blendOut = smoothstep( 0.0, blendDuration, lifetime.y );	
+		color.a = min(color.a, blendIn*blendOut);
+	}
 
   #if 1
 	// Smooth box border blend out
