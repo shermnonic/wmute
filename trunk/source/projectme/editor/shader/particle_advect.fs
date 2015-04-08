@@ -79,9 +79,9 @@ void main(void)
 	  #endif
 	
 		// WORKAROUND
-		//vec3 vel0 = texture2D( iVel, tc ).xyz;
-		//pos.z = vel0.z;
-		//vel.z = vel0.z;		
+		vec3 vel0 = texture2D( iVel, tc ).xyz;
+		pos.z = vel0.z;
+		vel.z = vel0.z;		
 	}
 #endif	
 	// Pass through
