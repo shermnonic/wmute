@@ -58,7 +58,7 @@ void main(void)
 		pos.xyz += dt * vel.xyz;
 		
 		// Handle borders
-	  #if 0
+	  #if 1
 		bool borderHit = false;
 		if( pos.x > 1.0 || pos.x < -1.0 ) { vel.x *= -1.0; borderHit=true; }
 		if( pos.y > 1.0 || pos.y < -1.0 ) { vel.y *= -1.0; borderHit=true; }
@@ -78,6 +78,10 @@ void main(void)
 		pos.z = vel.z; //clamp( pos.z, -1.0, 1.0 );		
 	  #endif
 	
+		// WORKAROUND
+		//vec3 vel0 = texture2D( iVel, tc ).xyz;
+		//pos.z = vel0.z;
+		//vel.z = vel0.z;		
 	}
 #endif	
 	// Pass through

@@ -37,4 +37,6 @@ void main(void)
 	else
   #endif
 		gl_PointSize = pointSize*(0.5+2.0*data.z); // Enforce minimum size
+
+	//gl_PointSize = pointSize;
 }

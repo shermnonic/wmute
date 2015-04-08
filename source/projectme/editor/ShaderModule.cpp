@@ -1,5 +1,5 @@
 #include "ShaderModule.h"
-#include "ShaderPrecompiler.h"
+#include "ShaderPreprocessor.h"
 #include <glutils/GLError.h>
 #include <iostream>
 #include <ctime>
@@ -422,15 +422,15 @@ std::string ShaderModule::preprocess( std::string shader )
 {	
 	using namespace std;
 
-	ShaderPrecompiler pc;
+	ShaderPreprocessor pc;
 
 	// Only treat variables and not defines
-	string shaderProcessed = pc.precompile( shader );
-	ShaderPrecompiler::ShaderVariables& vars = pc.vars();
+	string shaderProcessed = pc.preprocess( shader );
+	ShaderPreprocessor::ShaderVariables& vars = pc.vars();
 
 #if 1
-	// Precompile twice - in 1st run defines are parsed and set in the 2nd round
-	ShaderPrecompiler::ShaderDefines defs = pc.defs();
+	// Preprocess twice - in 1st run defines are parsed and set in the 2nd round
+	ShaderPreprocessor::ShaderDefines defs = pc.defs();
 
 	// Collect enum defines
 	bool defValueChanged = false;
@@ -469,7 +469,7 @@ std::string ShaderModule::preprocess( std::string shader )
 	
 	// Second precompilation only necessary on define value change
 	if( defValueChanged )
-		shaderProcessed = pc.precompile( shader, defs );
+		shaderProcessed = pc.preprocess( shader, defs );
 
 	// Update options
 	m_defineOpts.enums = enums;
