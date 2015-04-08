@@ -14,6 +14,8 @@ using GL::GLSLProgram;
 
 #include "ModuleRenderer.h"
 #include "Parameter.h"
+#include "ShaderPrecompiler2.h"
+
 
 /**
 	\class ShaderModule
@@ -71,8 +73,10 @@ protected:
 	/// Invoked in first render() call and on each size change of render texture.
 	bool init();
 
+#if 0
 	/// Preprocess shader: Replace some variables by uniforms and update parameters accordingly.
 	std::string preprocess( std::string shader );
+#endif
 	
 private:
 	bool            m_initialized;
@@ -90,24 +94,10 @@ private:
 
 	GLfloat m_channelResolution[4*3]; // 4 channels with vec3 resolution
 
+	ShaderPrecompiler2 m_precompiler;
+
 	ParameterList m_superParameters; // Inherited parameters
 	ParameterList m_superOptions;
-
-	/// Live shader parameters
-	struct UniformParameters
-	{
-		std::vector<DoubleParameter> floats;
-		std::vector<IntParameter>    ints;
-		std::vector<BoolParameter>   bools;
-		// Maybe later we'll add support for some more types ...
-	};
-	UniformParameters m_uniformParams;
-
-	struct DefineOptions
-	{
-		std::vector<EnumParameter> enums;
-	};
-	DefineOptions m_defineOpts;
 
 	/// Setup options
 	struct Opts

@@ -4,11 +4,12 @@
 using std::cerr;
 using std::endl;
 
+
 //----------------------------------------------------------------------------
-void ShaderPrecompiler2::startPreprocessing( ParameterList& params, ParameterList& opts )
+void ShaderPrecompiler2::startPreprocessing( const ParameterList& parameters, const ParameterList& options )
 {
-	m_params = params;
-	m_opts   = opts;
+	m_params = parameters;
+	m_opts = options;
 
 	m_defineOpts   .clear();
 	m_uniformParams.clear();
@@ -19,6 +20,10 @@ void ShaderPrecompiler2::stopPreprocessing()
 {
 	//options() = m_superOptions; // Reset module options
 	//parameters() = m_superParameters; // Reset to inherited state
+
+	// Reset parameters and options
+	m_params.clear();
+	m_opts.clear();
 
 	// Update options list
 	for( int i=0; i < m_defineOpts.enums.size(); i++ ) // Add define enums
