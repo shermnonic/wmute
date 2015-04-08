@@ -73,11 +73,6 @@ protected:
 	/// Invoked in first render() call and on each size change of render texture.
 	bool init();
 
-#if 0
-	/// Preprocess shader: Replace some variables by uniforms and update parameters accordingly.
-	std::string preprocess( std::string shader );
-#endif
-	
 private:
 	bool            m_initialized;
 	// Some initialization has only to be done once
