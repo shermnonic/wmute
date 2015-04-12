@@ -1,21 +1,23 @@
 #version 130
 uniform sampler2D iPos;      // w counts lifetime backwards from max to zero
 uniform sampler2D iBirthPos; // w contains max lifetime
-uniform float pointSize;    // globale point size
+uniform float pointSize;     // global point size
+uniform vec3 iSize;    // size of particle textures (width*height = #particles)
 
 out vec2 lifetime;
-
-const vec2 texSize = vec2(256,256);
 
 void main(void)
 {
 	// Get 2D texture coordinate from vertex index
 	float id = float(gl_VertexID);
 	vec2 tc;
-	tc.y = floor( id / texSize.y );
-	tc.x = id - texSize.y*tc.y;
-	
-	tc /= texSize;
+#if 0
+	tc = vec2(0.5,0.5);
+#else
+	tc.y = floor( id / iSize.y );
+	tc.x = id - iSize.y*tc.y;	
+	tc /= iSize.xy;
+#endif
 	
 	// Vertex position
 	vec4 data = texture2D( iPos, tc );

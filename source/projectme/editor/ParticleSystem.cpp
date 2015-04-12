@@ -65,11 +65,13 @@ bool checkGLFramebufferStatus( const char* msg )
 ParticleSystem::ParticleSystem()
 : m_initialized( false ),
   m_advectShader( NULL ),
-  m_width ( 128 ),
-  m_height( 128 ),
+  m_width ( 256 ),
+  m_height( 256 ),
   m_texSprite( -1 ),
   m_curTargetBuf( 1 )
 {
+	m_targetSize[0] = 1024;
+	m_targetSize[1] = 1024;
 }
 
 //----------------------------------------------------------------------------
@@ -165,10 +167,12 @@ bool ParticleSystem::initGL()
 	{
 		if( glewIsSupported("GL_VERSION_2_1  GL_ARB_draw_buffers  GL_EXT_framebuffer_object  GL_ARB_texture_float") )
 		{
+		  #ifdef _DEBUG // Additional debug info
 			GLint max_color_attachements;
 			glGetIntegerv( GL_MAX_COLOR_ATTACHMENTS, &max_color_attachements );
 			cout << "ParticleSystem::initGL() : " <<
 				"GL_MAX_COLOR_ATTACHMENTS = " << max_color_attachements << endl;
+		  #endif
 		}
 		else
 		{
@@ -325,12 +329,17 @@ void ParticleSystem::render()
 	GLint iDoSprite = m_renderShader->getUniformLocation("doSprite");
 	GLint iSprite   = m_renderShader->getUniformLocation("sprite");
 	GLint iPointSize= m_renderShader->getUniformLocation("pointSize");
+	GLint iSize     = m_renderShader->getUniformLocation("iSize");
+	GLint iTargetSize=m_renderShader->getUniformLocation("targetSize");
 	glUniform1i( iPos,      0 ); // Texture unit 0 - Position
 	glUniform1i( iVel,      1 ); // Texture unit 1 - Velocity	
 	glUniform1i( iBirthPos, 2 ); // Texture unit 2 - Birth position 
 	glUniform1i( iSprite,   3 ); // Texture unit 3 - Point Sprite (if any)
 	glUniform1i( iDoSprite, m_texSprite >= 0 );
-	glUniform1f( iPointSize, (m_texSprite>=0) ? 10.f * m_pointSize : m_pointSize );
+	glUniform1f( iPointSize, (m_texSprite>=0) ? 10.f * m_pointSize : m_pointSize );	
+	glUniform3f( iSize, m_width,m_height,0.f );
+	glUniform3f( iTargetSize, m_targetSize[0], m_targetSize[1], 0.f );
+
 	checkGLError("ParticleSystem::render() : After setting shader uniforms");
 
 	// Bind position and velocity texture
