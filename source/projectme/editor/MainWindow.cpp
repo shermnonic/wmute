@@ -285,7 +285,7 @@ void MainWindow::customModuleInit( ModuleBase* m )
 	{
 		PotentialFromImageModule* pfim = dynamic_cast<PotentialFromImageModule*>(m);
 		QString filename = QFileDialog::getOpenFileName( this, tr("Load image"),
-			tr(""), tr("*.png;*.jpg") );
+            tr(""), tr("Images (*.png *.jpg)") );
 
 		if( !filename.isEmpty() )
 			pfim->loadImage( filename.toStdString().c_str() );
@@ -296,7 +296,7 @@ void MainWindow::customModuleInit( ModuleBase* m )
 		ImageModule* im = dynamic_cast<ImageModule*>(m);
 
 		QString filename = QFileDialog::getOpenFileName( this, tr("Load image"),
-			tr(""), tr("*.png;*.jpg") );
+            tr(""), tr("Images (*.png *.jpg)") );
 
 		if( !filename.isEmpty() )
 			im->loadImage( filename.toStdString().c_str() );

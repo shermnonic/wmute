@@ -65,8 +65,8 @@ bool checkGLFramebufferStatus( const char* msg )
 ParticleSystem::ParticleSystem()
 : m_initialized( false ),
   m_advectShader( NULL ),
-  m_width ( 256 ),
-  m_height( 256 ),
+  m_width ( 128 ),
+  m_height( 128 ),
   m_texSprite( -1 ),
   m_curTargetBuf( 1 )
 {
