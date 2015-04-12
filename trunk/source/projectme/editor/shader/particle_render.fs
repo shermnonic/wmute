@@ -2,6 +2,7 @@
 
 uniform bool doSprite;
 uniform sampler2D sprite;
+uniform vec3 targetSize;
 
 in vec2 lifetime;
 
@@ -9,7 +10,7 @@ float blendDuration = 0.23; //###
 
 void main(void)
 {  	
-	vec2 uv = gl_FragCoord.xy / vec2(1024.0); // FIXME: Hardcoded texture size!
+	vec2 uv = gl_FragCoord.xy / max(targetSize.xy,vec2(1.0,1.0));
 	
 	// Point / sprite color
 	vec4 base = gl_Color * vec4((vec3(.23),1.0));

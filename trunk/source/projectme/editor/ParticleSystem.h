@@ -77,6 +77,12 @@ public:
 	{
 		m_pointSize = f;
 	}
+
+	void setTargetSize( float w, float h )
+	{
+		m_targetSize[0] = w;
+		m_targetSize[1] = h;
+	}
 	
 protected:	
 	void loadShadersFromDisk();
@@ -122,6 +128,8 @@ private:
 	int m_curTargetBuf;	
 
 	float m_pointSize;
+
+	float m_targetSize[2];
 };
 
 #endif // PARTICLESYSTEM_H

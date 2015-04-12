@@ -134,9 +134,9 @@ void ParticleModule::render()
 		glLoadIdentity();
 
 		// Clear
-#if 1
+  #if 1
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-#else
+  #else
 		if( m_update )
 		{
 			glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
@@ -157,9 +157,10 @@ void ParticleModule::render()
 
 			//glDisable( GL_BLEND );
 		}
-#endif
+  #endif
 		// Render particles
 		m_ps.setPointSize( (float)m_params.pointSize.value() );
+		m_ps.setTargetSize( (float)m_opts.width.value(), (float)m_opts.height.value() );
 		m_ps.render();
 
 	  #if 0
