@@ -60,7 +60,7 @@ void ModuleManagerWidget::onItemChanged( QStandardItem* item )
 	if( mi.column() == 1 )
 	{
 		int idx = mi.row(); // Rows and indices match 1-1
-		if( idx >= 0 && idx < m_master->modules().size() )
+        if( idx >= 0 && idx < (int)m_master->modules().size() )
 		{
 			m_master->modules().at(idx)->setName( item->text().toStdString() );
 			
@@ -93,7 +93,7 @@ void ModuleManagerWidget::updateModuleTable()
 		const ModuleManager::ModuleArray& modules = m_master->modules();
 		m_model->setRowCount( (int)modules.size() );
 		
-		for( int row=0; row < modules.size(); row++ )
+        for( int row=0; row < (int)modules.size(); row++ )
 		{
 			QString type(tr("(Invalid module pointer)")), name;
 			if( modules.at(row) )
@@ -128,7 +128,7 @@ void ModuleManagerWidget::updateModuleTable()
 }
 
 //----------------------------------------------------------------------------
-void ModuleManagerWidget::onSelectionChanged( const QItemSelection& selected, const QItemSelection& deselected )
+void ModuleManagerWidget::onSelectionChanged( const QItemSelection& selected, const QItemSelection& /*deselected*/ )
 {
 	if( !m_master || selected.isEmpty() || selected.first().indexes().isEmpty() )
 		return;
@@ -136,7 +136,7 @@ void ModuleManagerWidget::onSelectionChanged( const QItemSelection& selected, co
 	QModelIndex mi = selected.first().indexes().first();
 	
 	const ModuleManager::ModuleArray& modules = m_master->modules();
-	if( mi.row() >=0 && mi.row() < modules.size() )
+    if( mi.row() >=0 && mi.row() < (int)modules.size() )
 	{
 		m_activeRow = mi.row();
 		ModuleRenderer* m = m_master->modules()[m_activeRow];

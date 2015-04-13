@@ -274,7 +274,7 @@ void ShaderModule::render()
 	checkGLError( "ShaderModule::render() - After shader uniform setup" );
 
 	// Set custom uniforms (found and defined in preprocessing)	
-	for( int i=0; i < m_precompiler.uniforms().floats.size(); i++ )
+    for( unsigned i=0; i < m_precompiler.uniforms().floats.size(); i++ )
 	{
 		GLint loc = m_shader->getUniformLocation( m_precompiler.uniforms().floats[i].key().c_str() );
 		if( loc >= 0 )
@@ -411,14 +411,14 @@ void ShaderModule::setChannel( int idx, ModuleRenderer* m )
 //-----------------------------------------------------------------------------
 void ShaderModule::setChannel( int idx, int texId ) 
 { 
-	if(idx>=0&&idx<m_channels.size()) 
+    if(idx>=0&&idx<(int)m_channels.size())
 		m_channels[idx]=texId;  
 }
 
 //-----------------------------------------------------------------------------
 int ShaderModule::channel( int idx ) const 
 { 
-	if(idx>=0&&idx<m_channels.size()) 
+    if(idx>=0&&idx<(int)m_channels.size())
 		return m_channels[idx];
 	return -1; 
 }

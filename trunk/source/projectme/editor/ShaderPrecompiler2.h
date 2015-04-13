@@ -71,7 +71,7 @@ public:
 		
 		void add( const DefineOptions& other )
 		{
-			for( int i=0; i < other.enums.size(); i++ )
+            for( unsigned i=0; i < other.enums.size(); i++ )
 				enums.push_back( other.enums[i] );
 		}
 		

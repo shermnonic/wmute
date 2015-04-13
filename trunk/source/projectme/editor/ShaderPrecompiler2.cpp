@@ -26,15 +26,15 @@ void ShaderPrecompiler2::stopPreprocessing()
 	m_opts.clear();
 
 	// Update options list
-	for( int i=0; i < m_defineOpts.enums.size(); i++ ) // Add define enums
+    for( unsigned i=0; i < m_defineOpts.enums.size(); i++ ) // Add define enums
 		m_opts.push_back( &m_defineOpts.enums[i] );	
 	
 	// Update parameter list 
-	for( int i=0; i < m_uniformParams.floats.size(); ++i )
+    for( unsigned i=0; i < m_uniformParams.floats.size(); ++i )
 		m_params.push_back( &m_uniformParams.floats[i] );
-	for( int i=0; i < m_uniformParams.ints.size(); ++i )
+    for( unsigned i=0; i < m_uniformParams.ints.size(); ++i )
 		m_params.push_back( &m_uniformParams.ints[i] );
-	for( int i=0; i < m_uniformParams.bools.size(); ++i )
+    for( unsigned i=0; i < m_uniformParams.bools.size(); ++i )
 		m_params.push_back( &m_uniformParams.bools[i] );	
 }
 
@@ -56,7 +56,7 @@ std::string ShaderPrecompiler2::precompile( std::string shader )
 	// Collect enum defines
 	bool defValueChanged = false;
 	DefineOptions defines;
-	for( int i=0; i < defs.size(); i++ )
+    for( unsigned i=0; i < defs.size(); i++ )
 	{
 		string key = defs[i].name;
 
@@ -98,7 +98,7 @@ std::string ShaderPrecompiler2::precompile( std::string shader )
 	
 	// Collect 'float', 'int' and 'bool' parameters
 	UniformParameters uniforms;
-	for( int i=0; i < vars.size(); i++ )
+    for( unsigned i=0; i < vars.size(); i++ )
 	{
 		string key = vars[i].name;
 		string type = vars[i].type;
