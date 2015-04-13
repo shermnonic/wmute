@@ -68,7 +68,8 @@ ParticleSystem::ParticleSystem()
   m_width ( 128 ),
   m_height( 128 ),
   m_texSprite( -1 ),
-  m_curTargetBuf( 1 )
+  m_curTargetBuf( 1 ),
+  m_blendFunc( BlendAlpha )
 {
 	m_targetSize[0] = 1024;
 	m_targetSize[1] = 1024;
@@ -354,9 +355,21 @@ void ParticleSystem::render()
 		glPointSize( 10.f * m_pointSize ); // OBSOLETE: Replaced by gl_PointSize
 		glEnable( GL_POINT_SPRITE );
 		glTexEnvi( GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE );
-		glEnable( GL_BLEND );
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA ); // classical transparency, no pre-multiplied alpha
-		//glBlendFunc( GL_ONE, GL_ONE_MINUS_SRC_ALPHA ); // over-operator, pre-multiplied alpha
+
+        if( m_blendFunc > 0 )
+            glEnable( GL_BLEND );
+        else
+            glDisable( GL_BLEND );
+
+        switch( m_blendFunc )
+        {
+        case BlendAlpha: // classical transparency, no pre-multiplied alpha
+            glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+            break;
+        case BlendOver: // over-operator, pre-multiplied alpha
+            glBlendFunc( GL_ONE, GL_ONE_MINUS_SRC_ALPHA );
+            break;
+        }
 
 		glActiveTexture( GL_TEXTURE0 + 3 ); glBindTexture( GL_TEXTURE_2D, m_texSprite );
 	}

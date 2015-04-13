@@ -65,11 +65,14 @@ private:
 	/// Live parameters
 	struct Params {
 		DoubleParameter pointSize;
+        EnumParameter blendMode;
 		Params()
-		: pointSize("PointSize")
+        : pointSize("PointSize"),
+          blendMode("BlendMode","None","Alpha","Over")
 		{
 			pointSize.setValueAndDefault( 1.5 );
 			pointSize.setLimits( 0.1, 50.0 );
+            blendMode.setValue( 1 );
 		}
 	};
 	Params m_params;
