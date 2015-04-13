@@ -22,6 +22,7 @@ ParticleModule::ParticleModule()
 {
 	// Add parameters
 	parameters().push_back( &m_params.pointSize );
+    parameters().push_back( &m_params.blendMode );
 	// Add options
 	options().push_back( &m_opts.width  );
 	options().push_back( &m_opts.height );
@@ -159,6 +160,7 @@ void ParticleModule::render()
 		}
   #endif
 		// Render particles
+        m_ps.setSpriteBlending( m_params.blendMode.value() );
 		m_ps.setPointSize( (float)m_params.pointSize.value() );
 		m_ps.setTargetSize( (float)m_opts.width.value(), (float)m_opts.height.value() );
 		m_ps.render();

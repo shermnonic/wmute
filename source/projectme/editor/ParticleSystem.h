@@ -68,6 +68,17 @@ public:
 		return m_texSprite;
 	}
 
+    enum BlendFuncs {
+        BlendNone,
+        BlendAlpha, // classical transparency, no pre-multiplied alpha
+        BlendOver   // over-operator, pre-multiplied alpha
+    };
+
+    void setSpriteBlending( int blendFunc )
+    {
+        m_blendFunc = blendFunc;
+    }
+
 	float getPointSize() const
 	{
 		return m_pointSize;
@@ -130,6 +141,8 @@ private:
 	float m_pointSize;
 
 	float m_targetSize[2];
+
+    int m_blendFunc;
 };
 
 #endif // PARTICLESYSTEM_H
