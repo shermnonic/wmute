@@ -102,7 +102,7 @@ Serializable::PropertyTree& ProjectMe::serialize() const
 	// Serialize modules
 	const ModuleManager::ModuleArray& modules = m_moduleManager.modules();
 	cache.put("ProjectMe.NumModules",modules.size());
-	for( int i=0; i < modules.size(); i++ )
+    for( unsigned i=0; i < modules.size(); i++ )
 	{
 		if( modules.at(i) )
 			cache.add_child("ProjectMe.Modules.Module",modules.at(i)->serialize());
@@ -121,7 +121,7 @@ Serializable::PropertyTree& ProjectMe::serialize() const
 
 	// Serialize connections
 	cache.put("ProjectMe.NumConnections",m_connections.size());
-	for( int i=0; i < m_connections.size(); i++ )
+    for( unsigned i=0; i < m_connections.size(); i++ )
 	{
 		cache.add_child("ProjectMe.Connections.Connection", m_connections[i].serialize());
 	}
@@ -238,6 +238,6 @@ void ProjectMe::deserialize( Serializable::PropertyTree& pt )
 //----------------------------------------------------------------------------
 void ProjectMe::touchConnections()
 {
-	for( int i=0; i < m_connections.size(); i++ )
+    for( unsigned i=0; i < m_connections.size(); i++ )
 		m_connections[i].update();
 }

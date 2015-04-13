@@ -77,7 +77,7 @@ void MapperWidget::onItemChanged( QStandardItem* item )
 
 	// Rows and indices match 1-1
 	int idx = mi.row();
-	if( idx < 0 || idx >= m_renderSet->areas().size() )
+    if( idx < 0 || idx >= (int)m_renderSet->areas().size() )
 	{
 		qDebug() << "MapperWidget::onItemChanged() : "
 			<< "Unexpected render set area index " << idx << "!";
@@ -106,7 +106,7 @@ void MapperWidget::onItemChanged( QStandardItem* item )
 		// Get pointer to newly mapped module renderer
 		int moduleIdx = m_delegate->getIndex( text );
 		// It may happen that no module is set and we get an invalid index
-		if( moduleIdx >= 0 && moduleIdx < m_moduleManager->modules().size() )
+        if( moduleIdx >= 0 && moduleIdx < (int)m_moduleManager->modules().size() )
 		{
 			ModuleRenderer* mr = m_moduleManager->modules()[moduleIdx];
 
@@ -135,7 +135,7 @@ void MapperWidget::updateTable()
 	{
 		// Fill combo box with module type names
 		QStringList modules;
-		for( int i=0; i < m_moduleManager->modules().size(); i++ )
+        for( int i=0; i < (int)m_moduleManager->modules().size(); i++ )
 		{
 			modules.insert( i,
 				QString::fromStdString(
@@ -164,7 +164,7 @@ void MapperWidget::updateTable()
 		
 		m_model->setRowCount( (int)areas.size() );
 		
-		for( int row=0; row < areas.size(); row++ )
+        for( int row=0; row < (int)areas.size(); row++ )
 		{			
 			RenderArea area = m_renderSet->areas()[row];
 			const ModuleRenderer* mod = m_renderSet->mapper()[row];
@@ -201,14 +201,14 @@ void MapperWidget::updateTable()
 }
 
 //----------------------------------------------------------------------------
-void MapperWidget::onSelectionChanged( const QItemSelection& selected, const QItemSelection& deselected )
+void MapperWidget::onSelectionChanged( const QItemSelection& selected, const QItemSelection& /*deselected*/ )
 {
 	if( !m_renderSet || selected.isEmpty() || selected.first().indexes().isEmpty() )
 		return;
 
 	QModelIndex mi = selected.first().indexes().first();
 	
-	if( mi.row() >=0 && mi.row() < m_renderSet->areas().size() )
+    if( mi.row() >=0 && mi.row() < (int)m_renderSet->areas().size() )
 	{
 		m_activeRow = mi.row();
 	}

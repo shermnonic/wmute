@@ -112,7 +112,7 @@ string parseShaderDefine( string line, string comment,
 	def.value = tokens[2];
 
 	// Check if a define of this name is given in defs
-	for( int i=0; i < defs.size(); i++ )
+    for( unsigned i=0; i < defs.size(); i++ )
 		if( defs[i].name.compare( def.name )==0 )
 		{
 			// Found a define of the same name, use its value
@@ -139,7 +139,7 @@ string parseShaderDefine( string line, string comment,
 	else the original input line is returned (again with appended newline).
 	The parsed output is stored in \a var. Success is indicated via \a ok.
 */
-string parseShaderVariable( string line, string comment, 
+string parseShaderVariable( string line, string /*comment*/,
 						    ShaderPreprocessor::ShaderVariable& var, bool& ok )
 {
 	// Replace '=' with ' '

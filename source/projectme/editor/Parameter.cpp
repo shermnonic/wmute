@@ -47,7 +47,7 @@ ParameterBase* ParameterList::get_param( std::string key )
 bool operator == ( const ParameterBase& a, const ParameterBase& b )
 {
 	return a.key() == b.key();
-};
+}
 
 //-----------------------------------------------------------------------------
 // --- ParameterList implementation ---

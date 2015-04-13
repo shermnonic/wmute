@@ -250,9 +250,9 @@ void RenderArea::deserialize( Serializable::PropertyTree& pt )
 //-----------------------------------------------------------------------------
 RenderSet::RenderSet()
 : ModuleRenderer("RenderSet"),
-  m_areaMode( AreaOutline ),
   m_moduleManager( NULL ),
-  m_projectMe( NULL )
+  m_projectMe( NULL ),
+  m_areaMode( AreaOutline )
 {
 	//addArea( RenderArea(), 0 );
 	setName("RenderSet");
@@ -274,7 +274,7 @@ void RenderSet::addArea( RenderArea area, ModuleRenderer* module )
 //-----------------------------------------------------------------------------
 void RenderSet::setModule( int areaIdx, ModuleRenderer* module )
 {
-	if( areaIdx >= 0 && areaIdx < m_areas.size() )
+    if( areaIdx >= 0 && areaIdx < (int)m_areas.size() )
 	{
 		m_mapper[areaIdx]   = module;
 		m_channels[areaIdx] = module ? module->target() : -1;
@@ -295,9 +295,9 @@ int RenderSet::pickVertex( float x, float y )
 	int polygon=-1,
 	    vertex=-1;
 	float sqdist = std::numeric_limits<float>::max();
-	for( int i=0; i < m_areas.size(); i++ )
+    for( int i=0; i < (int)m_areas.size(); i++ )
 	{
-		for( int j=0; j < m_areas[i].polygon().nverts(); j++ )
+        for( int j=0; j < (int)m_areas[i].polygon().nverts(); j++ )
 		{
 			const float* pt = m_areas[i].polygon().vert(j);
 			float d2 = (pt[0] - x)*(pt[0] - x) + (pt[1] - y)*(pt[1] - y);
@@ -387,7 +387,7 @@ void RenderSet::drawOutline() const
 	}	
 	
 	// Draw all areas
-	for( int i=0; i < m_areas.size(); i++ )
+    for( int i=0; i < (int)m_areas.size(); i++ )
 	{
 		if( m_areaMode == AreaOutline )
 		{
@@ -439,7 +439,7 @@ void RenderSet::render_internal( int texid ) /*const*/
 	//glBlendFunc( GL_ONE, GL_ONE_MINUS_SRC_ALPHA ); // over-operator
 	glEnable( GL_BLEND );
 
-	for( int i=0; i < m_areas.size(); i++ )
+    for( int i=0; i < (int)m_areas.size(); i++ )
 	{
 		if( texid < 0 )
 		{
@@ -476,11 +476,11 @@ Serializable::PropertyTree& RenderSet::serialize() const
 	cache.put("RenderSet.NumAreas",m_areas.size());
 
 	// Write render area configuration
-	for( int i=0; i < m_areas.size(); i++ )
+    for( int i=0; i < (int)m_areas.size(); i++ )
 		cache.add_child( "RenderSet.RenderArea", m_areas[i].serialize() );
 
 	// Write mapping area to module
-	for( int i=0; i < m_mapper.size(); i++ )
+    for( int i=0; i < (int)m_mapper.size(); i++ )
 	{
 		Serializable::PropertyTree t;
 		ModuleRenderer* mod = m_mapper[i];
@@ -541,7 +541,7 @@ void RenderSet::deserialize( Serializable::PropertyTree& pt )
 			{
 				ModuleRenderer* mod =
 					m_moduleManager->findModule( name, type );
-				if( mod && (idx>=0) && (idx<m_mapper.size()) )
+                if( mod && (idx>=0) && (idx<(int)m_mapper.size()) )
 				{
 					// Set mapping
 					m_mapper[idx] = mod;
@@ -558,14 +558,14 @@ void RenderSet::deserialize( Serializable::PropertyTree& pt )
 		}
 	}
 
-	if( m_areas.size() != numAreas )
+    if( (int)m_areas.size() != numAreas )
 		cerr << "RenderSet::deserialize() : Mismatching number of areas!" << endl;	
 }
 
 //-----------------------------------------------------------------------------
 void RenderSet::setChannel( int idx, int texId )
 {
-	if( idx>=0 && idx<m_channels.size() )
+    if( idx>=0 && idx<(int)m_channels.size() )
 	{
 		m_channels[idx] = texId;
 
@@ -577,7 +577,7 @@ void RenderSet::setChannel( int idx, int texId )
 
 int  RenderSet::channel( int idx ) const
 {
-	if( idx>=0 && idx<m_channels.size() )
+    if( idx>=0 && idx<(int)m_channels.size() )
 		return m_channels[idx];
 	return -1;
 }

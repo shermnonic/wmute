@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 namespace DistanceTransformFelzenszwalb {
 
 template <class T>
-inline T square(const T &x) { return x*x; };
+inline T square(const T &x) { return x*x; }
 
 /* dt of 1d function using squared distance */
 static float *dt(float *f, int n) {

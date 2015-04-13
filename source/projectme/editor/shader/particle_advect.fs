@@ -5,7 +5,7 @@ uniform sampler2D iForce;
 uniform sampler2D iBirthPos;
 uniform sampler2D iBirthVel;
 //varying vec2 vTexCoord;
-const float dt = 0.0055;
+const float dt = 0.0015;
 
 vec2 getTexCoord()
 {
@@ -49,7 +49,7 @@ void main(void)
 		
 		// Forces
 		vec4 force = getForce( pos );
-		vec3 grav = vec3(1.0,0.0,0.0);
+		vec3 grav = vec3(0.0,-1.0,0.0);
 		vec3 rot  = vec3( -pos.y, pos.x, 0.0 );
 		
 		// Euler step

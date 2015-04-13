@@ -110,7 +110,7 @@ void ModuleParameterWidget
 		{
 			// Enum names
 			QStringList items;
-			for( int i=0; i < penum->enumNames().size(); i++ )
+            for( unsigned i=0; i < penum->enumNames().size(); i++ )
 				items.append( QString::fromStdString( penum->enumNames()[i] ) );
 
 			// WORKAROUND: Somehow the value is set to zero when creating a 
