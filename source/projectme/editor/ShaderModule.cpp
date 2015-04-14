@@ -181,17 +181,16 @@ bool ShaderModule::compile()
 {
 	// Preprocessing is applied on each compilation!
 	m_precompiler.startPreprocessing( parameters(), options() );
+	// Mark non-shader parameters/options
+	m_precompiler.markParameters( m_superParameters );
+	m_precompiler.markParameters( m_superOptions );
 	string fshaderProcessed = m_precompiler.precompile( m_fshader );
+	// Delete all non-marked shader parameters/options
 	m_precompiler.stopPreprocessing();	
 
-	// Reset parameters/options
-	parameters() = m_superParameters;
-	options() = m_superOptions;
 	// Append parsed uniforms and defines
-	parameters().insert( parameters().end(), 
-		m_precompiler.parameters().begin(), m_precompiler.parameters().end() );
-	options().insert( options().end(), 
-		m_precompiler.options().begin(), m_precompiler.options().end() );
+	parameters() = m_precompiler.parameters();
+	options() = m_precompiler.options();
 
 	return compile( m_vshader, fshaderProcessed );
 }
@@ -301,9 +300,9 @@ void ShaderModule::render()
 	// Set custom uniforms (found and defined in preprocessing)	
     for( unsigned i=0; i < m_precompiler.uniforms().floats.size(); i++ )
 	{
-		GLint loc = m_shader->getUniformLocation( m_precompiler.uniforms().floats[i].key().c_str() );
+		GLint loc = m_shader->getUniformLocation( m_precompiler.uniforms().floats[i]->key().c_str() );
 		if( loc >= 0 )
-			glUniform1f( loc, (float)m_precompiler.uniforms().floats[i].value() );
+			glUniform1f( loc, (float)m_precompiler.uniforms().floats[i]->value() );
 	}
 	checkGLError( "ShaderModule::render() - After shader custom uniform setup" );
 
