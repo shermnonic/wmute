@@ -132,6 +132,7 @@ class ParameterBase // AbstractParameter ?
 {
 public:
 	ParameterBase( const std::string& key );
+	virtual ~ParameterBase() {}
 
 	// Key and type semantics
 
@@ -167,6 +168,8 @@ template<class T> // ParameterBase
 class ParameterBaseDefault: public ParameterBase
 {
 public:
+	virtual ~ParameterBaseDefault() {}
+
 	ParameterBaseDefault( const std::string& key )
 		: ParameterBase( key ),
 		  m_value  ( T() ), // Initialize w/ default c'tor
