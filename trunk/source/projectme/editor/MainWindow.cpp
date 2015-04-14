@@ -567,6 +567,8 @@ void MainWindow::destroy()
 	if( destroyed ) return;
 
 	// Avoid any GL render calls
+	m_moduleRendererWidget->setUpdatesEnabled( false );
+	m_moduleRendererWidget->setEnabled( false );
 	disconnect( m_moduleWidget );
 	m_sharedGLWidget->setRenderUpdateEnabled( false ); // Stop timer update
 	m_sharedGLWidget->setUpdatesEnabled( false ); // Prohibit updateGL() calls
