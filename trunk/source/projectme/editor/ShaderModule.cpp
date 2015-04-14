@@ -78,6 +78,27 @@ ShaderModule::ShaderModule()
 	setChannelResolution( 3, 512,512 );
 }
 
+void ShaderModule::applyOptions() 
+{ 
+	// Re-init again to change texture size
+	
+	// FIXME: Calling init() alone does work on my desktop GTX but not on the
+	//        laptop with mobility Radeon! 
+	// init(); 
+
+	if( m_target_initialized )
+	{
+		// FIXME: Code duplication from ::init()!
+		GLint internalFormat = GL_RGBA32F; //GL_RGB12;
+
+		// Allocate GPU mem
+		m_target.image( 0, internalFormat, 
+						m_opts.width.value(), m_opts.height.value(), 
+						0, GL_RGBA, GL_FLOAT, NULL );
+		m_target.unbind();
+	}
+}
+
 //----------------------------------------------------------------------------
 bool ShaderModule::init()
 {
@@ -149,6 +170,10 @@ void ShaderModule::destroy()
 	delete m_shader; m_shader = 0;
 	m_r2t.deinit();
 	m_target.destroy();
+
+	m_target_initialized = false;
+	m_r2t_initialized    = false;
+	m_shader_initialized = false;
 }
 
 //----------------------------------------------------------------------------
