@@ -38,7 +38,7 @@ void ShaderPrecompiler2::eraseNonMarked( ParameterList& pl )
 //----------------------------------------------------------------------------
 void ShaderPrecompiler2::stopPreprocessing()
 {
-#if 0 // FIXME
+#if 0 // FIXME Memory leak!
 	eraseNonMarked( m_params );
 	eraseNonMarked( m_opts );
 #endif
