@@ -69,7 +69,8 @@ ParticleSystem::ParticleSystem()
   m_height( 128 ),
   m_texSprite( -1 ),
   m_curTargetBuf( 1 ),
-  m_blendFunc( BlendAlpha )
+  m_blendFunc( BlendAlpha ),
+  m_fraction( 1.f )
 {
 	m_targetSize[0] = 1024;
 	m_targetSize[1] = 1024;
@@ -392,7 +393,7 @@ void ParticleSystem::render()
 	glBindBuffer( GL_ARRAY_BUFFER, m_vbo );
 	glVertexPointer( 3, GL_FLOAT, 0, NULL );
 	glEnableClientState( GL_VERTEX_ARRAY );
-	glDrawArrays( GL_POINTS, 0, m_width*m_height ); // number of vertices
+    glDrawArrays( GL_POINTS, 0, (int)(m_fraction*m_width*m_height) ); // number of vertices
 
 	glFlush(); // FIXME
 
@@ -496,13 +497,14 @@ void ParticleSystem::advectParticles()
 	glPushMatrix();
 	glLoadIdentity();
 	
-	glViewport( 0,0, m_width,m_height );
+    // We simulate all particles, irregardeless of m_fraction
+    glViewport( 0,0, m_width,m_height );
 
 	glBegin( GL_QUADS );
 	glMultiTexCoord2f( GL_TEXTURE0, 0.f, 0.f );	glVertex3i(-1, -1, 0);
 	glMultiTexCoord2f( GL_TEXTURE0, 1.f, 0.f );	glVertex3i(1, -1, 0);
-	glMultiTexCoord2f( GL_TEXTURE0, 1.f, 1.f );	glVertex3i(1, 1, 0);
-	glMultiTexCoord2f( GL_TEXTURE0, 0.f, 1.f );	glVertex3i(-1, 1, 0);
+    glMultiTexCoord2f( GL_TEXTURE0, 1.f, 1.f );	glVertex3i(1, 1, 0);
+    glMultiTexCoord2f( GL_TEXTURE0, 0.f, 1.f );	glVertex3i(-1, 1, 0);
 	glEnd();
 	
 	glPopMatrix();

@@ -1,6 +1,7 @@
 #include "ParticleModule.h"
 #include <glutils/GLError.h>
 #include <iostream>
+#include <ctime>
 using std::cerr;
 using std::endl;
 using GL::checkGLError;
@@ -21,8 +22,11 @@ ParticleModule::ParticleModule()
   m_update( true )
 {
 	// Add parameters
+    parameters().push_back( &m_params.fraction  );
 	parameters().push_back( &m_params.pointSize );
     parameters().push_back( &m_params.blendMode );
+    parameters().push_back( &m_params.animation );
+    parameters().push_back( &m_params.animSpeed );
 	// Add options
 	options().push_back( &m_opts.width  );
 	options().push_back( &m_opts.height );
@@ -159,7 +163,37 @@ void ParticleModule::render()
 			//glDisable( GL_BLEND );
 		}
   #endif
+
+        // Animation
+        static clock_t t0 = clock(); // Time is measured w.r.t. to last render() call
+        double deltaTime = 0.001*(double)(clock() - t0) / CLOCKS_PER_SEC;
+        if( m_params.animation.value()==0 )
+        {
+            // No animation
+        }
+        else
+        if( m_params.animation.value()==1 )
+        {
+            // Smoothly increase number of simulated particles
+            m_params.fraction.setValue(
+                m_params.fraction.valueRef() + m_params.animSpeed.value() * deltaTime );
+
+            if( m_params.fraction.value() >= 1.0 )
+                m_params.animation.setValue( 0 );
+        }
+        else
+        if( m_params.animation.value()==1 )
+        {
+            // Smoothly decrease number of simulated particles
+            m_params.fraction.setValue(
+                m_params.fraction.valueRef() - m_params.animSpeed.value() * deltaTime );
+
+            if( m_params.fraction.value() <= 0.0 )
+                m_params.animation.setValue( 0 );
+        }
+
 		// Render particles
+        m_ps.setFraction( m_params.fraction.value() );
         m_ps.setSpriteBlending( m_params.blendMode.value() );
 		m_ps.setPointSize( (float)m_params.pointSize.value() );
 		m_ps.setTargetSize( (float)m_opts.width.value(), (float)m_opts.height.value() );

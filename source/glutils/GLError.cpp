@@ -51,6 +51,6 @@ bool CheckGLError( std::string hint )
 }
 
 #ifdef GL_NAMESPACE
-}; // namespace GL
+} // namespace GL
 #endif
 

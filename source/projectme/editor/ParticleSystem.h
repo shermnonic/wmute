@@ -94,6 +94,11 @@ public:
 		m_targetSize[0] = w;
 		m_targetSize[1] = h;
 	}
+
+    void setFraction( float percent )
+    {
+        m_fraction = percent;
+    }
 	
 protected:	
 	void loadShadersFromDisk();
@@ -143,6 +148,8 @@ private:
 	float m_targetSize[2];
 
     int m_blendFunc;
+
+    float m_fraction; ///< Percentage of number of simulated particles
 };
 
 #endif // PARTICLESYSTEM_H

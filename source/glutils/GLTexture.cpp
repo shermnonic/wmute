@@ -18,16 +18,10 @@ GLTexture::GLTexture()
   m_height( 0 ),
   m_depth ( 0 )
 {
-  #ifdef DEBUG
-	std::cout << "GLTexture::GLTexture() new m_texture = 0x" << std::hex << m_texture << std::endl;
-  #endif
 }
 
 GLTexture::~GLTexture()
 {
-  #ifdef DEBUG
-	std::cout << "GLTexture::GLTexture() delete m_texture = 0x" << std::hex << m_texture << std::endl;
-  #endif
 }
 
 bool GLTexture::setWrapMode( GLint wrapMode )
