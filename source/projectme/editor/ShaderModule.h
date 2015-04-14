@@ -35,7 +35,7 @@ public:
 	int  target() const { return m_target.name(); }	
 	void destroy();
 	void touch() { compile(); }
-	void applyOptions() { /* Call init again to change texture size */ init(); }
+	void applyOptions();
 	///@}
 
 	///@name ModuleRenderer channels implementation
