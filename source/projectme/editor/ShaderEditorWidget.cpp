@@ -18,7 +18,7 @@ ShaderEditorWidget::ShaderEditorWidget( QWidget* parent )
 	QFont font("Consolas");
 	font.setStyleHint( QFont::Monospace );
 	font.setFixedPitch( true );
-	font.setPointSize( 10 );
+    font.setPointSize( 8 );
 	m_codeEditor->document()->setDefaultFont( font );	
 	
 	m_codeEditor->setLineWrapMode( QPlainTextEdit::NoWrap );

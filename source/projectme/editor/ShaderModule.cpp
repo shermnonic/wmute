@@ -72,10 +72,10 @@ ShaderModule::ShaderModule()
 	m_superOptions = options();
 	m_superParameters = parameters();
 
-	setChannelResolution( 0, 512,512 );
-	setChannelResolution( 1, 512,512 );
-	setChannelResolution( 2, 512,512 );
-	setChannelResolution( 3, 512,512 );
+    setChannelResolution( 0, SHADERMODULE_DEFAULT_SIZE, SHADERMODULE_DEFAULT_SIZE );
+    setChannelResolution( 1, SHADERMODULE_DEFAULT_SIZE, SHADERMODULE_DEFAULT_SIZE );
+    setChannelResolution( 2, SHADERMODULE_DEFAULT_SIZE, SHADERMODULE_DEFAULT_SIZE );
+    setChannelResolution( 3, SHADERMODULE_DEFAULT_SIZE, SHADERMODULE_DEFAULT_SIZE );
 }
 
 void ShaderModule::applyOptions() 
