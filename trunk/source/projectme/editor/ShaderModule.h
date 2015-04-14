@@ -16,6 +16,8 @@ using GL::GLSLProgram;
 #include "Parameter.h"
 #include "ShaderPrecompiler2.h"
 
+#define SHADERMODULE_DEFAULT_SIZE 128
+
 
 /**
 	\class ShaderModule
@@ -102,9 +104,9 @@ private:
 		: width("targetWidth"),
 		  height("targetHeight")
 		{
-			width.setValueAndDefault( 512 );
+            width.setValueAndDefault( SHADERMODULE_DEFAULT_SIZE );
 			width.setLimits( 1, 2048 );
-			height.setValueAndDefault( 512 );
+            height.setValueAndDefault( SHADERMODULE_DEFAULT_SIZE );
 			height.setLimits( 1, 2048 );
 		}
 	};

@@ -570,7 +570,7 @@ void MainWindow::destroy()
 	disconnect( m_moduleWidget );
 	m_sharedGLWidget->setRenderUpdateEnabled( false ); // Stop timer update
 	m_sharedGLWidget->setUpdatesEnabled( false ); // Prohibit updateGL() calls
-	qApp->processEvents();
+    //qApp->processEvents();
 
 	// Destroy OpenGL resources
 	m_sharedGLWidget->makeCurrent(); // Get OpenGL context

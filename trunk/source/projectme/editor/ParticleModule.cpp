@@ -2,6 +2,7 @@
 #include <glutils/GLError.h>
 #include <iostream>
 #include <ctime>
+using std::cout;
 using std::cerr;
 using std::endl;
 using GL::checkGLError;
@@ -179,7 +180,11 @@ void ParticleModule::render()
                 m_params.fraction.valueRef() + m_params.animSpeed.value() * deltaTime );
 
             if( m_params.fraction.value() >= 1.0 )
+            {
+                cout << "Particle animation blend in finished." << endl;
                 m_params.animation.setValue( 0 );
+                m_params.fraction.setValue( 1.0 );
+            }
         }
         else
         if( m_params.animation.value()==2 )
@@ -189,7 +194,11 @@ void ParticleModule::render()
                 m_params.fraction.valueRef() - m_params.animSpeed.value() * deltaTime );
 
             if( m_params.fraction.value() <= 0.0 )
+            {
+                cout << "Particle animation blend out finished." << endl;
                 m_params.animation.setValue( 0 );
+                m_params.fraction.setValue( 0.0 );
+            }
         }
 
 		// Render particles
