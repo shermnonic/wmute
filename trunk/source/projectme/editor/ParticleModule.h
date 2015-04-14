@@ -69,12 +69,14 @@ private:
         DoubleParameter fraction;
         EnumParameter animation;
         DoubleParameter animSpeed;
+        DoubleParameter timestep;
 		Params()
         : pointSize("PointSize"),
           blendMode("BlendMode","None","Alpha","Over"),
           fraction("Fraction"),
           animation("Animation","Static","In","Out"),
-          animSpeed("AnimSpeed")
+          animSpeed("AnimSpeed"),
+          timestep("Timestep")
 		{
 			pointSize.setValueAndDefault( 1.5 );
 			pointSize.setLimits( 0.1, 50.0 );
@@ -84,6 +86,8 @@ private:
             animation.setValue( 0 );
             animSpeed.setValueAndDefault( 0.1 );
             animSpeed.setLimits( 0.0, 100.0 );
+            timestep.setValueAndDefault( 0.15 ); // 100* original dt
+            timestep.setLimits( 0.001, 10.0 );
 		}
 	};
 	Params m_params;

@@ -28,6 +28,7 @@ ParticleModule::ParticleModule()
     parameters().push_back( &m_params.blendMode );
     parameters().push_back( &m_params.animation );
     parameters().push_back( &m_params.animSpeed );
+    parameters().push_back( &m_params.timestep  );
 	// Add options
 	options().push_back( &m_opts.width  );
 	options().push_back( &m_opts.height );
@@ -121,6 +122,7 @@ void ParticleModule::render()
 		init();
 	}
 
+    m_ps.setTimestep( (float)(m_params.timestep.value()/100.0) );
 	m_ps.update();
 
 	if( m_r2t.bind( m_target.name() ) )

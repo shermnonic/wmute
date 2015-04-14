@@ -70,7 +70,8 @@ ParticleSystem::ParticleSystem()
   m_texSprite( -1 ),
   m_curTargetBuf( 1 ),
   m_blendFunc( BlendAlpha ),
-  m_fraction( 1.f )
+  m_fraction( 1.f ),
+  m_timestep( 0.0015f )
 {
 	m_targetSize[0] = 1024;
 	m_targetSize[1] = 1024;
@@ -390,7 +391,7 @@ void ParticleSystem::render()
 
 	// Only consider fraction of particles
 	int numParticles = (int)(m_fraction*m_width*m_height);
-	if( numParticles > m_width*m_height ) numParticles = m_width*m_height;
+    if( (unsigned)numParticles > m_width*m_height ) numParticles = m_width*m_height;
 
 	// Generate vertex stream, position data will be replaced in shader
 	glBindBuffer( GL_ARRAY_BUFFER, m_vbo );
@@ -454,6 +455,10 @@ void ParticleSystem::advectParticles()
 	glUniform1i( iForce, 2 ); // Texture unit 2 - Force
 	glUniform1i( iPos0,  3 ); // Texture unit 3 - Birth position (reincarnation)
 	glUniform1i( iVel0,  4 ); // Texture unit 4 - Birth velocity (reincarnation)
+
+    GLint iTimestep = m_advectShader->getUniformLocation("iTimestep");
+    glUniform1f( iTimestep, m_timestep );
+
 	checkGLError("ParticleSystem::advectParticles() : After setting shader uniforms");
 
 	

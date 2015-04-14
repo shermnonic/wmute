@@ -386,7 +386,7 @@ void ShaderModule::deserialize( Serializable::PropertyTree& pt )
 	else
 		cerr << "ShaderModule::deserialize : No fragment shader found!" << endl;
 
-	compile();
+    //compile();
 }
 
 //-----------------------------------------------------------------------------
