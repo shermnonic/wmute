@@ -388,14 +388,22 @@ void ParticleSystem::render()
 	glEnable( GL_VERTEX_PROGRAM_POINT_SIZE );
 	checkGLError("ParticleSystem::render() : After state setup");
 
+	// Only consider fraction of particles
+	int numParticles = (int)(m_fraction*m_width*m_height);
+	if( numParticles > m_width*m_height ) numParticles = m_width*m_height;
 
 	// Generate vertex stream, position data will be replaced in shader
 	glBindBuffer( GL_ARRAY_BUFFER, m_vbo );
 	glVertexPointer( 3, GL_FLOAT, 0, NULL );
 	glEnableClientState( GL_VERTEX_ARRAY );
-    glDrawArrays( GL_POINTS, 0, (int)(m_fraction*m_width*m_height) ); // number of vertices
+	checkGLError("ParticleSystem::render() : Before glDrawArrays()");
 
-	glFlush(); // FIXME
+    glDrawArrays( GL_POINTS, 0, numParticles ); // number of vertices
+	checkGLError("ParticleSystem::render() : After glDrawArrays()");
+
+	//glFlush(); // FIXME
+	glDisableClientState( GL_VERTEX_ARRAY );
+	glBindBuffer( GL_ARRAY_BUFFER, 0 );
 
 	// Unbind textures
 	for( int i=0; i < 3; i++ )
