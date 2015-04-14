@@ -4,8 +4,10 @@ uniform sampler2D iVel;
 uniform sampler2D iForce;
 uniform sampler2D iBirthPos;
 uniform sampler2D iBirthVel;
+uniform float iTimestep;
+
 //varying vec2 vTexCoord;
-const float dt = 0.0015;
+//const float dt = 0.0015;
 
 vec2 getTexCoord()
 {
@@ -27,6 +29,9 @@ vec4 getForce( vec4 pos )
 
 void main(void)
 {
+	// Timestep
+	float dt = iTimestep;
+	
 	// Get particle data
 	vec2 tc = getTexCoord();	
 	vec4 pos = texture2D( iPos, tc );

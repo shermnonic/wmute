@@ -99,6 +99,11 @@ public:
     {
         m_fraction = percent;
     }
+
+    void setTimestep( float timestep )
+    {
+        m_timestep = timestep;
+    }
 	
 protected:	
 	void loadShadersFromDisk();
@@ -150,6 +155,8 @@ private:
     int m_blendFunc;
 
     float m_fraction; ///< Percentage of number of simulated particles
+
+    float m_timestep;
 };
 
 #endif // PARTICLESYSTEM_H
