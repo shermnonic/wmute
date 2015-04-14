@@ -66,13 +66,24 @@ private:
 	struct Params {
 		DoubleParameter pointSize;
         EnumParameter blendMode;
+        DoubleParameter fraction;
+        EnumParameter animation;
+        DoubleParameter animSpeed;
 		Params()
         : pointSize("PointSize"),
-          blendMode("BlendMode","None","Alpha","Over")
+          blendMode("BlendMode","None","Alpha","Over"),
+          fraction("Fraction"),
+          animation("Animation","Static","In","Out"),
+          animSpeed("AnimSpeed")
 		{
 			pointSize.setValueAndDefault( 1.5 );
 			pointSize.setLimits( 0.1, 50.0 );
             blendMode.setValue( 1 );
+            fraction.setValueAndDefault( 1.0 );
+            fraction.setLimits( 0.0, 1.0 );
+            animation.setValue( 0 );
+            animSpeed.setValueAndDefault( 0.1 );
+            animSpeed.setLimits( 0.0, 100.0 );
 		}
 	};
 	Params m_params;
