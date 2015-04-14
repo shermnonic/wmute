@@ -182,7 +182,7 @@ void ParticleModule::render()
                 m_params.animation.setValue( 0 );
         }
         else
-        if( m_params.animation.value()==1 )
+        if( m_params.animation.value()==2 )
         {
             // Smoothly decrease number of simulated particles
             m_params.fraction.setValue(
