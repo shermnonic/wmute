@@ -85,7 +85,7 @@ bool SoundModule::init()
 	m_target.image( 0, internalFormat, 512, 2, 0, 
 		GL_LUMINANCE, GL_FLOAT, (void*)NULL );	
 	
-	m_initialized = checkGLError( "ShaderModule::init() : GL error at exit!" );
+    m_initialized = checkGLError( "SoundModule::init() : GL error at exit!" );
 	return m_initialized;	
 }
 

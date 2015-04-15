@@ -35,6 +35,19 @@ else()
 	)
 endif()
 
+#--- libVLC related source
+
+if( PROJECTME_USE_LIBVLC )
+    set( LIBVLC_MOC_SRCS "")
+    set( LIBVLC_GUI_SRCS "")
+    set( LIBVLC_ENGINE_SRCS 
+		VideoPlayer.h
+		VideoPlayer.cpp
+		VideoModule.h
+		VideoModule.cpp
+	)
+endif()
+
 #---- qne Qt Node Editor  -----------------------------------------------------
 
 set( qne_SRCS
@@ -73,6 +86,7 @@ set( projectme_MOC_HDRS
 	QDebugStream.h
 	${BASS_MOC_SRCS}
 	#SoundInputWidget.h
+        ${LIBVLC_MOC_SRCS}
 )
 
 # generate rules for building source files from the Qt resources
@@ -123,6 +137,7 @@ set( gui_SRCS
 	NodeEditorWidget.cpp
 	QAutoGUI.h
 	${BASS_GUI_SRCS}
+        ${LIBVLC_GUI_SRCS}
 )
 source_group("gui" FILES ${gui_SRCS})
 
@@ -158,6 +173,7 @@ set( engine_SRCS
 	Parameter.cpp
 	Serializable.h
 	${BASS_ENGINE_SRCS}
+        ${LIBVLC_ENGINE_SRCS}
 )
 source_group("engine" FILES ${engine_SRCS})
 
@@ -178,4 +194,6 @@ target_link_libraries( projectme
 	${OPENGL_LIBRARIES}
 	${GLEW_LIBRARY}
 	${BASS_LIBRARIES}
+	${LIBVLC_LIBRARY}   # maybe empty string
+	${Boost_SYSTEM_LIBRARY_RELEASE} # WORKAROUND: Required by libVLC code
 )

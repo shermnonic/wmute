@@ -48,3 +48,17 @@ editor/ShaderEditorWidget.cpp
 editor/ShaderEditorWidget.h
 editor/ShaderModule.cpp
 editor/ShaderModule.h
+editor/ModuleParameterWidget.cpp
+editor/ModuleParameterWidget.h
+editor/ShaderPrecompiler2.cpp
+editor/ShaderPrecompiler2.h
+editor/ShaderPreprocessor.cpp
+editor/ShaderPreprocessor.h
+editor/SoundInput.cpp
+editor/SoundInput.h
+editor/SoundInputWidget.cpp
+editor/SoundInputWidget.h
+editor/SoundModule.cpp
+editor/SoundModule.h
+editor/CMakeLists.txt
+CMakeLists.txt

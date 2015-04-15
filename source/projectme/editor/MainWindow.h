@@ -13,6 +13,9 @@
 #ifndef PROJECTME_BASS_DISABLED
 #include "SoundInput.h"
 #endif
+#ifdef USE_LIBVLC
+#include "VideoPlayer.h"
+#endif
 
 class QMdiArea;
 class QGLWidget;
@@ -146,6 +149,10 @@ private:
 #ifndef PROJECTME_BASS_DISABLED
 	SoundInput m_soundInput;
 	SoundInputWidget*     m_soundInputWidget;
+#endif
+
+#ifdef USE_LIBVLC
+    VideoPlayer m_videoPlayer;
 #endif
 };
 
