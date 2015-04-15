@@ -19,6 +19,9 @@
 #include "SoundInputWidget.h"
 #include "SoundModule.h"
 #endif
+#ifdef USE_LIBVLC
+#include "VideoModule.h"
+#endif
 
 #include <QtGui> // FIXME: Include only required Qt classes
 #include <QMdiArea>
@@ -301,6 +304,30 @@ void MainWindow::customModuleInit( ModuleBase* m )
 		if( !filename.isEmpty() )
 			im->loadImage( filename.toStdString().c_str() );
 	}
+
+#ifdef USE_LIBVLC
+    if( dynamic_cast<VideoModule*>(m) )
+    {
+        // Get video filename
+        QString filename = QFileDialog::getOpenFileName( this, tr("Load video"),
+            tr(""), tr("Videos (*.avi *.mpg *.mp4 *.ogv)") );
+
+        if( filename.isEmpty() )
+            return;
+
+        // Try to open video
+        if( !m_videoPlayer.openFile( filename.toStdString().c_str() ) )
+        {
+            QMessageBox::warning( this, tr("%1 Error").arg(APP_NAME),
+                tr("Could not open video %1!").arg(filename) );
+            return;
+        }
+
+        // Setup video module
+        VideoModule* vm = dynamic_cast<VideoModule*>(m);
+        vm->setVideoPlayer( &m_videoPlayer );
+    }
+#endif
 }
 
 void MainWindow::newArea()

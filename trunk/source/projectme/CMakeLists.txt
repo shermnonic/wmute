@@ -43,6 +43,19 @@ include_directories(
 	${BASS_INCLUDE_PATH} 
 )
 
+#-------------------
+# libVLC (optional, required for video playback)
+#-------------------
+find_package(LIBVLC)
+if( LIBVLC_FOUND )
+    include_directories( ${LIBVLC_INCLUDE_DIR} )
+    add_definitions( -DUSE_LIBVLC )
+    message(STATUS "libVLC enabled")
+    set( PROJECTME_USE_LIBVLC "TRUE" )
+else()
+    set( PROJECTME_USE_LIBVLC "FALSE" )
+endif()
+
 #---------------------------------------------------------
 # Boost (e.g. filesystem dependency in included libraries)
 # // unix needs filesystem AND system-package by boost 
@@ -52,7 +65,7 @@ set(Boost_USE_MULTITHREADED    ON)
 set(Boost_USE_STATIC_RUNTIME  OFF)
 set(Boost_NO_SYSTEM_PATHS      ON)
 set(Boost_DEBUG OFF)
-find_package(Boost REQUIRED) # header only so far
+find_package(Boost COMPONENTS system REQUIRED) # header only so far
 #find_package(Boost COMPONENTS system filesystem program_options REQUIRED)
 # prevent boost automatic linkage on Windows
 add_definitions(-DBOOST_ALL_NO_LIB)
@@ -137,6 +150,8 @@ if( TEEM_FOUND )
 else()
 	set(TEEM_LIBRARIES "")
 endif()
+
+
 
 #---- Sub-projects ------------------------------------------------------------
 
