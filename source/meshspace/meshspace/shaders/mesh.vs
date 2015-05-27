@@ -7,6 +7,7 @@ attribute float selection;
 
 varying vec3 vNormal;
 varying vec4 vColor;
+varying vec4 vVertex; // for special moves in the fragment shader
 
 varying vec3 vViewPos;
 //varying vec3 vLightDir;
@@ -46,7 +47,9 @@ void main(void)
 	
 	vColor = color;
 	
+	vVertex = position;
+	
 	// Pipeline output
-	gl_FrontColor = color;	
+	gl_FrontColor = color;
 	gl_Position   = mviewproj * gl_Vertex;
 }

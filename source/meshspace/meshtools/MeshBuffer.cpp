@@ -16,6 +16,8 @@ void MeshBuffer::clear()
 	m_nbuffer.clear();
 	m_numFrames = 0;
 	m_curFrame = -1;
+	m_vcount.clear();
+	m_ncount.clear();
 }
 
 //------------------------------------------------------------------------------
@@ -82,6 +84,7 @@ bool MeshBuffer::addFrame( const meshtools::Mesh* mesh )
 	}
 	
 	// Indexed face list	
+	bool has_faces = (mesh->n_faces() > 0);
 	for( int i=0; i < mesh->n_faces(); i++ )
 	{
 		Mesh::FaceHandle fh( i );
@@ -111,6 +114,10 @@ bool MeshBuffer::addFrame( const meshtools::Mesh* mesh )
 	}
 
 	// --- Sanity checks ---
+
+	// Just read number of vertices/normals
+	unsigned numVerts = (unsigned)vertices.size() / 3;
+	unsigned numNorms = (unsigned)normals.size() / 3;	
 	
 	if( m_numFrames==0 )
 	{	
@@ -119,10 +126,10 @@ bool MeshBuffer::addFrame( const meshtools::Mesh* mesh )
 		m_dirty = true;
 		m_frameUpdateRequired = true;
 	}
-	else
-	{
-		// This is a later frame and connectivity and vertex / normal count 
-		// *must* match already present ones.
+	else if( has_faces )
+	{		
+		// This is a later frame *with* connectivity such that is required that
+		// and vertex / normal count *must* match already present ones.
 
 		// Check connectivity		
 		bool matchingConnectivity = true;
@@ -148,13 +155,13 @@ bool MeshBuffer::addFrame( const meshtools::Mesh* mesh )
 		}
 		
 		// Check vertex / normal count		
-		if( vertices.size()/3 != m_numVertices )
+		if( numVerts != m_numVertices )
 		{
 			std::cerr << "MeshBuffer::addFrame() : Mismatching number of "
 				" vertices in frame " << m_numFrames+1 << std::endl;
 			return false;
 		}		
-		if( normals.size()/3 != m_numNormals )
+		if( numNorms != m_numNormals )
 		{
 			std::cerr << "MeshBuffer::addFrame() : Mismatching number of "
 				" normals in frame " << m_numFrames+1 << std::endl;
@@ -163,6 +170,20 @@ bool MeshBuffer::addFrame( const meshtools::Mesh* mesh )
 		
 		m_dirty = true; // Size of GPU buffer has changed
 	}	
+	else // !has_faces
+	{
+		// This is a later frame *without* connectivity that is treated as
+		// point cloud. Here vertex correspondence is not required and vertex
+		// and normal counts may differ between frames.
+
+		// Store maximum number of vertices/normals
+		m_numVertices = std::max( m_numVertices, numVerts );
+		m_numNormals  = std::max( m_numNormals , numNorms );
+
+		// Buffer size has to be updated
+		m_dirty = true;
+	}
+
 	
 	// --- Set members ---
 	
@@ -173,8 +194,8 @@ bool MeshBuffer::addFrame( const meshtools::Mesh* mesh )
 		m_ibuffer = indices;
 		
 		// The first frame also defines vertex / normal count
-		m_numVertices = (unsigned)vertices.size() / 3;
-		m_numNormals  = (unsigned)normals.size() / 3;
+		m_numVertices = numVerts;
+		m_numNormals  = numNorms;
 
 		// Use color from first mesh
 		if( mesh->has_vertex_colors() )
@@ -182,12 +203,18 @@ bool MeshBuffer::addFrame( const meshtools::Mesh* mesh )
 			m_cbufferEnabled = true;
 			m_cbuffer = colors;
 		}
+
+		m_vcount.clear();
+		m_ncount.clear();
 	}
+
+	m_vcount.push_back( numVerts );
+	m_ncount.push_back( numNorms );
 	
 	// Append data to existing buffers
 	m_vbuffer.insert( m_vbuffer.end(), vertices.begin(), vertices.end() );
 	m_nbuffer.insert( m_nbuffer.end(), normals.begin(), normals.end() );
-	
+
 	m_numFrames++;
 
 	return true;
@@ -253,6 +280,7 @@ void MeshBuffer::downloadGPU()
 
 	if( m_dirty )
 	{	
+		// Buffers are pre-allocated with maximum size
 		size_t nfloats = m_numVertices*3 + m_numNormals*3 + m_numVertices*4; //m_cbuffer.size();
 
 		// (Re-)allocate buffer (for a single frame)
@@ -280,20 +308,23 @@ void MeshBuffer::downloadGPU()
 	}
 	
 	// Current frame offset in vertex / normal buffer
-	unsigned ofs = m_numVertices*3 * m_curFrame;
+	unsigned ofs = ofsVertex(m_curFrame); // was: m_numVertices*3 * m_curFrame;
+	// Tightly pack data into buffers
+	unsigned nv = numFrameVertices(m_curFrame); // was: m_numVertices
+	unsigned vsize = sizeof(float)*nv*3;
+	unsigned nn = numFrameNormals(m_curFrame); // was: m_numNormals
+	unsigned nsize = sizeof(float)*nn*3;
 
 	glBindBuffer( GL_ARRAY_BUFFER, m_vbo );
 	
 	// Download vertices (of current frame)
 	size_t start = 0;
-	glBufferSubData( GL_ARRAY_BUFFER, start,
-		   sizeof(float)*m_numVertices*3, &(m_vbuffer[ofs]) );
-	start += sizeof(float)*m_numVertices*3;
+	glBufferSubData( GL_ARRAY_BUFFER, start, vsize, &(m_vbuffer[ofs]) );
+	start += vsize;
 
 	// Download normals (of current frame)	
-	glBufferSubData( GL_ARRAY_BUFFER, start,
-		   sizeof(float)*m_numNormals*3, &(m_nbuffer[ofs]) );
-	start += sizeof(float)*m_numNormals*3;
+	glBufferSubData( GL_ARRAY_BUFFER, start, nsize, &(m_nbuffer[ofs]) );
+	start += nsize;
 
 	// Download colors (optional)
 	//if( m_cbufferEnabled ) // Upload buffer in any case to allow enabling color on-the-fly
@@ -344,15 +375,18 @@ void MeshBuffer::draw()
 
 	GL::CheckGLError( "MeshBuffer::draw() - glEnableClientState()" );
 
+	size_t vsize = sizeof(float)*numFrameVertices(m_curFrame)*3; // was: sizeof(float)*m_numVertices*3
+	size_t nsize = sizeof(float)*numFrameNormals (m_curFrame)*3; // was: sizeof(float)*m_numNormals*3
+
 	if( useCBuffer )
 	{
 		glEnableClientState( GL_COLOR_ARRAY );
-		glColorPointer( 4, GL_FLOAT, 0, (void*)(sizeof(float)*m_numVertices*3+sizeof(float)*m_numNormals*3) );
+		glColorPointer( 4, GL_FLOAT, 0, (void*)(vsize+nsize) );
 	}
 
 	GL::CheckGLError( "MeshBuffer::draw() - glEnableClientState(), glBindBuffer(), GL_COLOR_ARRAY" );
 	
-	glNormalPointer( GL_FLOAT, 0, (GLvoid*)(sizeof(float)*m_numVertices*3) );
+	glNormalPointer( GL_FLOAT, 0, (GLvoid*)(vsize) ); // was: m_numVertices
 	glVertexPointer( 3, GL_FLOAT, 0, 0 );
 	glIndexPointer( GL_INT, 0, 0 );
 
@@ -366,7 +400,8 @@ void MeshBuffer::draw()
 	else
 	{
 		// Point cloud
-		glDrawArrays( GL_POINTS, (GLint)0, (GLsizei)(m_vbuffer.size()/3) );
+		unsigned npoints = numFrameVertices(m_curFrame); // was: m_vbuffer.size()/3
+		glDrawArrays( GL_POINTS, (GLint)0, (GLsizei)(npoints) );
 	}
 
 	GL::CheckGLError( "MeshBuffer::draw() - glDrawElements( GL_TRIANGELS, ... )" );
@@ -394,7 +429,8 @@ void MeshBuffer::drawNamedPoints() const
 void MeshBuffer::drawNamedPoints( const std::vector<unsigned>& idx ) const
 {
 	// Current frame offset in vertex / normal buffer
-	unsigned ofs = m_numVertices*3 * m_curFrame;	
+	unsigned ofs = ofsVertex(m_curFrame); // was: m_numVertices*3 * m_curFrame;	
+	unsigned nv = numFrameVertices(m_curFrame); // was: m_numVertices
 
 	//glInitNames(); // <- QGLViewer has already taken care of this (?)
 
@@ -402,7 +438,7 @@ void MeshBuffer::drawNamedPoints( const std::vector<unsigned>& idx ) const
 	if( idx.empty() )
 	{
 		// Draw all points
-		for( unsigned i=0; i < m_numVertices; i++ )
+		for( unsigned i=0; i < nv; i++ )
 		{		
 			glPushName( i );
 			glBegin( GL_POINTS );
@@ -439,7 +475,8 @@ void MeshBuffer::drawPoints( const std::vector<unsigned>& idx ) const
 	// Draw from CPU vertex arrays
 
 	// Current frame offset in vertex / normal buffer
-	unsigned ofs = m_numVertices*3 * m_curFrame;	
+	unsigned ofs = ofsVertex(m_curFrame); // was: m_numVertices*3 * m_curFrame;	
+	unsigned nv = numFrameVertices(m_curFrame); // was: m_numVertices
 	
 	glEnableClientState( GL_VERTEX_ARRAY );
 	glVertexPointer( 3, GL_FLOAT, 0, &(m_vbuffer[ofs]) );
@@ -458,7 +495,7 @@ void MeshBuffer::drawPoints( const std::vector<unsigned>& idx ) const
 		glDrawElements( GL_POINTS, (GLsizei)idx.size(), GL_UNSIGNED_INT, &(idx[0]) );
 	else
 		// Draw all points
-		glDrawArrays( GL_POINTS, 0, m_numVertices );
+		glDrawArrays( GL_POINTS, 0, nv );
 
 #if 0 // FIXME: Error in color buffer specification
 	if( useCBuffer )
@@ -561,11 +598,6 @@ meshtools::Mesh* MeshBuffer::createMesh( int frame ) const
 {
 	typedef meshtools::Mesh Mesh;
 
-	std::vector< Mesh::VertexHandle > vhandle( m_numVertices );
-	std::vector< Mesh::VertexHandle > fvhandle( 3 );
-		
-	Mesh* m = new Mesh;
-
 	// sanity check
 	if( frame >= (int)m_numFrames || frame < 0 )
 	{
@@ -574,10 +606,19 @@ meshtools::Mesh* MeshBuffer::createMesh( int frame ) const
 		frame = 0;
 	}
 
+	unsigned nv = numFrameVertices(m_curFrame); // was: m_numVertices; 
+
+	// Handles
+	std::vector< Mesh::VertexHandle > vhandle( nv );
+	std::vector< Mesh::VertexHandle > fvhandle( 3 );
+		
+	// Create new mesh
+	Mesh* m = new Mesh;
+
 	// Mesh vertex data
-	unsigned ofs = (unsigned)frame * m_numVertices * 3;		
-	const float* pv = &(m_vbuffer[ofs]);
-	for( unsigned i=0; i < m_numVertices; ++i )
+	unsigned vofs = ofsVertex(m_curFrame); // was: (unsigned)frame * m_numVertices * 3
+	const float* pv = &(m_vbuffer[vofs]);
+	for( unsigned i=0; i < nv; ++i )
 	{
 		Mesh::Point p;
 		p[0] = *pv;  pv++;
@@ -602,8 +643,28 @@ meshtools::Mesh* MeshBuffer::createMesh( int frame ) const
 		m->add_face( fvhandle );
 	}
 
+#if 0
 	// FIXME: Avoid recomputation and copy existing normals
 	meshtools::updateMeshVertexNormals( m );
+#else
+	if( numFrameNormals(m_curFrame) == numFrameVertices(m_curFrame) )
+	{
+		// Copy normals from normal buffer
+		unsigned nofs = ofsNormal(m_curFrame);
+		Mesh::VertexIter v_it(m->vertices_begin()), v_end(m->vertices_end());
+		for( ; v_it!=v_end; ++v_it )
+		{
+			Mesh::Normal n( &(m_nbuffer[nofs]) );
+			m->set_normal( *v_it, n );
+		}
+	}
+	else
+	{
+		// Print warning
+		std::cout << "MeshBuffer::createMesh() : " 
+			"No normals available for frame " << frame << "!" << std::endl;
+	}
+#endif
 
 	return m;
 }
@@ -666,4 +727,68 @@ float MeshBuffer::normalizeSize()
 	//	(*it) = (float)((double)(*it) * scale);   // double precision
 
 	return scale;
+}
+
+//------------------------------------------------------------------------------
+
+// FIXME: Code duplication!
+
+unsigned MeshBuffer::numFrameVertices( int frame ) const
+{
+	if( frame>=0 && frame<m_vcount.size() )
+	{
+		return m_vcount[frame];
+	}
+	else
+	{
+		std::cerr << "MeshBuffer::numFrameVertices() : Requested invalid frame "
+			<< frame << "!" << std::endl;
+	}
+	return 0;
+}
+
+unsigned MeshBuffer::numFrameNormals( int frame ) const
+{
+	if( frame>=0 && frame<m_ncount.size() )
+	{
+		return m_ncount[frame];
+	}
+	else
+	{
+		std::cerr << "MeshBuffer::numFrameNormals() : Requested invalid frame "
+			<< frame << "!" << std::endl;
+	}
+	return 0;
+}
+
+unsigned MeshBuffer::ofsVertex( int frame ) const
+{
+	unsigned ofs=0;
+	if( frame>=0 && frame<m_vcount.size() )
+	{
+		for( int i=0; i < frame; i++ )
+			ofs += m_vcount[i];
+	}
+	else
+	{
+		std::cerr << "MeshBuffer::ofsVertex() : Requested invalid frame "
+			<< frame << "!" << std::endl;
+	}
+	return 3*ofs; // 3 floats per vertex
+}
+
+unsigned MeshBuffer::ofsNormal( int frame ) const
+{
+	unsigned ofs=0;
+	if( frame>=0 && frame<m_ncount.size() )
+	{
+		for( int i=0; i < frame; i++ )
+			ofs += m_ncount[i];
+	}
+	else
+	{
+		std::cerr << "MeshBuffer::ofsNormal() : Requested invalid frame "
+			<< frame << "!" << std::endl;
+	}
+	return 3*ofs;  // 3 floats per normal
 }

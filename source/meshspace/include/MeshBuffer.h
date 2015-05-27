@@ -71,6 +71,7 @@ public:
 	///@{
 	int      curFrame() const { return m_curFrame; }
 	unsigned numFrames() const { return m_numFrames; }
+	/// Number of vertices (exact for meshes, upper limit for point clouds)
 	unsigned numVertices() const { return m_numVertices; }
 	unsigned numIndices() const { return (unsigned)m_ibuffer.size(); }
 	///@}
@@ -129,6 +130,17 @@ protected:
 	/// Return bounding box diagonal of all points over all frames.
 	float computeBBoxDiagonal() const;
 
+	/// Return number of vertices/normals per frame (only for point clouds!)
+	///{@
+	unsigned numFrameVertices( int frame ) const;
+	unsigned numFrameNormals ( int frame ) const;
+	///@}
+	/// Return offset into vertices/normals buffer (only for point clouds!)
+	///{@
+	unsigned ofsVertex( int frame ) const;
+	unsigned ofsNormal( int frame ) const;
+	///@}
+
 private:	
 	int      m_curFrame;
 	unsigned m_numFrames;
@@ -142,6 +154,11 @@ private:
 	std::vector<unsigned> m_ibuffer; ///< index buffer (same for all meshes)
 	std::vector<float>    m_vbuffer; ///< vertex buffer (consecutive frames)
 	std::vector<float>    m_nbuffer; ///< vertex-normals buffer (consecutive frames)
+	
+	// Frame-wise vertex and normal counts (only for point clouds, else all 
+	// fields should equal m_numVertices and m_numNormals!).
+	std::vector<unsigned> m_vcount;
+	std::vector<unsigned> m_ncount;
 
 	bool m_cbufferEnabled;
 	std::vector<float>    m_cbuffer; ///< color buffer (same for all meshes?!)
