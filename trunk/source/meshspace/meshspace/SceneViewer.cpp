@@ -499,6 +499,7 @@ void SceneViewer::init()
 	qDebug() << "Using GLEW " << QString::fromLocal8Bit( (const char*)glewGetString( GLEW_VERSION ) );
 
 	// Set OpenGL states
+	glEnable( GL_POINT_SMOOTH );
 
 	// Two-sided rendering and lighting (front- and backfaces)
 	glEnable( GL_NORMALIZE );

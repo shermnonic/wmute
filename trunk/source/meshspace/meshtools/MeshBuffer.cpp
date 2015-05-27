@@ -399,9 +399,11 @@ void MeshBuffer::draw()
 	}
 	else
 	{
-		// Point cloud
+		// Point cloud		
 		unsigned npoints = numFrameVertices(m_curFrame); // was: m_vbuffer.size()/3
+		glEnable( GL_PROGRAM_POINT_SIZE );
 		glDrawArrays( GL_POINTS, (GLint)0, (GLsizei)(npoints) );
+		glDisable( GL_PROGRAM_POINT_SIZE );
 	}
 
 	GL::CheckGLError( "MeshBuffer::draw() - glDrawElements( GL_TRIANGELS, ... )" );

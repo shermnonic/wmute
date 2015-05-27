@@ -52,4 +52,15 @@ void main(void)
 	// Pipeline output
 	gl_FrontColor = color;
 	gl_Position   = mviewproj * gl_Vertex;
+	
+#if 1
+	// Point sprite size
+	// (See http://stackoverflow.com/questions/17397724/point-sprites-for-particle-system)	
+	const vec2 screenSize = vec2(1024,1024); // FIXME: Pass in as uniform
+	const float spriteSize = 1.4;
+	vec4 eyepos = gl_ModelViewMatrix * position;
+    vec4 projVoxel = gl_ProjectionMatrix * vec4(spriteSize,spriteSize,eyepos.z,eyepos.w);
+    vec2 projSize = screenSize * projVoxel.xy / projVoxel.w;
+    gl_PointSize = 0.25 * (projSize.x+projSize.y);	
+#endif
 }

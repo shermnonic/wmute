@@ -122,4 +122,7 @@ void main(void)
 	shading *= smoothstep(0.6,0.7,foo); ///foo; //smoothstep(0.0,0.06,foo);
 
 	gl_FragColor = vec4( shading, 1.0 );
+
+	// See here for custom point sprite shader code:
+	// http://mmmovania.blogspot.de/2010/12/circular-point-sprites-in-opengl-33.html
 }
