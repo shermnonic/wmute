@@ -83,7 +83,11 @@ void printMeshInfo( const Mesh& mesh, std::ostream& os )
 void updateMeshVertexNormals( Mesh* m )
 {
 	// Sometimes normals are not stored and have to be computed explicitly
-	if( !m->has_vertex_normals() )
+	//if( !m->has_vertex_normals() )
+
+	// The normal update is based on face normals and thus can not be applied
+	// to a dataset without faces, e.g. a point cloud.
+	if( m->n_faces() > 0 )
 	{
 		m->request_vertex_normals();
 		m->request_face_normals(); // Face normals required to update vertex normals

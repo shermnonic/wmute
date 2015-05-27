@@ -8,6 +8,7 @@ uniform float scalarScale;
 
 varying vec3 vNormal;
 varying vec4 vColor;
+varying vec4 vVertex;
 
 varying vec3 vViewPos;
 //varying vec3 vLightDir;
@@ -29,7 +30,7 @@ vec3 phong( vec3 N, vec3 E, vec3 L,
 	vec3 Iamb  = ambient.rgb;
 #if 1
 	// Two-sided shading:
-	vec3 Idiff = diffuse.rgb * max(abs(dot(N,L)), 0.0);
+	vec3 Idiff = diffuse.rgb * max(abs(dot(N,L)), 0.2); // HACK: ambient boost
 	vec3 Ispec = specular.rgb * pow( max(abs(dot(R,E)),0.0), shininess );
 #else
 	// One-sided shading:
@@ -116,6 +117,9 @@ void main(void)
 	vec3 shading = 
 		phong( normal, viewDir, lightDir,
 				ambient.rgb, diffuse.rgb, specular.rgb, shininess );
+	
+	float foo = (vVertex.z + 35.0) / 64.0;
+	shading *= smoothstep(0.6,0.7,foo); ///foo; //smoothstep(0.0,0.06,foo);
 
 	gl_FragColor = vec4( shading, 1.0 );
 }
