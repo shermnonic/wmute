@@ -416,13 +416,15 @@ void MeshBuffer::drawNamedPoints( const std::vector<unsigned>& idx ) const
 		// Draw given indices
 		for( unsigned i=0; i < idx.size(); i++ )
 		{		
-			glBegin( GL_POINTS );
 			glPushName( i );
+			glBegin( GL_POINTS );
 			glVertex3fv( &(m_vbuffer[ofs + 3*i]) );
-			glPopName();
 			glEnd();
+			glPopName();
 		}
 	}
+
+	GL::CheckGLError("MeshBuffer::drawNamedPoints()");
 }
 
 //------------------------------------------------------------------------------
@@ -442,20 +444,26 @@ void MeshBuffer::drawPoints( const std::vector<unsigned>& idx ) const
 	glEnableClientState( GL_VERTEX_ARRAY );
 	glVertexPointer( 3, GL_FLOAT, 0, &(m_vbuffer[ofs]) );
 
+#if 0 // FIXME: Error in color buffer specification
 	bool useCBuffer = m_cbufferEnabled && !m_cbuffer.empty();
 	if( useCBuffer )
 	{
 		glEnableClientState( GL_COLOR_ARRAY );
 		glColorPointer( 4, GL_FLOAT, 0, (void*)(sizeof(float)*m_numVertices*3+sizeof(float)*m_numNormals*3) );
 	}
+#endif
 
 	if( !idx.empty() )
+		// Draw only selected points
 		glDrawElements( GL_POINTS, (GLsizei)idx.size(), GL_UNSIGNED_INT, &(idx[0]) );
 	else
+		// Draw all points
 		glDrawArrays( GL_POINTS, 0, m_numVertices );
 
+#if 0 // FIXME: Error in color buffer specification
 	if( useCBuffer )
 		glDisableClientState( GL_COLOR_ARRAY );
+#endif
 
 	glDisableClientState( GL_VERTEX_ARRAY );
 }
