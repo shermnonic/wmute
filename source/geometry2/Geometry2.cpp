@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cmath>
 #include <cstdlib> // for rand() and RAND_MAX
+#include <cstdio>
 
 #ifndef M_PI
 #define M_PI 3.1415926535897932384626433832795
@@ -174,6 +175,40 @@ float* SimpleGeometry::get_normal_ptr ()  { return &m_normals[0][0]; }
 int*   SimpleGeometry::get_index_ptr()   { return &m_faces[0].vi[0]; }
 
 #endif // GEOMETRY2_NO_BUFFER_SUPPORT
+
+
+bool SimpleGeometry::writeOBJ( const char* filename ) const
+{
+	FILE* f = fopen( filename, "w" );
+	if( !f )
+	{
+		printf( "Could not write OBJ '%s'!", filename );
+		return false;
+	}
+
+	size_t nv = m_vdata.size()/3;
+	bool has_normals = m_ndata.size() == m_vdata.size();
+	for( size_t i=0; i < nv; ++i )
+	{		
+		fprintf( f, "v %12.11f %12.11f %12.11f \n", 
+		         m_vdata[3*i+0], m_vdata[3*i+1], m_vdata[3*i+2] );
+
+		if( has_normals )
+			fprintf( f, "vn %12.11f %12.11f %12.11f \n", 
+					 m_ndata[3*i+0], m_ndata[3*i+1], m_ndata[3*i+2] );
+	}
+
+	size_t nf = m_fdata.size()/3;
+	for( size_t i=0; i < nf; ++i )
+	{
+		// Note that face indices are 1-based in OBJ!
+		fprintf( f, "f %4d %4d %4d \n",
+		         m_fdata[3*i+0]+1, m_fdata[3*i+1]+1, m_fdata[3*i+2]+1 );
+	}
+
+	fclose(f);
+	return true;
+}
 
 
 //==============================================================================
@@ -904,9 +939,19 @@ void SHF::update()
 	  #else
 		double theta, phi;
 		polar(v,theta,phi);
-		n = fromPolar( theta-=s.dtheta, phi-=s.dphi );
+		//printf("vertex %04d: theta=%8.7fpi, phi=%8.7fpi\n",i,theta/M_PI,phi/M_PI);
+		n = fromPolar( theta-s.dtheta, phi-s.dphi );
 	  #endif
 		n.normalize();
+	  #if 1
+		double eps=0.1;
+		if( abs(theta/M_PI)<eps && abs(phi/M_PI)<eps )
+		//if( i==19 || i==44 )
+		{
+			//printf("*** Encountered zero angles at vertex %d\n",i);
+			n = vec3(0.f,0.f,1.f);
+		}
+	  #endif
 		set_normal( i, n );
 	}
 }

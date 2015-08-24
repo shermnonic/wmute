@@ -40,6 +40,8 @@ public:
 
 	void clear();
 
+	bool writeOBJ( const char* filename ) const;
+
 protected:
 	/// Reserve memory for vertices
 	void reserve_vertices( int n );

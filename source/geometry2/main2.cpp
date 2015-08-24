@@ -42,6 +42,7 @@ Keys:\n\
 	\n\
 	,/.  adjust subdivision level \n\
 	\n\
+	O    export OBJ				\n\
 	p    export Postscript		\n\
 	S    high-res output    	\n\
 ";
@@ -445,6 +446,15 @@ bool frame()
 		g_screenshot.render( internal_render_frame, reshape );
 		save_state( (g_screenshot.getLastFilename()+".state").c_str() );
 		toggle['S'] = false;
+	}
+
+	// export obj
+	if( toggle['O'] ) {
+		std::stringstream ss;
+		ss << time(0) << ".obj";
+		if( g_geomPtr->writeOBJ( ss.str().c_str() ) )
+			cout << "Wrote OBJ file " << ss.str() << endl;
+		toggle['O'] = false;
 	}
 
 	// reshape to specific window size
