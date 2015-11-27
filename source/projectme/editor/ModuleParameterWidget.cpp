@@ -92,7 +92,7 @@ void ModuleParameterWidget
 				dse.setSingleStep( abs(max_-min_)/100.0 );
 			}
 			else
-				dse.setSingleStep( 0.1 ); // Default single step
+				dse.setSingleStep( 0.01 ); // Default single step
 			p << dse.setDecimals( 2 ); // FIXME: Hardcoded #decimals
 					//.connect_to( this, SLOT(parameterChanged()) );
 			

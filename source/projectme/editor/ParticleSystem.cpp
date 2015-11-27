@@ -87,8 +87,8 @@ void ParticleSystem::setup()
 void ParticleSystem::reseed()
 {
 	killAllParticles();
-	seedParticlePositions();
-	seedParticleVelocities();	
+	//seedParticlePositions();
+	//seedParticleVelocities();	
 	//setSyntheticForceField();
 }
 
