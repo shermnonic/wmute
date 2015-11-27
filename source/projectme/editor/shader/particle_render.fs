@@ -28,7 +28,7 @@ void main(void)
 		color.a = min(color.a, blendIn*blendOut);
 	}
 
-  #if 1
+  #if 0
 	// Smooth box border blend out
 	vec2 dir = abs(2.0*uv - vec2(1.0,1.0));
 	float r = max(dir.x,dir.y); // box blend
