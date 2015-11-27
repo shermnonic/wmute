@@ -768,7 +768,7 @@ void MainWindow::newPreview()
 	sub->setAttribute( Qt::WA_DeleteOnClose );
 	w->setWindowTitle("Preview #"+QString::number(windowCount++));
 	w->show();
-	sub->resize( 640, 480 );
+	sub->resize( 1024+16, 768+38 ); // FIXME: Hard-coded values
 
 	m_previews.append( w );
 	updateViewMenu();
