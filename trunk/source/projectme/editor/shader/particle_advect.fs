@@ -54,7 +54,7 @@ void main(void)
 		
 		// Forces
 		vec4 force = getForce( pos );
-		vec3 grav = vec3(0.0,-1.0,0.0);
+		vec3 grav = vec3(1.0,0.0,0.0); //vec3(0.0,-1.0,0.0);
 		vec3 rot  = vec3( -pos.y, pos.x, 0.0 );
 		
 		// Euler step
