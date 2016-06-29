@@ -4,6 +4,8 @@
 #include <cmath>
 #include <cstdlib> // for rand() and RAND_MAX
 #include <cstdio>
+#include <set>
+#include <algorithm>
 
 #ifndef M_PI
 #define M_PI 3.1415926535897932384626433832795
@@ -78,8 +80,8 @@ void SimpleGeometry::reserve_faces( int n )
 
 #ifndef GEOMETRY2_NO_BUFFER_SUPPORT
 	
-int SimpleGeometry::num_vertices() const { return m_vdata.size()/3; }
-int SimpleGeometry::num_faces()    const { return m_fdata.size()/3; }
+int SimpleGeometry::num_vertices() const { return (int)m_vdata.size()/3; }
+int SimpleGeometry::num_faces()    const { return (int)m_fdata.size()/3; }
 
 void SimpleGeometry::set_vertex( int i, vec3 v )
 {
@@ -117,7 +119,7 @@ int SimpleGeometry::add_face( Face f )
 	for( int i=0; i < 3; ++i )
 		m_fdata.push_back( f.vi[i] );
 	assert( m_fdata.size()%3 == 0 );
-	return m_fdata.size()/3 - 1;
+	return (int)m_fdata.size()/3 - 1;
 }
 
 int SimpleGeometry::add_vertex_and_normal( vec3 v, vec3 n )
@@ -129,7 +131,7 @@ int SimpleGeometry::add_vertex_and_normal( vec3 v, vec3 n )
 	}
 	assert( m_vdata.size() == m_ndata.size() );
 	assert( m_vdata.size()%3 == 0 );
-	return m_vdata.size()/3 - 1;
+	return (int)m_vdata.size()/3 - 1;
 }
 
 float* SimpleGeometry::get_vertex_ptr()  { return &m_vdata[0]; }
@@ -211,6 +213,98 @@ bool SimpleGeometry::writeOBJ( const char* filename ) const
 }
 
 
+void SimpleGeometry::get_one_ring( int i, std::vector<int>& N ) const
+{
+	// Find adjacent vertices
+	int nfaces = num_faces();
+	std::set<int> adj; // Use set for unique index set (vertices are shared across faces)
+	for( int fi=0; fi <  nfaces; ++fi )
+	{
+		Face f = get_face( fi );
+		if( f.vi[0]==i || f.vi[1]==i || f.vi[2]==i )
+		{
+			// Adding index i avoids additional if's
+			adj.insert( f.vi[0] );
+			adj.insert( f.vi[1] );
+			adj.insert( f.vi[2] );
+		}		
+	}
+	adj.erase( i ); // Remove index i again
+	
+	// Number of adjacent vertices in 1-ring
+	int nverts = (int)adj.size();
+	
+	// Copy
+	N.clear();
+	for( std::set<int>::const_iterator it=adj.begin(); it!=adj.end(); ++it )
+		N.push_back( *it );	
+	
+	// Order vertices
+	vec3 vi = get_vertex( i ),
+	     ni = get_normal( i ),      	
+	     e0 = get_vertex(N[0]) - vi; // measure angle against first edge
+	e0 -= ni * e0.scalarprod(ni); // project into normal plane at vertex i	
+	vec3 e0n = e0.normalized();
+	
+	std::vector<std::pair<int,float> > vangle; // vertex index + angle	
+	vangle.push_back( std::make_pair<int,float>( N[0], 0.f ) );
+	for( int k=1; k<N.size(); ++k )
+	{
+		vec3 ej = get_vertex( N[k] ) - vi;
+		ej -= ni * ej.scalarprod(ni);
+		vec3 ejn = ej.normalized();
+		
+		float angle = acos( ejn.scalarprod( e0n ) );
+		float sign = e0n.cross( ni ).scalarprod( ejn ) >= 0.f ? 1.f : -1.f;
+		if( sign < 0.f )
+			angle = (float)M_PI - angle;
+		//angle *= sign;
+		
+		vangle.push_back( std::make_pair<int,float>( N[k], angle ) );
+	}	
+	
+	// pair is by default sorted w.r.t. its second arg
+	std::sort( vangle.begin(), vangle.end() );	
+	
+	for( size_t k=0; k < nverts; ++k ) 
+		//N[k] = vangle[nverts-k-1].first; // CCW, i.e. angles decreasing
+		N[k] = vangle[k].first; // CW
+}
+
+void SimpleGeometry::make_dual( SimpleGeometry& res ) const
+{
+	res.clear();
+	int nverts = num_vertices();	
+	for( int vh=0; vh < nverts; ++vh ) // vh=vertex handle
+	{	
+		// Compute dual to one-ring
+		std::vector<int> N;
+		get_one_ring( vh, N );
+		vec3 v0 = get_vertex( vh ),
+			 n  = get_normal( vh );
+
+		// New vertices
+		std::vector<int> residx;
+		residx.push_back( res.add_vertex_and_normal( v0, n ) );
+#if 0
+		// SANITY: Just copy one-ring
+		for( size_t i=0; i < N.size(); ++i )
+			residx.push_back( res.add_vertex_and_normal( get_vertex( N[i] ), n ) );
+#else
+		for( size_t i=0; i < N.size()-1; ++i )
+		{
+			vec3 vi = get_vertex( N[i] ),
+				 vj = get_vertex( N[i+1] );		
+			residx.push_back( res.add_vertex_and_normal( (v0 + vi + vj)/3.f, n ) );
+		}
+#endif
+		// New faces
+		for( size_t i=1; i < residx.size()-1; ++i )
+			res.add_face( Face(residx[0],residx[i],residx[i+1]) );
+	}
+}
+
+
 //==============================================================================
 //	Icosahedron
 //==============================================================================
@@ -245,7 +339,7 @@ void Icosahedron::add_face_subdivision( Face f, int levels )
 	v13.normalize();
 	v23.normalize();
 
-	float foo = m_platonicConstantZ;
+	float foo = (float)m_platonicConstantZ;
 	v12 *= foo;
 	v13 *= foo;
 	v23 *= foo;
@@ -301,7 +395,7 @@ void Icosahedron::create( int levels )
 	   {6,1,10}, {9,0,11}, {9,11,2}, {9,2,5}, {7,2,11} };
 #else
 	// Classic Icosahedron definition (based solely on golden ratio constant)
-	float tao = m_platonicConstantX; //1.61803399;
+	float tao = (float)m_platonicConstantX; //1.61803399;
 	vec3 vdata[12] = { vec3(1,tao,0),vec3(-1,tao,0),vec3(1,-tao,0),vec3(-1,-tao,0),
 					   vec3(0,1,tao),vec3(0,-1,tao),vec3(0,1,-tao),vec3(0,-1,-tao),
 					   vec3(tao,0,1),vec3(-tao,0,1),vec3(tao,0,-1),vec3(-tao,0,-1) };
@@ -312,7 +406,7 @@ void Icosahedron::create( int levels )
 #endif
 
 	// exact memory calulation
-	size_t n = (double)20*pow(4.f,levels);
+	int n = (int)(20.0*pow(4.0,(double)levels));
 	reserve_vertices( n - 8 );
 	reserve_faces   ( n );
 	   
@@ -398,9 +492,9 @@ void Penrose::add_face_subdivision( SimpleGeometry::Face f, int type, int levels
 		// split into two triangles
 		
 		// new vertex p
-		vec3 p = a + (b - a) / goldenRatio;
+		vec3 p = a + (b - a) / (float)goldenRatio;
 		// new normal by interpolating normals at a and b
-		vec3 np = na + (nb - na) / goldenRatio;
+		vec3 np = na + (nb - na) / (float)goldenRatio;
 		np.normalize();
 		int pi = add_vertex_and_normal( p, np );		
 		// new faces
@@ -414,11 +508,11 @@ void Penrose::add_face_subdivision( SimpleGeometry::Face f, int type, int levels
 	{
 		// split into three triangles
 		
-		vec3 q = b + (a - b) / goldenRatio,
-		     r = b + (c - b) / goldenRatio;
+		vec3 q = b + (a - b) / (float)goldenRatio,
+		     r = b + (c - b) / (float)goldenRatio;
 		
-		vec3 nq = nb + (na - nb) / goldenRatio,
-		     nr = nb + (nc - nb) / goldenRatio;
+		vec3 nq = nb + (na - nb) / (float)goldenRatio,
+		     nr = nb + (nc - nb) / (float)goldenRatio;
 		nq.normalize();
 		nr.normalize();
 		
@@ -496,8 +590,8 @@ void Penrose::setDefaultGenerator()
 	{
 		double phi = (double)i * 2.*M_PI / 10. + M_PI/2.;
 		geom.add_vertex_and_normal(
-			vec3( cos(phi), sin(phi), 0 ),
-			vec3( 0,0,1 ) );
+			vec3( (float)cos(phi), (float)sin(phi), 0.f ),
+			vec3( 0.f,0.f,1.f ) );
 	}
 	
 	// Subdivide red triangles
@@ -548,18 +642,18 @@ double spow( double base, double exponent )
 vec3 qz( double theta, double phi, double alpha, double beta )
 {
 	double sphi = spow(sin(phi),beta);
-	return vec3( spow(cos(theta),alpha) * sphi,
-	             spow(sin(theta),alpha) * sphi,
-	             spow(cos(phi),beta) );
+	return vec3( (float)(spow(cos(theta),alpha) * sphi),
+	             (float)(spow(sin(theta),alpha) * sphi),
+	             (float) spow(cos(phi),beta) );
 }
 
 /// Superquadric function around x-axis
 vec3 qx( double theta, double phi, double alpha, double beta )
 {
 	double sphi = spow(sin(phi),beta);
-	return vec3( spow(cos(phi),beta),
-	            -spow(sin(theta),alpha) * sphi,
-	             spow(cos(theta),alpha) * sphi );
+	return vec3((float)( spow(cos(phi),beta)),
+	            (float)(-spow(sin(theta),alpha) * sphi),
+	            (float)( spow(cos(theta),alpha) * sphi) );
 }
 
 /// Superquadric tensor function parameterized over planarity (cp) and linearity (cl)
@@ -580,8 +674,8 @@ void Superquadric::create( int unused )
 	double theta_step = (2.*M_PI)/(double)res;
 	double phi_step = M_PI/(double)res;
 
-	int n = 2.*M_PI / theta_step;
-	int m = M_PI / phi_step + 1;	
+	int n = (int)std::floor( 2.*M_PI / theta_step );
+	int m = (int)std::floor(M_PI / phi_step + 1.0);	
 		// n*m == num_vertices()
 	
 	// Sample vertices
@@ -683,8 +777,8 @@ unsigned factorial( unsigned x )
 	
 	// Compute factorial on-the-fly
 	int fac = table[N-1];
-	for( int i=N; i <= x; i++ )
-		fac *= i;
+	for( unsigned i=N; i <= x; i++ )
+		fac *= (int)i;
 	return fac;
 }
 
@@ -796,10 +890,10 @@ void SphericalHarmonics::update()
 	   #else
 		theta -= dtheta;
 		phi   -= dphi;
-		n = vec3( sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta) );
+		n = vec3( (float)(sin(theta)*cos(phi)), (float)(sin(theta)*sin(phi)), (float)cos(theta) );
 	   #endif
 		n.normalize();
-		set_vertex( i, v*abs(sh) ); // FIXME: Why absolute value of SH?
+		set_vertex( i, v*(float)abs(sh) ); // FIXME: Why absolute value of SH?
 		set_normal( i, n );
 	  #else
 		set_vertex( i, v*(float)abs(SH( v, m_l,m_m )) );
@@ -877,7 +971,7 @@ void SHF::randomizeCoefficients()
 			double r = (double)(rand()%RAND_MAX)/(double)RAND_MAX; // random [0,1]
 			r = 2.*r - 1.; // map to [-1,1]
 			double h = (double)(2*l+1); // normalize with band range
-			m_coeffs[j] = 10.*r / (m_radius[j]*h*m_order);
+			m_coeffs[j] = (float)(10.*r / ((double)m_radius[j]*h*(double)m_order));
 		}
 
 	m_coeffs[0] = 4.0;
@@ -911,7 +1005,7 @@ void SHF::symmetrizeCoefficients()
 
 vec3 fromPolar( double theta, double phi )
 {
-	return vec3( sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta) );
+	return vec3( (float)(sin(theta)*cos(phi)), (float)(sin(theta)*sin(phi)), (float)cos(theta) );
 }
 
 void SHF::update()
@@ -930,7 +1024,7 @@ void SHF::update()
 		// Displace vertex		
 		vec3 v( m_vcache[i*3], m_vcache[i*3+1], m_vcache[i*3+2] ); //get_vertex( i );
 		v.normalize(); // Project onto unit sphere (sanity)
-		set_vertex( i, v*s.r );
+		set_vertex( i, v*(float)s.r );
 
 		// Normal from gradient
 		vec3 n;
@@ -988,7 +1082,7 @@ void SHF::createBasis()
 				m_shb[j][i] = s;
 
 				// Store max. radius for each SH basis for later normalization
-				m_radius[j] = (i==0 || s.r>m_radius[j]) ? s.r : m_radius[j];
+				m_radius[j] = (i==0 || (float)s.r>m_radius[j]) ? (float)s.r : m_radius[j];
 			}
 	}
 }

@@ -12,6 +12,8 @@
 
 #include <GL/glut.h>
 
+#pragma warning(disable: 4244 4305 4996)
+
 using namespace std;
 
 const int MAX_LEVELS = 6;
@@ -54,6 +56,8 @@ Superquadric       g_geomSuperquadric;
 Icosahedron        g_geomIco;
 SphericalHarmonics g_geomSH;
 SHF                g_geomSHF;
+SimpleGeometry     g_geomDual; // dual mesh
+
 
 std::vector<float> g_colors;
 double g_linewidth = 1.0;
@@ -218,7 +222,7 @@ void icosahedronControls()
 		double cx = 1.6180339887498948482045, // golden ratio
 			   cz = 1.0; // subdivision re-scaling
 		createIcosahedron( cx, cz );
-		toggle['r'] = false;
+		toggle['r'] = false;		
 	}
 	
 	double dx = 0.01;
@@ -391,6 +395,15 @@ bool frame()
 	if( toggle['3'] ) { setGeometry(&g_geomSuperquadric); toggle['3']=false; }
 	if( toggle['4'] ) { setGeometry(&g_geomSH);           toggle['4']=false; }
 	if( toggle['5'] ) { setGeometry(&g_geomSHF);          toggle['5']=false; }
+
+	// dual
+	if( toggle['d'] && g_geomPtr != &g_geomDual )
+	{
+		std::cout << "Computing dual mesh..." << std::endl;
+		g_geomPtr->make_dual( g_geomDual );
+		setGeometry( &g_geomDual );
+		toggle['d'] = false;		
+	}
 
 	// Render
 
