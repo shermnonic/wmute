@@ -42,6 +42,12 @@ public:
 
 	bool writeOBJ( const char* filename ) const;
 
+	/// Return one-ring vertex indices for vertex i (expensive!)
+	void get_one_ring( int i, std::vector<int>& N ) const;
+
+	/// Create mesh dual, written as new geometry to res
+	void make_dual( SimpleGeometry& res ) const;
+
 protected:
 	/// Reserve memory for vertices
 	void reserve_vertices( int n );
@@ -85,6 +91,8 @@ private:
 	std::vector<vec3> m_normals;
 	std::vector<Face> m_faces;
 #endif
+
+	
 };
 
 //==============================================================================

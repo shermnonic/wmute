@@ -59,7 +59,7 @@ class Vector
 private:
 
   inline VECTOR& as_child() { return static_cast<VECTOR&>(*this); }
-  inline const VECTOR& as_child() const { static_cast<const VECTOR&>(*this); }
+  inline const VECTOR& as_child() const { return static_cast<const VECTOR&>(*this); }
 
 public:
 
@@ -130,6 +130,14 @@ public:
       if( fabs(m) > 0 )
       VECOP( m_v[i] /= m; );
     };
+
+  //! return normalized copy
+  inline VECTOR normalized() const  
+    {
+	  VECTOR v( as_child() );
+	  v.normalize();
+	  return v;
+    }
 };
 
 
