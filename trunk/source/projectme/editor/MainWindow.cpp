@@ -24,7 +24,7 @@
 #endif
 
 #include <QtGui> // FIXME: Include only required Qt classes
-#include <QMdiArea>
+#include <QTabWidget>
 #include <QGLWidget>
 #include <QDockWidget>
 #include <QTimer>
@@ -398,15 +398,15 @@ void MainWindow::createUI()
 	setWindowTitle( APP_NAME );
 	setWindowIcon( APP_ICON );
 
-	// --- MDI ---
+	// --- shared GL & central tab widget ---
 
 	m_sharedGLWidget = new SharedGLContextWidget(this);
 	m_sharedGLWidget->resize(1,1);
 
-	m_mdiArea = new QMdiArea(this);
-	m_mdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    m_mdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    setCentralWidget( m_mdiArea );
+	m_mainTabWidget = new QTabWidget();
+	m_mainTabWidget->setTabsClosable( true ); // TODO: Implement tab close events
+	m_mainTabWidget->setMovable( true );
+    setCentralWidget( m_mainTabWidget );
 
 	// --- widgets ---
 
@@ -586,6 +586,8 @@ void MainWindow::createUI()
 
 	connect( m_nodeEditorWidget, SIGNAL(connectionChanged()), this, SLOT(updateTables()) );
 	connect( m_nodeEditorWidget, SIGNAL(selectionChanged(ModuleRenderer*)), m_moduleWidget, SLOT(setActiveModule(ModuleRenderer*)) );
+
+	connect( m_mainTabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)) );
 }
 
 void MainWindow::destroy()
@@ -612,11 +614,8 @@ void MainWindow::destroy()
 	}
 	m_screens.clear();
 
-	// Close MDI windows
-	m_mdiArea->closeAllSubWindows();
-	//for( unsigned i=0; i < m_mdiArea->subWindowList().size(); i++ )
-		//m_mdiArea->subWindowList()[i]->close();
-
+	// Destroy tabbed windows
+	// TODO: Check if tab widgets are destroyed corectly automatically.
 
 	m_sharedGLWidget->makeCurrent(); // Get OpenGL context
 	m_projectMe.clear();
@@ -734,6 +733,29 @@ void MainWindow::save()
 	m_projectMe.serializeToDisk( filename.toStdString() );
 }
 
+void MainWindow::closeTab( int index )
+{
+	// Get our content widget, i.e. either editor or preview (in its own QScrollArea)
+	QWidget* w = m_mainTabWidget->widget(index);
+	if( dynamic_cast<QScrollArea*>(w) ) 
+	{
+		w = dynamic_cast<QScrollArea*>(w)->widget();
+	}
+
+	// Handle close
+	ShaderEditorWidget* editor = dynamic_cast<ShaderEditorWidget*>(w);
+	RenderSetWidget* renderer = dynamic_cast<RenderSetWidget*>(w);
+
+	if( renderer )
+		m_previews.removeAll( renderer );
+
+	if( editor )
+		; // TODO: Verify close of unsaved shader via dialog.
+
+	// Close widget
+	m_mainTabWidget->removeTab( index );
+}
+
 void MainWindow::editShader()
 {
 	ModuleBase* m = getActiveModule();
@@ -745,32 +767,32 @@ void MainWindow::editShader()
 		QString name = QString::fromStdString(sm->getName());
 
 		// Create new editor widget with source as document text
-		ShaderEditorWidget* w = new ShaderEditorWidget( m_mdiArea );
-		QMdiSubWindow* sub = m_mdiArea->addSubWindow( w );
+		ShaderEditorWidget* w = new ShaderEditorWidget();
+		int idx = m_mainTabWidget->addTab( w, tr("%1").arg( name ) );
+		m_mainTabWidget->setCurrentIndex( idx );
 		w->setShaderModule( sm );
 		
-		//w->setWindowTitle(tr("Editor %1").arg( name ));
-		w->show();
-
 		connect( w, SIGNAL(shaderUpdated(ModuleBase*)), m_moduleParameterWidget, SLOT(setModule(ModuleBase*)) );
 	}
 }
 
 void MainWindow::newPreview()
 {
-	static int windowCount = 1;
-	if( m_mdiArea->subWindowList().count() > 9 )
+	if( m_mainTabWidget->count() > 9 )
 		return;
 
-	RenderSetWidget* w = new RenderSetWidget( m_mdiArea, m_sharedGLWidget );
+	RenderSetWidget* w = new RenderSetWidget( m_mainTabWidget, m_sharedGLWidget );
 	w->setRenderSet( m_projectMe.renderSetManager().getActiveRenderSet() );
-	QMdiSubWindow* sub = m_mdiArea->addSubWindow( w );
-	sub->setAttribute( Qt::WA_DeleteOnClose );
-	w->setWindowTitle("Preview #"+QString::number(windowCount++));
-	w->show();
-	sub->resize( 1024+16, 768+38 ); // FIXME: Hard-coded values
-
 	m_previews.append( w );
+
+	QScrollArea* area = new QScrollArea();
+	area->setWidget( w );
+	w->resize(640,480);
+
+	int count = m_previews.size(); // TODO: Fix preview widget numbering
+	int idx = m_mainTabWidget->addTab( area, "Preview #"+QString::number(count) );
+	m_mainTabWidget->setCurrentIndex( idx );
+
 	updateViewMenu();
 }
 

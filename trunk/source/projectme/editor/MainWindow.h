@@ -17,7 +17,7 @@
 #include "VideoPlayer.h"
 #endif
 
-class QMdiArea;
+class QTabWidget;
 class QGLWidget;
 class QMenu;
 class QTimer;
@@ -93,6 +93,8 @@ public slots:
 private slots:
 	void destroy();
 
+	void closeTab( int index );
+
 	void newPreview();
 	void newScreen();
 	void updateViewMenu();
@@ -127,7 +129,7 @@ protected:
 	ModuleBase* getActiveModule();
 
 private:
-	QMdiArea        *m_mdiArea;
+	QTabWidget      *m_mainTabWidget;
 	SharedGLContextWidget
 	                *m_sharedGLWidget;
 
