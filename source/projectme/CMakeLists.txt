@@ -29,12 +29,19 @@ endif()
 # - WINTERMUTE_GLUTILS_PATH
 # - WINTERMUTE_GLUTILS_SOURCES
 
+# g-trucs GLM - OpenGL math library 
 set(GLM_INCLUDE_DIR  "${WINTERMUTE_3RDPARTY_LIBS_PATH}/glm"    CACHE PATH "glm include path")
+# My own OpenGL utilities
 set(GLUTILS_PATH     "${WINTERMUTE_GLUTILS_PATH}"              CACHE PATH "path to authors custom glutils")
 set(GLUTILS_SOURCES ${WINTERMUTE_GLUTILS_SOURCES})
 
+# un4seen BASS library
 set(BASS_INCLUDE_PATH "${WINTERMUTE_3RDPARTY_LIBS_PATH}/bass"  CACHE PATH     "BASS include path")
-set(BASS_LIBRARY      "${BASS_INCLUDE_PATH}/bass.lib"          CACHE FILEPATH "BASS library")
+if (WIN32)
+	set(BASS_LIBRARY      "${BASS_INCLUDE_PATH}/win64/bass.lib"     CACHE FILEPATH "BASS library")
+else() # Assume UNIX
+	set(BASS_LIBRARY      "${BASS_INCLUDE_PATH}/linux64/libbass.so" CACHE FILEPATH "BASS library")
+endif()	
 message(STATUS "BASS_LIBRARY=${BASS_LIBRARY}")
 
 include_directories( 
