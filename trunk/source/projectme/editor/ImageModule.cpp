@@ -27,6 +27,25 @@ ImageModule::ImageModule()
 }
 
 //----------------------------------------------------------------------------
+bool ImageModule::createImage( int width, int height )
+{
+	if( width<0 || height<0 ) return false;
+
+	// Allocate RGBA image data
+	unsigned char* cbuf = new unsigned char[ width * height * 4 ];
+	
+	// Store data
+	if( m_data ) delete [] m_data;
+	m_data   = cbuf;
+	m_width  = width;
+	m_height = height;
+	m_filename = std::string("");
+	
+	m_dirty = true; // Upload texture in next render() call		
+	return true;
+}
+
+//----------------------------------------------------------------------------
 bool ImageModule::loadImage( const char* filename )
 {
 	// Load image from disk
@@ -65,6 +84,55 @@ bool ImageModule::loadImage( const char* filename )
 		
 	m_dirty = true; // Upload texture in next render() call		
 	return true;
+}
+
+//----------------------------------------------------------------------------
+void ImageModule::fillImage( unsigned char R, unsigned char G, unsigned char B, unsigned char A )
+{
+	if( !m_data ) return;
+	unsigned ofs = 0;
+	for( int y=0; y < m_height; y++ )
+		for( int x=0; x < m_width; x++ )
+		{
+			m_data[ofs++] = R;
+			m_data[ofs++] = G;
+			m_data[ofs++] = B;
+			m_data[ofs++] = A;
+		}
+
+	m_dirty = true; // Upload texture in next render() call
+}
+
+//----------------------------------------------------------------------------
+void ImageModule::paint( int x0, int y0, unsigned char R, unsigned char G, unsigned char B, unsigned char A, int radius )
+{
+	if( radius <= 0 ) return;
+
+	int r = radius;
+	for( int y = y0-r; y < y0+r; ++y )
+	{
+		if( y < 0 || y >= m_height )
+			continue;
+
+		unsigned ofs = (y*m_width + x0-r)*4;
+		for( int x = x0-r; x < x0+r; ++x, ofs+=4 )
+		{
+			if( x < 0 || x >= m_width )
+				continue;
+
+			if( (x-x0)*(x-x0) + (y-y0)*(y-y0) <= r*r )
+			{			
+				m_data[ofs+0] = R;
+				m_data[ofs+1] = G;
+				m_data[ofs+2] = B;
+				m_data[ofs+3] = A;
+			}
+
+			// TODO: Implement smoothing
+		}
+	}
+
+	m_dirty = true; // Upload texture in next render() call
 }
 
 //----------------------------------------------------------------------------

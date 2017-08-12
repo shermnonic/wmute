@@ -17,7 +17,7 @@
 RenderSetWidget::RenderSetWidget( QWidget *parent, QGLWidget *share )
 : QGLWidget( parent, share ),  
   m_set( 0 ),  
-  m_state( DefaultState ),
+  m_state( EditVertexState ),
   m_flags( RenderPreview ),
   m_fullscreen( false )
 {
@@ -77,7 +77,7 @@ void RenderSetWidget::paintGL()
 	{
 		if( m_flags & RenderFinal )
 		{
-			if( m_flags & RenderDebug )
+			if( m_flags & RenderGrid )
 			{
 				GLuint texid = 
 					bindTexture( QPixmap(":/grid.png"), GL_TEXTURE_2D, GL_RGBA );
@@ -88,7 +88,10 @@ void RenderSetWidget::paintGL()
 		}
 
 		if( m_flags & RenderPreview )
+		{
+			m_set->drawMask();
 			m_set->drawOutline();
+		}
 	}
 	
 	float fps = m_fps.measure();
@@ -123,12 +126,15 @@ void RenderSetWidget::mousePressEvent( QMouseEvent* e )
 	if( e->isAccepted() )
 		return;
 
-	// Handle area editing interaction
-	if( m_set )
+	if( !m_set ) 
+		return;
+
+	// Normalized coordinates in [-1,-1]-[1,1]
+	QPointF pt = normalizedCoordinates( e->posF() );
+	
+	if( m_state == EditVertexState )
 	{
-		// Normalized coordinates in [-1,-1]-[1,1]
-		QPointF pt = normalizedCoordinates( e->posF() );
-		
+		// Handle area editing interaction
 		if( e->buttons() & Qt::LeftButton )
 		{
 			if( m_set->pickVertex( pt.x(), pt.y() ) >= 0 )
@@ -141,8 +147,17 @@ void RenderSetWidget::mousePressEvent( QMouseEvent* e )
 				m_delta = pt - QPointF( x, y );
 			}
 			else
-				m_state = DefaultState;			
-			
+				m_state = EditVertexState;
+
+			e->accept();
+		}
+	}
+	else if( m_state == PaintMaskState )
+	{
+		// Handle mask painting
+		if( e->buttons() & Qt::LeftButton )
+		{			
+			m_set->paintMask( pt.x(), pt.y(), 23, !(e->modifiers() & Qt::ShiftModifier) );
 			e->accept();
 		}
 	}
@@ -155,15 +170,28 @@ void RenderSetWidget::mouseMoveEvent( QMouseEvent* e )
 	if( e->isAccepted() )
 		return;
 
-	// Handle area editing interaction
-	if( m_set && m_state == PickedVertexState )
+	if( !m_set )
+		return;
+
+	// Normalized coordinates in [-1,-1]-[1,1]
+	QPointF pt = normalizedCoordinates(e->pos());
+	
+	if( m_state == PickedVertexState )
+	{	
+		// Handle area editing interaction
+		pt -= m_delta;
+		if( e->buttons() & Qt::LeftButton )
+		{
+			m_set->setPickedVertexPosition( pt.x(), pt.y() );
+			e->accept();
+		}
+	}
+	else if( m_state == PaintMaskState )
 	{
-		// Normalized coordinates in [-1,-1]-[1,1]
-		QPointF pt = normalizedCoordinates(e->pos()) - m_delta;		
-		
+		// Handle mask painting
 		if( e->buttons() & Qt::LeftButton )
 		{			
-			m_set->setPickedVertexPosition( pt.x(), pt.y() );
+			m_set->paintMask( pt.x(), pt.y(), 23, !(e->modifiers() & Qt::ShiftModifier) );
 			e->accept();
 		}
 	}
@@ -181,6 +209,7 @@ void RenderSetWidget::mouseReleaseEvent( QMouseEvent* e )
 	{
 		if( e->button() == Qt::LeftButton )
 		{
+			m_state = EditVertexState;
 			e->accept();
 		}
 	}
@@ -192,8 +221,10 @@ void RenderSetWidget::showContextMenu( const QPoint& pt )
 	if( !m_set ) return;
 
 	QMenu menu;
-	menu.addAction( toggleFullscreenAction() );
+	menu.addAction( toggleFullscreenAction() );	
 	menu.addSeparator();
+
+#if 0
 	QAction* a1 = menu.addAction( tr("Preview blue&yellow") );
 	QAction* a2 = menu.addAction( tr("Preview black&white") );
 	a1->setCheckable( true );
@@ -205,6 +236,17 @@ void RenderSetWidget::showContextMenu( const QPoint& pt )
 	}
 
 	menu.addSeparator();
+#endif
+
+	QAction* m1 = menu.addAction( tr("Mask edit") );
+	QAction* m2 = menu.addAction( tr("Mask clear white") );
+	QAction* m3 = menu.addAction( tr("Mask clear black") );
+	m1->setCheckable( true );
+	m1->setChecked( m_state == PaintMaskState );
+
+	menu.addSeparator();
+
+
 	QAction* f1 = menu.addAction( tr("Render preview") );
 	QAction* f2 = menu.addAction( tr("Render final") );	
 	QAction* f3 = menu.addAction( tr("Render debug") );	
@@ -214,16 +256,22 @@ void RenderSetWidget::showContextMenu( const QPoint& pt )
 
 	f1->setChecked( m_flags & RenderPreview );
 	f2->setChecked( m_flags & RenderFinal   );
-	f3->setChecked( m_flags & RenderDebug  );
+	f3->setChecked( m_flags & RenderGrid    );
 
 	QAction* selectedItem = menu.exec( mapToGlobal(pt) );	
 	if( selectedItem )
 	{
+#if 0
 		if( selectedItem==a1 ) m_set->setAreaMode( RenderSet::AreaOutline ); else
 		if( selectedItem==a2 ) m_set->setAreaMode( RenderSet::AreaBlackWhite ); else
+#endif
 		if( selectedItem==f1 ) m_flags = RenderPreview; else
 		if( selectedItem==f2 ) m_flags = RenderFinal; else
-		if( selectedItem==f3 ) m_flags = RenderFinal | RenderDebug;
+		if( selectedItem==f3 ) m_flags = RenderFinal | RenderGrid;
+
+		if( selectedItem==m1 ) m_state = m1->isChecked() ? PaintMaskState : EditVertexState;
+		if( selectedItem==m2 ) m_set->clearMask( true );
+		if( selectedItem==m3 ) m_set->clearMask( false );
 	}
 }
 

@@ -28,11 +28,16 @@ class RenderSetWidget : public QGLWidget
 	Q_OBJECT
 
 public:
-	enum InteractionState { DefaultState, PickedVertexState };
+	enum InteractionState { 
+		EditVertexState,
+		PickedVertexState, 
+		PaintMaskState, 
+	};
+
 	enum RenderFlags {
 		RenderPreview = 1,
 		RenderFinal   = 2,
-		RenderDebug   = 4
+		RenderGrid    = 4
 	};
 	
 	/// C'tor

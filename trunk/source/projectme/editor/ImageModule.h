@@ -22,6 +22,13 @@ public:
 	ImageModule();
 
 	bool loadImage( const char* filename );
+	bool createImage( int width, int height );
+
+	///@name Image operations
+	///@{
+	void fillImage( unsigned char R, unsigned char G, unsigned char B, unsigned char A );
+	void paint( int x0, int y0, unsigned char R, unsigned char G, unsigned char B, unsigned char A, int radius );
+	///@}
 
 	///@name ModuleRenderer implementation
 	///@{

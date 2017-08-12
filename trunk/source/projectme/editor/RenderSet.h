@@ -6,6 +6,8 @@
 #include "Geometry.h"
 #include "Module.h"
 
+#include "ImageModule.h" // used internally for mask
+
 #include <vector>
 #include <string>
 #include <sstream>
@@ -116,6 +118,8 @@ public:
 
 	///@name Rendering
 	///@{
+	/// Draw mask
+	void drawMask();
 	/// Draw area and screen outlines
 	void drawOutline() const;	
 	/// Render all attached modules into specified areas
@@ -128,6 +132,12 @@ public:
 	void getPickedVertexPosition( float& x, float& y ) const;
 	void setPickedVertexPosition( float x, float y );
 	void unpick() { m_activeArea=-1; }
+	///@}
+
+	///@name Mask editing
+	///@{
+	void paintMask( float x, float y, float r, bool mask=true );
+	void clearMask( bool mask=true );
 	///@}
 
 	///@name Render options
@@ -170,6 +180,9 @@ private:
 
 	RenderAreaCollection   m_areas;
 	RenderAreaModuleMapper m_mapper;
+
+	RenderArea  m_maskArea; ///< Special screen-sized area for mask
+	ImageModule m_maskImageModule; 
 
 	ModuleManager* m_moduleManager;
 	ProjectMe* m_projectMe;

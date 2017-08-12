@@ -41,5 +41,5 @@ void main(void)
 	
 	color.a *= 3.0;
 	
-	gl_FragColor = color;
+	gl_FragColor = vec4(0.3)+color;
 }
