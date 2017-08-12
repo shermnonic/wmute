@@ -250,12 +250,18 @@ void RenderArea::deserialize( Serializable::PropertyTree& pt )
 //-----------------------------------------------------------------------------
 RenderSet::RenderSet()
 : ModuleRenderer("RenderSet"),
+  m_maskArea( -1.f, -1.f, 1.f, 1.f ), // screen-sized area for mask
   m_moduleManager( NULL ),
   m_projectMe( NULL ),
   m_areaMode( AreaOutline )
 {
 	//addArea( RenderArea(), 0 );
 	setName("RenderSet");
+
+    m_maskImageModule.createImage( 1024, 768 ); // FIXME: Hard-coded 4:3 resolution
+	
+	m_maskImageModule.fillImage( 0,0,0, 255 );
+	m_maskImageModule.paint( 1024/2,768/2, 255,255,255,255, 300 );
 }
 
 //-----------------------------------------------------------------------------
@@ -346,6 +352,31 @@ void RenderSet::setPickedVertexPosition( float x, float y )
 	pt[1] = y;
 }
 
+
+//-----------------------------------------------------------------------------
+void RenderSet::paintMask( float x, float y, float r, bool mask )
+{
+	unsigned char R = mask ? 255 : 0,
+		          G = mask ? 255 : 0,
+				  B = mask ? 255 : 0,
+				  A = 255;
+	m_maskImageModule.paint( 
+		(int)std::floor((x*.5f+.5f)*1024.f), 
+		(int)std::floor((y*.5f+.5f)*768.f),
+		R,G,B,A, (int)std::ceil(r) );
+}
+
+//-----------------------------------------------------------------------------
+void RenderSet::clearMask( bool mask )
+{
+	unsigned char R = mask ? 255 : 0,
+		          G = mask ? 255 : 0,
+				  B = mask ? 255 : 0,
+				  A = 255;
+	m_maskImageModule.fillImage( R,G,B,A );
+}
+
+
 //-----------------------------------------------------------------------------
 void RenderSet::beginRendering() const
 {
@@ -373,6 +404,23 @@ void RenderSet::endRendering() const
 	glPopMatrix();
 	glMatrixMode( GL_MODELVIEW );	
 	glPopAttrib();
+}
+
+//-----------------------------------------------------------------------------
+void RenderSet::drawMask()
+{	
+	beginRendering();
+
+	glColor4f( 1.f, 1.f, 1.f, 1.f );
+	glEnable( GL_TEXTURE_2D );
+	glDisable( GL_DEPTH_TEST );
+	glDisable( GL_BLEND );
+
+	// Render mask alone
+	m_maskImageModule.render();
+	m_maskArea.render( m_maskImageModule.target() );
+
+	endRendering();
 }
 
 //-----------------------------------------------------------------------------
@@ -434,12 +482,13 @@ void RenderSet::render_internal( int texid ) /*const*/
 	glDisable( GL_DEPTH_TEST );
 
 	// Alpha-blending
-	glBlendFunc( GL_FUNC_ADD, GL_FUNC_ADD );
+	glBlendEquation( GL_FUNC_ADD );
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA ); // classical transparency, no pre-multiplied alpha
 	//glBlendFunc( GL_ONE, GL_ONE_MINUS_SRC_ALPHA ); // over-operator
 	glEnable( GL_BLEND );
 
-    for( int i=0; i < (int)m_areas.size(); i++ )
+	// Render mapped areas	
+	for( int i=0; i < (int)m_areas.size(); i++ )
 	{
 		if( texid < 0 )
 		{
@@ -460,6 +509,11 @@ void RenderSet::render_internal( int texid ) /*const*/
 			m_areas[i].render( texid );
 		}
 	}
+
+	// Apply mask
+	glBlendFunc( GL_ZERO, GL_SRC_COLOR ); // multiply color in framebuffer with mask
+	m_maskImageModule.render();
+	m_maskArea.render( m_maskImageModule.target() );
 
 	glDisable( GL_BLEND );
 	glDisable( GL_TEXTURE_2D );
