@@ -5,6 +5,7 @@ using GL::checkGLError;
 #endif
 #include <QImage>
 #include <QColor>
+#include <cmath>
 #include <iostream>
 using std::cerr;
 using std::endl;
@@ -139,9 +140,24 @@ void ImageModule::fillImage( unsigned char R, unsigned char G, unsigned char B, 
 }
 
 //----------------------------------------------------------------------------
+
+float smoothstep( float x, float e0, float e1 )
+{
+    float t = (x-e0)/(e1-e0);
+    if( t>1.f ) t=1.f;
+    if( t<0.f ) t=0.f;
+    return t*t*(3.f-2.f*t);
+}
+
 void ImageModule::paint( int x0, int y0, unsigned char R, unsigned char G, unsigned char B, unsigned char A, int radius )
 {
 	if( radius <= 0 ) return;
+
+    // WORKAROUND: Derive blend mode from R value
+    bool blend = R > 128;
+
+    float r0 = .25f*radius, // inner edge (where smoothing starts)
+          r1 = 1.f*radius; // outer edge (where smoothing approaches 0)
 
 	int r = radius;
 	for( int y = y0-r; y < y0+r; ++y )
@@ -155,13 +171,33 @@ void ImageModule::paint( int x0, int y0, unsigned char R, unsigned char G, unsig
 			if( x < 0 || x >= m_width )
 				continue;
 
-			if( (x-x0)*(x-x0) + (y-y0)*(y-y0) <= r*r )
-			{			
-				m_data[ofs+0] = R;
-				m_data[ofs+1] = G;
-				m_data[ofs+2] = B;
-				m_data[ofs+3] = A;
+            // Smooth edge
+            float tt = (float)( (x-x0)*(x-x0) + (y-y0)*(y-y0) );
+            float alpha = 1.f - smoothstep( tt, r0*r0, r1*r1 );
+
+            unsigned char aR = (unsigned char)std::floor(alpha*R),
+                          aG = (unsigned char)std::floor(alpha*G),
+                          aB = (unsigned char)std::floor(alpha*B);
+
+            if( tt <= r*r )
+            {
+                if( blend )
+                {
+                    // max
+                    m_data[ofs+0] = std::max( aR, m_data[ofs+0] );
+                    m_data[ofs+1] = std::max( aG, m_data[ofs+1] );
+                    m_data[ofs+2] = std::max( aB, m_data[ofs+2] );
+                }
+                else
+                {
+                    // replace
+                    m_data[ofs+0] = aR;
+                    m_data[ofs+1] = aG;
+                    m_data[ofs+2] = aB;
+                }
+                m_data[ofs+3] = A;
 			}
+
 
 			// TODO: Implement smoothing
 		}
