@@ -60,7 +60,7 @@ bool PotentialFromImageModule::loadImage( const char* filename )
 	// Compute gradient
 	float scale = 1.0 / (float)std::max(width,height);
 	float* grad = new float[ width * height * 4 ]; // RGB format
-	memset( (void*)grad, width*height*2*sizeof(float), 0 ); // Zero border / z
+    memset( (void*)grad, 0, width*height*2*sizeof(float) ); // Zero border / z
 	for( int y=1; y < (height-1); y++ )
 		for( int x=1; x < (width-1); x++ )
 		{

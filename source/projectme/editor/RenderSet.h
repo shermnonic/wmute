@@ -138,6 +138,8 @@ public:
 	///@{
 	void paintMask( float x, float y, float r, bool mask=true );
 	void clearMask( bool mask=true );
+    bool loadMask( const char* filename );
+    bool saveMask( const char* filename ) const;
 	///@}
 
 	///@name Render options

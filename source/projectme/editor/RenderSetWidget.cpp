@@ -7,6 +7,7 @@
 #include <QPoint>
 #include <QMessageBox>
 #include <QMouseEvent>
+#include <QFileDialog>
 #include <QDebug>
 
 //=============================================================================
@@ -241,7 +242,9 @@ void RenderSetWidget::showContextMenu( const QPoint& pt )
 	QAction* m1 = menu.addAction( tr("Mask edit") );
 	QAction* m2 = menu.addAction( tr("Mask clear white") );
 	QAction* m3 = menu.addAction( tr("Mask clear black") );
-	m1->setCheckable( true );
+    QAction* m4 = menu.addAction( tr("Load mask") );
+    QAction* m5 = menu.addAction( tr("Save mask") );
+    m1->setCheckable( true );
 	m1->setChecked( m_state == PaintMaskState );
 
 	menu.addSeparator();
@@ -272,6 +275,28 @@ void RenderSetWidget::showContextMenu( const QPoint& pt )
 		if( selectedItem==m1 ) m_state = m1->isChecked() ? PaintMaskState : EditVertexState;
 		if( selectedItem==m2 ) m_set->clearMask( true );
 		if( selectedItem==m3 ) m_set->clearMask( false );
-	}
+        if( selectedItem==m4 )
+        {
+            QString filename = QFileDialog::getOpenFileName( this,
+                tr("Open mask image"), QString(), tr("Images (*.png *.jpg)") );
+
+            if( !filename.isEmpty() )
+            {
+                if( !m_set->loadMask( filename.toStdString().c_str() ) )
+                    qDebug() << "Could not load " << filename << "!";
+            }
+        }
+        if( selectedItem==m5 )
+        {
+            QString filename = QFileDialog::getSaveFileName( this,
+                tr("Save mask image"), QString(), tr("Images (*.png *.jpg)") );
+
+            if( !filename.isEmpty() )
+            {
+                if( !m_set->saveMask( filename.toStdString().c_str() ) )
+                    qDebug() << "Could not save " << filename << "!";
+            }
+        }
+    }
 }
 
