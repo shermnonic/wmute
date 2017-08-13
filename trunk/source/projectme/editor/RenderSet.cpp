@@ -376,6 +376,17 @@ void RenderSet::clearMask( bool mask )
 	m_maskImageModule.fillImage( R,G,B,A );
 }
 
+//-----------------------------------------------------------------------------
+bool RenderSet::loadMask( const char* filename )
+{
+    return m_maskImageModule.loadImage( filename );
+}
+
+//-----------------------------------------------------------------------------
+bool RenderSet::saveMask( const char* filename ) const
+{
+    return m_maskImageModule.saveImage( filename );
+}
 
 //-----------------------------------------------------------------------------
 void RenderSet::beginRendering() const

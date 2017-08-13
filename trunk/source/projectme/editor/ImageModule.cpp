@@ -87,6 +87,41 @@ bool ImageModule::loadImage( const char* filename )
 }
 
 //----------------------------------------------------------------------------
+bool ImageModule::saveImage( const char* filename ) const
+{
+    if( !m_data ) return false;
+
+    // Since RGBA is not supported by Qt we explicitly copy into RGB888
+    // And we have to invert y!
+    unsigned char* buffer = new unsigned char[ m_width*m_height * 3 ];
+    {
+        unsigned char* pdst = buffer;
+        for( int y=0; y < m_height; y++ )
+        {
+            const unsigned char* psrc = m_data + m_width*(m_height-y-1)*4;
+            for( int x=0; x < m_width; x++ )
+            {
+                (*pdst++) = (*psrc++); // R
+                (*pdst++) = (*psrc++); // G
+                (*pdst++) = (*psrc++); // B
+                psrc++; // A
+            }
+        }
+    }
+
+    // Save via QImage
+    // (own scope to guarantee buffer stays valid during lifetime of img)
+    bool success = false;
+    {
+        QImage img( buffer, m_width, m_height, QImage::Format_RGB888 );
+        success = img.save( filename );
+    }
+
+    delete [] buffer;
+    return success;
+}
+
+//----------------------------------------------------------------------------
 void ImageModule::fillImage( unsigned char R, unsigned char G, unsigned char B, unsigned char A )
 {
 	if( !m_data ) return;
@@ -200,7 +235,7 @@ void ImageModule::deserialize( Serializable::PropertyTree& pt )
 	std::string filename = pt.get( "ImageModule.Texture.Filename", "" );
 	if( !filename.empty() )
 	{
-		if( !loadImage( filename.c_str() ) )
+        if( !loadImage( filename.c_str() ) )
 		{
 			cerr << "ImageModule::deserialize : "
 				"Could not load texture \"" << filename << "\"!" << endl;

@@ -31,7 +31,7 @@ public:
 	enum InteractionState { 
 		EditVertexState,
 		PickedVertexState, 
-		PaintMaskState, 
+        PaintMaskState
 	};
 
 	enum RenderFlags {

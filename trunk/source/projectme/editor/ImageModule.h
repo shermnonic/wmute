@@ -23,6 +23,7 @@ public:
 
 	bool loadImage( const char* filename );
 	bool createImage( int width, int height );
+    bool saveImage( const char* filename ) const;
 
 	///@name Image operations
 	///@{
