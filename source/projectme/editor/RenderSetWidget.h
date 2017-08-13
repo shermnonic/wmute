@@ -13,6 +13,7 @@
 //=============================================================================
 
 class QMouseEvent;
+class QWheelEvent;
 class RenderSet;
 class QTimer;
 class QAction;
@@ -71,6 +72,7 @@ protected:
 	virtual void mousePressEvent  ( QMouseEvent* e );
 	virtual void mouseReleaseEvent( QMouseEvent* e );
 	virtual void mouseMoveEvent   ( QMouseEvent* e );
+    virtual void wheelEvent( QWheelEvent* e );
 	///@}
 
 private:
@@ -81,6 +83,7 @@ private:
 	bool       m_fullscreen;
 	QAction*   m_actFullscreen;
 	FrameCounter m_fps;
+    int        m_maskRadius;
 };
 
 #endif // RENDERSETWIDGET_H

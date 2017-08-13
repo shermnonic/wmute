@@ -7,6 +7,7 @@
 #include <QPoint>
 #include <QMessageBox>
 #include <QMouseEvent>
+#include <QWheelEvent>
 #include <QFileDialog>
 #include <QDebug>
 
@@ -20,7 +21,8 @@ RenderSetWidget::RenderSetWidget( QWidget *parent, QGLWidget *share )
   m_set( 0 ),  
   m_state( EditVertexState ),
   m_flags( RenderPreview ),
-  m_fullscreen( false )
+  m_fullscreen( false ),
+  m_maskRadius( 23 )
 {
 	// Actions
 	m_actFullscreen = new QAction(tr("Toggle fullscreen"),this);
@@ -158,7 +160,7 @@ void RenderSetWidget::mousePressEvent( QMouseEvent* e )
 		// Handle mask painting
 		if( e->buttons() & Qt::LeftButton )
 		{			
-			m_set->paintMask( pt.x(), pt.y(), 23, !(e->modifiers() & Qt::ShiftModifier) );
+            m_set->paintMask( pt.x(), pt.y(), m_maskRadius, !(e->modifiers() & Qt::ShiftModifier) );
 			e->accept();
 		}
 	}
@@ -192,7 +194,7 @@ void RenderSetWidget::mouseMoveEvent( QMouseEvent* e )
 		// Handle mask painting
 		if( e->buttons() & Qt::LeftButton )
 		{			
-			m_set->paintMask( pt.x(), pt.y(), 23, !(e->modifiers() & Qt::ShiftModifier) );
+            m_set->paintMask( pt.x(), pt.y(), m_maskRadius, !(e->modifiers() & Qt::ShiftModifier) );
 			e->accept();
 		}
 	}
@@ -214,6 +216,26 @@ void RenderSetWidget::mouseReleaseEvent( QMouseEvent* e )
 			e->accept();
 		}
 	}
+}
+
+//-----------------------------------------------------------------------------
+void RenderSetWidget::wheelEvent( QWheelEvent* e )
+{
+    // from the Qt doc
+    int numDegrees = e->delta() / 8;
+    int numSteps = numDegrees / 15;
+
+    if( m_set )
+    {
+        if( m_state == PaintMaskState )
+        {
+            m_maskRadius += numSteps;
+            if( m_maskRadius < 5 ) m_maskRadius = 5;
+            if( m_maskRadius > 300 ) m_maskRadius = 300;
+        }
+    }
+
+    e->accept();
 }
 
 //-----------------------------------------------------------------------------
