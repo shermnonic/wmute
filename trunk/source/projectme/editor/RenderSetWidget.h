@@ -84,6 +84,7 @@ private:
 	QAction*   m_actFullscreen;
 	FrameCounter m_fps;
     int        m_maskRadius;
+	QPointF    m_cursorPos;
 };
 
 #endif // RENDERSETWIDGET_H

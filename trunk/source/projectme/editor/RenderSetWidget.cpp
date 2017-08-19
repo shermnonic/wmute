@@ -22,7 +22,8 @@ RenderSetWidget::RenderSetWidget( QWidget *parent, QGLWidget *share )
   m_state( EditVertexState ),
   m_flags( RenderPreview ),
   m_fullscreen( false ),
-  m_maskRadius( 23 )
+  m_maskRadius( 23 ),
+  m_cursorPos( 0.,0. )
 {
 	// Actions
 	m_actFullscreen = new QAction(tr("Toggle fullscreen"),this);
@@ -43,6 +44,8 @@ RenderSetWidget::RenderSetWidget( QWidget *parent, QGLWidget *share )
 	// DEBUG
 	qDebug() << "The newly created RenderSetWidget" << 
 		(isSharing() ? "is sharing!" : "is *not* sharing?!");
+
+	setMouseTracking( true );
 }
 
 //-----------------------------------------------------------------------------
@@ -96,6 +99,11 @@ void RenderSetWidget::paintGL()
 			m_set->drawOutline();
 		}
 	}
+
+	if( m_state == PaintMaskState )
+	{
+		m_set->drawMaskMarker( m_cursorPos.x(), m_cursorPos.y(), m_maskRadius/1024.f, m_maskRadius/768.f );
+	}
 	
 	float fps = m_fps.measure();
 	setWindowTitle(tr("Renderer - %1 FPS").arg((unsigned)fps));
@@ -134,6 +142,7 @@ void RenderSetWidget::mousePressEvent( QMouseEvent* e )
 
 	// Normalized coordinates in [-1,-1]-[1,1]
 	QPointF pt = normalizedCoordinates( e->posF() );
+	m_cursorPos = pt;
 	
 	if( m_state == EditVertexState )
 	{
@@ -178,6 +187,7 @@ void RenderSetWidget::mouseMoveEvent( QMouseEvent* e )
 
 	// Normalized coordinates in [-1,-1]-[1,1]
 	QPointF pt = normalizedCoordinates(e->pos());
+	m_cursorPos = pt;
 	
 	if( m_state == PickedVertexState )
 	{	

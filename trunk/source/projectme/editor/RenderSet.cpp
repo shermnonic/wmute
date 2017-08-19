@@ -434,6 +434,30 @@ void RenderSet::drawMask()
 	endRendering();
 }
 
+
+//-----------------------------------------------------------------------------
+void RenderSet::drawMaskMarker( float x, float y, float radiusx, float radiusy )
+{	
+	beginRendering();
+
+	glColor4f( 1.f, 1.f, 0.f, 1.f );
+	glDisable( GL_TEXTURE_2D );
+	glDisable( GL_DEPTH_TEST );
+	//glEnable( GL_BLEND );
+
+	// Render marker
+	glLineWidth( (GLfloat)1.5 );
+	glBegin( GL_LINE_LOOP );
+	for( unsigned i=0; i < 36; ++i )
+	{
+		float t = 2.f*3.1415f*(float)i/36.f;
+		glVertex2f( x + cos(t)*radiusx, y + sin(t)*radiusy );
+	}
+	glEnd();
+
+	endRendering();
+}
+
 //-----------------------------------------------------------------------------
 void RenderSet::drawOutline() const
 {	
