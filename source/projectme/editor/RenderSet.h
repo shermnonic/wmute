@@ -120,6 +120,8 @@ public:
 	///@{
 	/// Draw mask
 	void drawMask();
+	/// Draw mask marker at position (x,y) with given mask radius
+	void drawMaskMarker( float x, float y, float radiusx, float radiusy );
 	/// Draw area and screen outlines
 	void drawOutline() const;	
 	/// Render all attached modules into specified areas
