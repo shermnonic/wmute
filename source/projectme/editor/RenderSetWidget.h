@@ -85,6 +85,7 @@ private:
 	FrameCounter m_fps;
     int        m_maskRadius;
 	QPointF    m_cursorPos;
+	int        m_rotScreen;
 };
 
 #endif // RENDERSETWIDGET_H

@@ -23,7 +23,8 @@ RenderSetWidget::RenderSetWidget( QWidget *parent, QGLWidget *share )
   m_flags( RenderPreview ),
   m_fullscreen( false ),
   m_maskRadius( 23 ),
-  m_cursorPos( 0.,0. )
+  m_cursorPos( 0.,0. ),
+  m_rotScreen( 0 )
 {
 	// Actions
 	m_actFullscreen = new QAction(tr("Toggle fullscreen"),this);
@@ -58,6 +59,9 @@ void RenderSetWidget::initializeGL()
 //-----------------------------------------------------------------------------
 void RenderSetWidget::resizeGL( int w, int h )
 {
+	//if( m_rotScreen % 2 == 1 )
+	//	std::swap( w, h );
+
 	// Set some default projection matrix. 
 	// Note that this may be overidden in the render() call!
 	float aspect = (float)w/h,
@@ -71,6 +75,8 @@ void RenderSetWidget::resizeGL( int w, int h )
 	gluPerspective( fov, aspect, znear, zfar );
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
+	if( m_rotScreen > 0 )
+		glRotatef( (GLfloat)m_rotScreen*90, (GLfloat)0,(GLfloat)0,(GLfloat)1 );
 }
 
 //-----------------------------------------------------------------------------
@@ -125,9 +131,19 @@ void RenderSetWidget::toggleFullscreen( bool enabled )
 //-----------------------------------------------------------------------------
 QPointF RenderSetWidget::normalizedCoordinates( QPointF pos )
 {
-	return QPointF( 
-		2.f * pos.x() / width () - 1.f,
-		2.f * (height()-pos.y()) / height() - 1.f );  // invert y-axis
+	float x = pos.x() / width(),
+		  y = (height()-pos.y()) / height(); // invert y-axis
+
+	QPointF pt( 2.f*x - 1.f, 2.f*y - 1.f );
+
+	if( m_rotScreen==1 ) // 90°
+		pt = QPointF(pt.y(),2.-(pt.x()+1.)-1.);
+	else if( m_rotScreen==2 ) // 180°
+		pt = QPointF(-pt.x(),-pt.y());
+	else if( m_rotScreen==3 ) // 270°
+		pt = QPointF(-pt.y(),pt.x());
+
+	return pt;
 }
 
 //-----------------------------------------------------------------------------
@@ -293,6 +309,10 @@ void RenderSetWidget::showContextMenu( const QPoint& pt )
 	f2->setChecked( m_flags & RenderFinal   );
 	f3->setChecked( m_flags & RenderGrid    );
 
+	menu.addSeparator();
+
+	QAction* r1 = menu.addAction( tr("Rotate screen") );
+
 	QAction* selectedItem = menu.exec( mapToGlobal(pt) );	
 	if( selectedItem )
 	{
@@ -329,6 +349,15 @@ void RenderSetWidget::showContextMenu( const QPoint& pt )
                     qDebug() << "Could not save " << filename << "!";
             }
         }
+
+		if( selectedItem==r1 )
+		{
+			m_rotScreen = (m_rotScreen+1)%4;
+			if( m_rotScreen%2 )
+				this->resize( 480, 640 );
+			else
+				this->resize( 640, 480 );
+		}
     }
 }
 
