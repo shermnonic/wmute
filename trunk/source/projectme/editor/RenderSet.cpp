@@ -402,7 +402,7 @@ void RenderSet::beginRendering() const
 	glMatrixMode( GL_PROJECTION );
 	glLoadIdentity();
 	glOrtho( -1,1, -1,1, -10,10 );
-	glMatrixMode( GL_MODELVIEW );	
+	glMatrixMode( GL_MODELVIEW );
 }
 
 //-----------------------------------------------------------------------------
