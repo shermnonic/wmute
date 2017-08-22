@@ -5,8 +5,9 @@ uniform sampler2D sprite;
 uniform vec3 targetSize;
 
 in vec2 lifetime;
+in float vertexid;
 
-float blendDuration = 0.23; //###
+float blendDuration = 0.25; //###
 
 void main(void)
 {  	
@@ -21,11 +22,13 @@ void main(void)
 		color = gl_Color;
 	
 	// Blend in/out
+    float alpha = 1.0;    
 	if( blendDuration > 0.0 )
 	{
 		float blendIn  = smoothstep( 0.0, blendDuration, lifetime.x );
 		float blendOut = smoothstep( 0.0, blendDuration, lifetime.y );	
 		color.a = min(color.a, blendIn*blendOut);
+        alpha = blendIn*blendOut;
 	}
 
   #if 0
@@ -41,5 +44,7 @@ void main(void)
 	
 	color.a *= 3.0;
 	
-	gl_FragColor = vec4(0.3)+color;
+	gl_FragColor = //alpha*vec4(1.0,lifetime.x,lifetime.y,1.0) + color;
+                   alpha*vec4(0.3)+color;
+                   //vec4( lifetime.x, lifetime.y, 0.0, 1.0 ); // DEBUG
 }
