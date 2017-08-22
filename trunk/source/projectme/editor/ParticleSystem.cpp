@@ -87,8 +87,8 @@ void ParticleSystem::setup()
 void ParticleSystem::reseed()
 {
 	killAllParticles();
-	//seedParticlePositions();
-	//seedParticleVelocities();	
+	seedParticlePositions();
+	seedParticleVelocities();	
 	//setSyntheticForceField();
 }
 
@@ -445,6 +445,9 @@ void ParticleSystem::advectParticles()
 	checkGLError("ParticleSystem::advectParticles() : After shader->bind()");
 
 	// Set shader uniforms / samplers	
+	GLint iSize  = m_advectShader->getUniformLocation("iSize");
+	glUniform3f( iSize, m_width,m_height,0.f );
+
 	GLint iPos   = m_advectShader->getUniformLocation("iPos");
 	GLint iVel   = m_advectShader->getUniformLocation("iVel");
 	GLint iForce = m_advectShader->getUniformLocation("iForce");
