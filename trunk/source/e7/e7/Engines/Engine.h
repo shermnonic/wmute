@@ -36,6 +36,8 @@ public:
 	virtual int getMouseY() { return -1; }
 
 	virtual void setFrequentUpdate( bool ) {}
+
+	virtual void setFullscreen( bool enable ) {};
 	
 protected:
 	virtual void onKeyPressed( unsigned char key ) {};

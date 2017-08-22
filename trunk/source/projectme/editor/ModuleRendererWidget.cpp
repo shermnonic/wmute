@@ -93,6 +93,9 @@ void ModuleRendererWidget::paintGL()
 	glColor4f( 1.f, 1.f, 1.f, 1.f );
 	glEnable( GL_TEXTURE_2D );
 	glBindTexture( GL_TEXTURE_2D, texid );
+
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA ); // classical transparency, no pre-multiplied alpha
+	glEnable( GL_BLEND );
 	
 	glBegin( GL_QUADS );
 	for( int i=0; i < 4; i++ )
@@ -102,6 +105,8 @@ void ModuleRendererWidget::paintGL()
 	}
 	glEnd();
 	
+	glDisable( GL_BLEND );
+
 	glDisable( GL_TEXTURE_2D );
 	
 	// FIXME: Code duplication from RenderSet::endRendering()!

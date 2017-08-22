@@ -109,6 +109,35 @@ void EngineGLUT::reshape ( int w, int h )
 }
 
 //------------------------------------------------------------------------------
+// 	setFullscreen()
+//------------------------------------------------------------------------------
+void EngineGLUT::setFullscreen( bool enable )
+{
+	static bool fullscreen = false; // we always start windowed
+	static int windowed_width = -1;
+	static int windowed_height = -1;
+	static int screen_pos_x = -1;
+	static int screen_pos_y = -1;
+
+	if( enable == fullscreen ) return;
+
+	if( enable )
+	{
+		windowed_width  = m_winWidth;
+		windowed_height = m_winHeight;
+		screen_pos_x = glutGet((GLenum)GLUT_WINDOW_X);
+		screen_pos_y = glutGet((GLenum)GLUT_WINDOW_Y);
+		glutFullScreen();		
+	}
+	else
+	{
+		glutPositionWindow(screen_pos_x,screen_pos_y);
+		glutReshapeWindow(windowed_width, windowed_height);
+	}
+	fullscreen = enable;	
+}
+
+//------------------------------------------------------------------------------
 // 	screenshot()
 //------------------------------------------------------------------------------
 void EngineGLUT::screenshot( std::string prefix, int width, int height )

@@ -645,7 +645,7 @@ meshtools::Mesh* MeshBuffer::createMesh( int frame ) const
 		m->add_face( fvhandle );
 	}
 
-#if 0
+#if 1
 	// FIXME: Avoid recomputation and copy existing normals
 	meshtools::updateMeshVertexNormals( m );
 #else

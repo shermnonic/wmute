@@ -84,7 +84,7 @@ void main(void)
 #if 1
 	// Apply transfer function to scalar value
 	if( mapScalars )
-	#if 1
+	#if 0
 	{
 		diffuse.rgb = texture1D( lookup, scalarScale*(vScalarFlat+scalarShift) ).rgb;
 	}
@@ -110,7 +110,7 @@ void main(void)
 	
 	// Custom selection shading based on vertex color
 	if( vSelection > .5 )
-		diffuse.rgb = vec3(0.0,1.0,0.0);
+		diffuse.rgb = vec3(1.0,1.0,0.0);
 #endif
 
 	// Phong shading
@@ -118,8 +118,8 @@ void main(void)
 		phong( normal, viewDir, lightDir,
 				ambient.rgb, diffuse.rgb, specular.rgb, shininess );
 	
-	float foo = (vVertex.z + 35.0) / 64.0;
-	shading *= smoothstep(0.6,0.7,foo); ///foo; //smoothstep(0.0,0.06,foo);
+	//float foo = (vVertex.z + 35.0) / 64.0;
+	//shading *= smoothstep(0.6,0.7,foo); ///foo; //smoothstep(0.0,0.06,foo);
 
 	gl_FragColor = vec4( shading, 1.0 );
 
