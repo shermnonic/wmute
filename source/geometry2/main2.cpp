@@ -27,6 +27,8 @@ Keys:\n\
 	1    Icosahedron            \n\
 	2    Penrose tiling         \n\
 	3    Superquadric           \n\
+	4    Spherical harmonics    \n\
+	5    SHF                    \n\
 	\n\
 	w    wireframe				\n\
 	s    shade model			\n\
@@ -43,6 +45,7 @@ Keys:\n\
 	y/Y  adjust parameter 2		\n\
 	\n\
 	,/.  adjust subdivision level \n\
+	d    dual mesh              \n\
 	\n\
 	O    export OBJ				\n\
 	p    export Postscript		\n\

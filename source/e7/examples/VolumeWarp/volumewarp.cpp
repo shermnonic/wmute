@@ -257,6 +257,7 @@ void Raycaster::makeMovie()
 void Raycaster::onKeyPressed( unsigned char key )
 {
 	static float ews = 0.f;
+	static bool fullscreen = false;
 
 	RaycastShader& rs = m_vren.getRaycastShader();
 
@@ -331,6 +332,8 @@ void Raycaster::onKeyPressed( unsigned char key )
 
 	case '(': m_vren.changeTextureSize( 256, 256 ); break;
 	case ')': m_vren.changeTextureSize( 512, 512 ); break;
+
+	case 'F': fullscreen = !fullscreen; setFullscreen(fullscreen); break;
 	
 	case 27: exit(0);
 	}

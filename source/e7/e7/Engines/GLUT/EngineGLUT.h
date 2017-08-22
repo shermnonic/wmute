@@ -44,6 +44,8 @@ protected:
 
 	void screenshot( std::string prefix="screenshot-", int width=-1, int height=-1 );
 
+	void setFullscreen( bool enable );
+
 	TrackballState getTrackballState() const { return m_trackball.getState(); }
 	void setTrackballState( TrackballState s ) { m_trackball.setState(s); }
 
