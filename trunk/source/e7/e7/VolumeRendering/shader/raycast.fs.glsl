@@ -355,11 +355,18 @@ void main(void)
 
 			vec3 n = get_normal(ray_in+ray);			
 		
-	#if SILHOUETTE == 1
+	#if SILHOUETTE == 1    
+          #if 1
+            float d = abs(dot(n,-dir));
+            d = floor(10.0*d)/10.0;
+            dst.rgb = smoothstep(vec3(0.3),vec3(0.7),vec3(d));
+            dst.rgb = mix(dst.rgb,vec3(0.0,0.0,0.1),pow(length(ray),2.0));
+          #else
 			if( abs(dot(n,-dir)) < 0.6 )
 				dst.rgb = vec3(0,0,0);
 			else
 				dst.rgb = vec3(1,1,1);
+          #endif
 	#else
 		#if WARP == 1
 			//~ float wlen = clamp( length( get_warp(ray_in+ray) * 25.0 ), 0.0, 1.0 );
@@ -401,7 +408,7 @@ void main(void)
 		}
 #else
 		vec4 src = intensity; 
-			//vec4(texture3D( voltex, ray_in + ray ).rgb, intensity);
+            //vec4(texture3D( voltex, ray_in + ray ).rgb, intensity);
 		src.a *= alpha_scale;
 
   #if MIP == 1
