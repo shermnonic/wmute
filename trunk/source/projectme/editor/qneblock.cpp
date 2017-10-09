@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include "qneport.h"
 
 QNEBlock::QNEBlock(QGraphicsItem *parent, QGraphicsScene *scene) 
-	: QGraphicsPathItem(parent, scene),
+	: QGraphicsPathItem(parent), //, scene),
 	  deletable( true )
 {
 	QPainterPath p;
@@ -51,6 +51,8 @@ QNEBlock::QNEBlock(QGraphicsItem *parent, QGraphicsScene *scene)
 	vertMargin = 5;
 	width = horzMargin;
 	height = vertMargin;
+	if (scene)
+		scene->addItem(this);
 }
 
 QNEPort* QNEBlock::addPort(const QString &name, bool isOutput, int flags, int ptr)
@@ -62,20 +64,26 @@ QNEPort* QNEBlock::addPort(const QString &name, bool isOutput, int flags, int pt
 	port->setPortFlags(flags);
 	port->setPtr(ptr);
 
-	QFontMetrics fm(scene()->font());
-	int w = fm.width(name);
-	int h = fm.height();
-	// port->setPos(0, height + h/2);
-	if (w > width - horzMargin)
-		width = w + horzMargin;
-	height += h;
+
+	int w = 200;
+	int h = 12;
+	if (scene())
+	{
+		QFontMetrics fm(scene()->font());
+		w = fm.width(name);
+		h = fm.height();
+		// port->setPos(0, height + h/2);
+		if (w > width - horzMargin)
+			width = w + horzMargin;
+		height += h;
+	}
 
 	QPainterPath p;
 	p.addRoundedRect(-width/2, -height/2, width, height, 5, 5);
 	setPath(p);
 
 	int y = -height / 2 + vertMargin + port->radius();
-	foreach(QGraphicsItem *port_, children()) {
+	foreach(QGraphicsItem *port_, childItems()) {
 		if (port_->type() != QNEPort::Type)
 			continue;
 
@@ -118,7 +126,7 @@ void QNEBlock::save(QDataStream &ds)
 
 	int count(0);
 
-	foreach(QGraphicsItem *port_, children())
+	foreach(QGraphicsItem *port_, childItems())
 	{
 		if (port_->type() != QNEPort::Type)
 			continue;
@@ -128,7 +136,7 @@ void QNEBlock::save(QDataStream &ds)
 
 	ds << count;
 
-	foreach(QGraphicsItem *port_, children())
+	foreach(QGraphicsItem *port_, childItems())
 	{
 		if (port_->type() != QNEPort::Type)
 			continue;

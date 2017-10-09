@@ -48,7 +48,7 @@ private:
 	bool    m_initialized;
 	bool    m_deviceInitialized;
 	int     m_mode;
-	void*   m_streamPtr; // WORKAROUND to no use DWORD to avoid inclusion of bass.h here in header
+	void*   m_streamPtr; // WORKAROUND to not use DWORD to avoid inclusion of bass.h here in header
 	// was: DWORD m_stream; // recording channel (HRECORD) or file stream (HSTREAM)
 	bool    m_pause;
 	float   m_fft[512];

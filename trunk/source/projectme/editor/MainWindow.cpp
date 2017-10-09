@@ -23,12 +23,22 @@
 #include "VideoModule.h"
 #endif
 
-#include <QtGui> // FIXME: Include only required Qt classes
+#include <QDebug>
+#include <QSignalMapper>
+#include <QSettings>
 #include <QTabWidget>
 #include <QGLWidget>
 #include <QDockWidget>
 #include <QTimer>
 #include <QApplication>
+#include <QMessageBox> 
+#include <QFileDialog> 
+#include <QStatusBar>
+#include <QInputDialog>
+#include <QAction>
+#include <QMenuBar>
+#include <QMenu>
+#include <QScrollArea>
 
 const QString APP_NAME        ( "projectme" );
 const QString APP_ORGANIZATION( "www.386dx25.de" );
@@ -377,8 +387,9 @@ QDockWidget* createLogDock( QWidget* parent )
 	te->setTextInteractionFlags( Qt::TextBrowserInteraction );
 	te->setWindowTitle(parent->tr("Log"));
     te->setLineWrapMode( QTextEdit::NoWrap );
-    te->setFontFamily( "Courier" );
-    te->setFontPointSize( 9 );
+    
+	QFont sansFont( "Consolas", 8 );
+	te->setFont( sansFont );
 
 	// TODO: Somehow consider also stream output before QTextEdit was created.
 	//       E.g. at program start one could redirect cout/cerr to another 
@@ -596,30 +607,35 @@ void MainWindow::destroy()
 	if( destroyed ) return;
 
 	// Avoid any GL render calls
-	m_moduleRendererWidget->setUpdatesEnabled( false );
-	m_moduleRendererWidget->setEnabled( false );
-	disconnect( m_moduleWidget );
-	m_sharedGLWidget->setRenderUpdateEnabled( false ); // Stop timer update
-	m_sharedGLWidget->setUpdatesEnabled( false ); // Prohibit updateGL() calls
-    //qApp->processEvents();
+	m_sharedGLWidget->setRenderUpdateEnabled(false); // Stop timer update
+	m_sharedGLWidget->setUpdatesEnabled(false); // Prohibit updateGL() calls
+	m_moduleRendererWidget->setUpdatesEnabled(false);
+	m_moduleRendererWidget->setEnabled(false);
+	disconnect(m_moduleWidget);
 
-	// Destroy OpenGL resources
-	m_sharedGLWidget->makeCurrent(); // Get OpenGL context
+	// Detach preview rendering
+	for( auto preview : m_previews )
+	{
+		preview->setRenderSet( nullptr );
+		preview->setRenderUpdateEnabled( false );
+	}
+	m_previews.clear();
 
 	// Close screens
-	for( int i=0; i < m_screens.size(); i++ )
+	for (auto screen : m_screens)
 	{
-		if( m_screens[i] )
-			m_screens[i]->close();
+		screen->setRenderSet(nullptr);
+		screen->setRenderUpdateEnabled(false);
+		screen->close();
 	}
 	m_screens.clear();
 
-	// Destroy tabbed windows
-	// TODO: Check if tab widgets are destroyed corectly automatically.
-
-	m_sharedGLWidget->makeCurrent(); // Get OpenGL context
+	// Destroy OpenGL resources
+	m_sharedGLWidget->makeCurrent();
 	m_projectMe.clear();
 
+	// Destroy tabbed windows
+	// TODO: Check if tab widgets are destroyed corectly automatically.
 	destroyed = true;
 }
 
@@ -749,8 +765,8 @@ void MainWindow::closeTab( int index )
 	if( renderer )
 		m_previews.removeAll( renderer );
 
-	if( editor )
-		; // TODO: Verify close of unsaved shader via dialog.
+	//if( editor )
+	//	; // TODO: Verify close of unsaved shader via dialog.
 
 	// Close widget
 	m_mainTabWidget->removeTab( index );
