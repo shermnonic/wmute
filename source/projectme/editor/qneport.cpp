@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include "qneconnection.h"
 
 QNEPort::QNEPort(QGraphicsItem *parent, QGraphicsScene *scene):
-	QGraphicsPathItem(parent, scene)
+	QGraphicsPathItem(parent) //, scene)
 {
 	label = new QGraphicsTextItem(this);
 
@@ -78,9 +78,6 @@ void QNEPort::setIsOutput(bool o)
 {
 	isOutput_ = o;
 
-	QFontMetrics fm(scene()->font());
-	QRect r = fm.boundingRect(name);
-
 	if (isOutput_)
 		label->setPos(-radius_ - margin - label->boundingRect().width(), -label->boundingRect().height()/2);
 	else
@@ -105,6 +102,7 @@ QVector<QNEConnection*>& QNEPort::connections()
 void QNEPort::setPortFlags(int f)
 {
 	m_portFlags = f;
+	if (!scene()) return;
 
 	if (m_portFlags & TypePort)
 	{

@@ -47,6 +47,8 @@ public:
 	/// Set RenderSet, pointer must stay valid while it is assigned here!
 	void setRenderSet( RenderSet* set ) { m_set = set; }	
 
+	void setRenderUpdateEnabled( bool b );
+
 	///@name Fullscreen
 	///@{
 	QAction* toggleFullscreenAction() { return m_actFullscreen; }

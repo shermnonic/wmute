@@ -1,6 +1,6 @@
 # projectme - Simple projection mapping engine.
 # Max Hermann, Jul 2014
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 2.8.11)
 project(projectme)
 
 # Common CMake macros (e.g. wintermuteExportLibrary)
@@ -11,6 +11,10 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/WintermuteCommon.cmake)
 # User variables
 set( PROJECTME_USE_BASS "TRUE" CACHE BOOL 
 		"Enable audio support via BASS library." )
+        
+set( PROJECTME_USE_VLC "FALSE" CACHE BOOL 
+		"Enable video playback support via libVLC." )
+        
 		
 if( PROJECTME_USE_BASS )
 	message( STATUS "BASS enabled." )
@@ -53,15 +57,19 @@ include_directories(
 #-------------------
 # libVLC (optional, required for video playback)
 #-------------------
-find_package(LIBVLC)
-if( LIBVLC_FOUND )
-    include_directories( ${LIBVLC_INCLUDE_DIR} )
-    add_definitions( -DUSE_LIBVLC )
-    message(STATUS "libVLC enabled")
-    set( PROJECTME_USE_LIBVLC "TRUE" )
-else()
-    set( PROJECTME_USE_LIBVLC "FALSE" )
+if( PROJECTME_USE_VLC )
+    find_package(LIBVLC)
+    if( LIBVLC_FOUND )
+        include_directories( ${LIBVLC_INCLUDE_DIR} )
+        add_definitions( -DUSE_LIBVLC )
+        message(STATUS "libVLC enabled")
+        set( PROJECTME_USE_LIBVLC "TRUE" )
+    else()
+        message(STATUS "libVLC could not be found!")
+        set( PROJECTME_USE_LIBVLC "FALSE" )
+    endif()
 endif()
+message(STATUS "LIBVLC_LIBRARY=${LIBVLC_LIBRARY}")
 
 #---------------------------------------------------------
 # Boost (e.g. filesystem dependency in included libraries)
@@ -82,14 +90,23 @@ message(STATUS "Boost_LIBRARY_DIRS=${Boost_LIBRARY_DIRS}")
 message(STATUS "BOOST_LIBRARYDIR=${BOOST_LIBRARYDIR}")
 include_directories(${Boost_INCLUDE_DIR})
 
+#~ #-------------------
+#~ # Qt4
+#~ #-------------------
+#~ find_package(Qt4 COMPONENTS QtCore QtGui QtOpenGL QtXml) # REQUIRED
+#~ include(${QT_USE_FILE})
+#~ if( QT_FOUND )
+#~ 	message(STATUS "Qt4 found")
+#~ endif()
+
 #-------------------
-# Qt4
+# Qt5
 #-------------------
-find_package(Qt4 COMPONENTS QtCore QtGui QtOpenGL QtXml) # REQUIRED
-include(${QT_USE_FILE})
-if( QT_FOUND )
-	message(STATUS "Qt4 found")
-endif()
+find_package(Qt5Widgets)
+find_package(Qt5OpenGL)
+# Instruct CMake to run moc automatically when needed.
+set(CMAKE_AUTOMOC ON)
+
 
 #-------------------
 # OpenGL, GLEW

@@ -33,13 +33,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include <QApplication>
 #include <QPalette>
 
-QNEConnection::QNEConnection(QGraphicsItem *parent, QGraphicsScene *scene) : QGraphicsPathItem(parent, scene)
+QNEConnection::QNEConnection(QGraphicsItem *parent, QGraphicsScene *scene) : QGraphicsPathItem(parent) //, scene)
 {
 	setPen(QPen(qApp->palette().color(QPalette::Text), 2));
 	setBrush(Qt::NoBrush);
 	setZValue(-1);
 	m_port1 = 0;
 	m_port2 = 0;
+	if (scene) 
+		scene->addItem(this);
 }
 
 QNEConnection::~QNEConnection()

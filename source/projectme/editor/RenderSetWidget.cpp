@@ -50,6 +50,16 @@ RenderSetWidget::RenderSetWidget( QWidget *parent, QGLWidget *share )
 }
 
 //-----------------------------------------------------------------------------
+void RenderSetWidget::setRenderUpdateEnabled( bool b )
+{
+	if (!b)
+		m_renderUpdateTimer->stop();
+	else
+		if (!m_renderUpdateTimer->isActive())
+			m_renderUpdateTimer->start(42);
+}
+
+//-----------------------------------------------------------------------------
 void RenderSetWidget::initializeGL()
 {
 	// The context should already be initialized correctly by the master
@@ -104,11 +114,11 @@ void RenderSetWidget::paintGL()
 			m_set->drawMask();
 			m_set->drawOutline();
 		}
-	}
 
-	if( m_state == PaintMaskState )
-	{
-		m_set->drawMaskMarker( m_cursorPos.x(), m_cursorPos.y(), m_maskRadius/1024.f, m_maskRadius/768.f );
+		if (m_state == PaintMaskState)
+		{
+			m_set->drawMaskMarker(m_cursorPos.x(), m_cursorPos.y(), m_maskRadius / 1024.f, m_maskRadius / 768.f);
+		}
 	}
 	
 	float fps = m_fps.measure();
@@ -157,7 +167,7 @@ void RenderSetWidget::mousePressEvent( QMouseEvent* e )
 		return;
 
 	// Normalized coordinates in [-1,-1]-[1,1]
-	QPointF pt = normalizedCoordinates( e->posF() );
+	QPointF pt = normalizedCoordinates( e->localPos() );
 	m_cursorPos = pt;
 	
 	if( m_state == EditVertexState )
